@@ -1,0 +1,3 @@
+paceOptions = {
+    elements: true
+};

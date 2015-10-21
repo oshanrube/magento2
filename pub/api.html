@@ -1,0 +1,21 @@
+<script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+<button onclick="post()">
+    Post
+</button>
+<script>
+    function post() {
+        $.ajax({
+            type: "POST",
+            url: 'http://fedora-server/grocery_bag/magento2/rest/default/V1/categories',
+            data: '{"category":{"parentId":2,"name":"Beauty Counter","isActive":true,"position":0,"includeInMenu":true}}',
+            success: function () {
+                console.log('done');
+            },
+            dataType: "json",
+            contentType: "application/json",
+            headers: {
+                Accept: "application/json"
+            }
+        });
+    }
+</script>

@@ -1,0 +1,16 @@
+<?php
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+$target = $block->getTarget();
+$label = $block->getLabel();
+?>
+<ul class="userMenu ">
+    <li><a class="action skip <?php /* @escapeNotVerified */ echo $target?>" href="#<?php /* @escapeNotVerified */ echo $target?>"><span><?php /* @escapeNotVerified */ echo $label ?></span></a></li>
+    <li><a href="#"> <span class="hidden-xs">HELP</span><i class="glyphicon glyphicon-info-sign hide visible-xs "></i> </a></li>
+    <li class="phone-number"><a href="callto:+88016000000"> <span> <i class="glyphicon glyphicon-phone-alt "></i></span>
+            <span class="hidden-xs" style="margin-left:5px"> 88 01680 53 1352 </span></a></li>
+</ul>

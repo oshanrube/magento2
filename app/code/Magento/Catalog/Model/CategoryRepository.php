@@ -84,6 +84,7 @@ class CategoryRepository implements \Magento\Catalog\Api\CategoryRepositoryInter
             /** @var  $category Category */
             $category->setData($existingData);
             $category->setPath($parentCategory->getPath());
+            $category->setUrlKey($category->formatUrlKey($category->getName()));
         }
         try {
             $this->validateCategory($category);

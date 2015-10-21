@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "c4198e8a51c13b0d2c96bb54023cf2c6",
-    "content-hash": "444606690390cbbc73e906d61746c25d",
+    "hash": "fa076ad1b734ede9e3163d31aa2a519c",
+    "content-hash": "92a52e1cd75d20294fe61236ba741a04",
     "packages": [
         {
             "name": "braintree/braintree_php",
@@ -290,6 +290,33 @@
                 "magento"
             ],
             "time": "2015-09-14 19:59:55"
+        },
+        {
+            "name": "magento/sample-data",
+            "version": "1.0.0-beta",
+            "dist": {
+                "type": "zip",
+                "url": "https://packages.magento.com/_packages/magento_sample-data-1.0.0-beta.zip",
+                "reference": null,
+                "shasum": "3ebd97cb095dc7f0820656c617fb17829ee66871"
+            },
+            "require": {
+                "magento/module-sample-data": "self.version",
+                "magento/sample-data-media": "~0.42.0-beta2"
+            },
+            "type": "metapackage"
+        },
+        {
+            "name": "magento/sample-data-media",
+            "version": "0.42.0-beta2",
+            "dist": {
+                "type": "zip",
+                "url": "https://packages.magento.com/_packages/magento_sample-data-media-0.42.0-beta2.zip",
+                "reference": null,
+                "shasum": "5c53f11742eac4b414a8a65763e459d3673f4219"
+            },
+            "type": "library",
+            "description": "Sample Data media files"
         },
         {
             "name": "magento/zendframework1",
@@ -2571,16 +2598,16 @@
         },
         {
             "name": "fabpot/php-cs-fixer",
-            "version": "v1.10",
+            "version": "v1.10.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/FriendsOfPHP/PHP-CS-Fixer.git",
-                "reference": "8e21b4fb32c4618a425817d9f0daf3d57a9808d1"
+                "reference": "12dbcd1462f1e3a5a96c6c7398af26b28e092a8a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/8e21b4fb32c4618a425817d9f0daf3d57a9808d1",
-                "reference": "8e21b4fb32c4618a425817d9f0daf3d57a9808d1",
+                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/12dbcd1462f1e3a5a96c6c7398af26b28e092a8a",
+                "reference": "12dbcd1462f1e3a5a96c6c7398af26b28e092a8a",
                 "shasum": ""
             },
             "require": {
@@ -2621,7 +2648,7 @@
                 }
             ],
             "description": "A tool to automatically fix PHP code style",
-            "time": "2015-07-27 20:56:10"
+            "time": "2015-10-12 20:13:46"
         },
         {
             "name": "league/climate",

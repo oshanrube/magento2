@@ -450,7 +450,7 @@ class Processor
     {
         $this->reportData = $reportData;
         $this->reportId   = abs(intval(microtime(true) * rand(100, 1000)));
-        $this->_reportFile = $this->_reportDir . '/' . $this->reportId;
+        $this->_reportFile = $this->_reportDir . $this->reportId;
         $this->_setReportData($reportData);
 
         if (!file_exists($this->_reportDir)) {
