@@ -99,7 +99,7 @@ class ProductUpdateCommand extends Command
                 }
 
                 $image = 'products/' . $product->getSku() . '.jpg';
-                $product->addImageToMediaGallery($image, array('media_image', "image"));
+                $product->addImageToMediaGallery($image, array("image", "media_gallery", "small_image", "thumbnail"));
                 $product->save();
                 /** @var ImageCache $imageCache */
                 $imageCache = $this->imageCacheFactory->create();
