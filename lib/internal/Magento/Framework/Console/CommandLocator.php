@@ -4,6 +4,7 @@
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\Console;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
  * Locator for Console commands

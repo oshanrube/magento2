@@ -5,6 +5,7 @@
  */
 
 namespace Magento\Framework\Console;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
  * Class CommandList has a list of commands, which can be extended via DI configuration.
@@ -18,7 +19,6 @@ class CommandList implements CommandListInterface
 
     /**
      * Constructor
-     *
      * @param array $commands
      */
     public function __construct(array $commands = [])

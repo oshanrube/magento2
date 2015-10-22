@@ -158,17 +158,20 @@ class AbstractMedia extends \Magento\Eav\Model\Entity\Attribute\Backend\Abstract
 
         $fileName = $this->getNotDuplicatedFilename($fileName, $dispretionPath);
 
-        $destinationFile = $this->mediaConfig->getTmpMediaPath($fileName);
+        $tmpdestinationFile = $this->mediaConfig->getTmpMediaPath($fileName);
+        $destinationFile = $this->mediaConfig->getMediaPath($fileName);
 
         try {
             /** @var $storageHelper \Magento\MediaStorage\Helper\File\Storage\Database */
             $storageHelper = $this->fileStorageDb;
             if ($move) {
+                $this->mediaDirectory->renameFile($file, $tmpdestinationFile);
                 $this->mediaDirectory->renameFile($file, $destinationFile);
 
                 //If this is used, filesystem should be configured properly
                 $storageHelper->saveFile($this->mediaConfig->getTmpMediaShortUrl($fileName));
             } else {
+                $this->mediaDirectory->copyFile($file, $tmpdestinationFile);
                 $this->mediaDirectory->copyFile($file, $destinationFile);
 
                 $storageHelper->saveFile($this->mediaConfig->getTmpMediaShortUrl($fileName));
