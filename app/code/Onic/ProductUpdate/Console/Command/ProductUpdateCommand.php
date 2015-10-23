@@ -99,13 +99,21 @@ class ProductUpdateCommand extends Command
                 }
 
                 $image = 'products/' . $product->getSku() . '.jpg';
-                $product->addImageToMediaGallery($image, array("image", "media_gallery", "small_image", "thumbnail"));
-                $product->save();
-                /** @var ImageCache $imageCache */
-                $imageCache = $this->imageCacheFactory->create();
-                $imageCache->generate($product);
+                if (file_exists(realpath(__DIR__ . '/../../../../../../pub/media') . '/' . $image))
+                {
+                    $product->addImageToMediaGallery($image, array("image", "media_gallery", "small_image", "thumbnail"));
+                    $product->save();
+                    /** @var ImageCache $imageCache */
+                    $imageCache = $this->imageCacheFactory->create();
+                    $imageCache->generate($product);
 
-                $output->write($product->getName() . "\n");
+                    $output->write($product->getName() . "\n");
+                }
+                else
+                {
+
+                    $output->write("!" . $product->getName() . "\n");
+                }
             }
         }
         catch (\Exception $e)
