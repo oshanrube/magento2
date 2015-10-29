@@ -460,7 +460,7 @@ angular.module('app.controllers', [])
                 }
             }
         }
-    }).controller('NavbarController', function ($http, $scope, API) {
+    }).controller('NavbarController', function ($http, $scope, API, Page) {
         this.getPhone = function () {
             if ($scope.data.store_config === undefined) {
                 var query = '/store/storeConfigs';
@@ -468,6 +468,36 @@ angular.module('app.controllers', [])
             }
 
             return $scope.data.store_config[0].store_phone;
+        }
+        this.isUserLoggedIn = function () {
+            return (Page.getToken() !== null);
+        }
+        this.getCartTotal = function () {
+            if (this.isUserLoggedIn()) {
+
+            } else {
+                if (Page.getCartId() === null) {
+                    //create guest cart
+                    var query = '/guest-carts';
+                    API.postAPIData(query, 'guest_cart_id', function () {
+                        Page.setCartId($scope.data.guest_cart_id);
+                    });
+                } else if ($scope.data.guest_cart_totals.grand_total === undefined) {
+                    var query = '/guest-carts/' + Page.getCartId() + '/totals';
+                    API.getAPIData(query, 'guest_cart_totals');
+                }
+                return $scope.data.guest_cart_totals.grand_total;
+            }
+        }
+        this.getCartCurrency = function () {
+            return $scope.data.guest_cart.currency.base_currency_code;
+        }
+        this.getCatgory = function () {
+            if ($scope.data.categories === undefined) {
+                var query = '/categories';
+                API.getAPIData(query, 'categories');
+            }
+                return $scope.data.categories.children_data;
         }
     })
 ;

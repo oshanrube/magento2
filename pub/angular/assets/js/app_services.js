@@ -12,7 +12,7 @@ angular.module('app.services', [])
                 //server_url = 'https://localhost:8081/';
                 return this.getServerUrl() + 'rest/default/V1';
             },
-            getAPIData: function (action, $key, api_key, onsucces, oncomplete) {
+            getAPIData: function (action, $key, onsucces, oncomplete) {
 
                 if (loadingdata[$key] === undefined) {
                     loadingdata[$key] = true;
@@ -26,10 +26,54 @@ angular.module('app.services', [])
                         }
                     }).success(function (response) {
                         if (response.errors == undefined) {
-                            if (api_key === undefined) {
-                                api_key = $key;
-                            }
 
+                            //save the data to the key
+                            $rootScope.data[$key] = response;
+                            if (onsucces !== undefined) {
+                                onsucces();
+                            }
+                        } else {
+                            //show the error
+                            Page.setErrorMessage(response.message);
+                        }
+                    }).error(function (status, response) {
+                        // called asynchronously if an error occurs
+                        // or server returns response with an error status.
+                        Page.setErrorMessage("Unable to connect to the server at the moment, please try again later");
+                    }).finally(function () {
+                        //remove key
+                        delete loadingdata[$key];
+                        //check for the rest
+                        var count = 0;
+                        for (var k in loadingdata) {
+                            if (loadingdata.hasOwnProperty(k)) {
+                                ++count;
+                            }
+                        }
+
+                        if (count === 0) {
+                            Page.setLoading(false);
+                            if (oncomplete !== undefined) {
+                                oncomplete();
+                            }
+                        }
+                    });
+                }
+            },
+            postAPIData: function (action, $key, onsucces, oncomplete) {
+
+                if (loadingdata[$key] === undefined) {
+                    loadingdata[$key] = true;
+                    Page.setLoading(true);
+                    $http({
+                        method: 'POST',
+                        url: this.getAPIUrl() + action,
+                        crossDomain: true,
+                        headers: {
+                            Accept: "application/json"
+                        }
+                    }).success(function (response) {
+                        if (response.errors == undefined) {
                             //save the data to the key
                             $rootScope.data[$key] = response;
                             if (onsucces !== undefined) {
@@ -109,6 +153,15 @@ angular.module('app.services', [])
             },
             setToken: function (newSessionToken) {
                 $localStorage.token = newSessionToken;
+            },
+            getCartId: function(){
+                if ($localStorage.cart_id === undefined) {
+                    $localStorage.cart_id = null;
+                }
+                return $localStorage.cart_id;
+            },
+            setCartId: function (cartId) {
+                $localStorage.cart_id = cartId;
             },
             getStorage: function () {
                 return $localStorage;
