@@ -143,7 +143,7 @@ class BlockRepository implements BlockRepositoryInterface
             }
         }
         $searchResults->setTotalCount($collection->getSize());
-        $sortOrders = $criteria->getSortOrders();
+        $sortOrders  = $criteria->getSortOrders();
         if ($sortOrders) {
             foreach ($sortOrders as $sortOrder) {
                 $collection->addOrder(

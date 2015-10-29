@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../lib/internal/Magento/Framework/ObjectManager/etc/config.xsd">
+
+    <preference for="Onic\ThemeInterface\Api\CalculatorInterface"
+                type="Onic\ThemeInterface\Model\Calculator" />
+    <preference for="Magento\Cms\Api\BlockRepositoryInterface"
+                type="Onic\ThemeInterface\Model\BlockRepository" />
+    <preference for="Magento\Store\Api\StoreConfigManagerInterface"
+                type="Onic\ThemeInterface\Model\StoreConfigManager" />
+    <preference for="Magento\Store\Model\Data\StoreConfig"
+                type="Onic\ThemeInterface\Model\StoreConfig" />
+</config>

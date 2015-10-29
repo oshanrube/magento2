@@ -17,7 +17,7 @@ interface StoreConfigManagerInterface
 {
     /**
      * @param string[] $storeCodes
-     * @return \Magento\Store\Api\Data\StoreConfigInterface[]
+     * @return \Onic\ThemeInterface\Model\StoreConfig[]
      */
     public function getStoreConfigs(array $storeCodes = null);
 }

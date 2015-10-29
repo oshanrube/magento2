@@ -1,0 +1,96 @@
+<div class="banner banner-boxes" ng-controller="BlocksController as block">
+    <div class="slider-content"><span class="prevControl sliderControl"> <i class="fa fa-angle-left fa-3x "></i></span>
+        <span class="nextControl sliderControl"> <i class="fa fa-angle-right fa-3x "></i></span>
+
+        <div class="swiper-container">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide slide-2x">
+                    <div class="box-slider-content" ng-bind-html="block.getSlide('home-page-block-1').content | to_trusted"></div>
+                </div>
+                <div class="swiper-slide slide-2x">
+                    <div class="slider-box-top">
+                        <div class="box-slider-content" ng-bind-html="block.getSlide('home-page-block-2').content | to_trusted">
+                        </div>
+                    </div>
+                    <div class="slider-box-bottom">
+                        <div class="box-slider-content" ng-bind-html="block.getSlide('home-page-block-3').content | to_trusted">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-slide slide-2x">
+                    <div class="box-slider-content" ng-bind-html="block.getSlide('home-page-block-4').content | to_trusted">
+
+                    </div>
+                </div>
+                <div class="swiper-slide slide-4x">
+                    <div class="box-4in a">
+                        <div class="box-slider-content"><a href="#" class="box-img"> <img src="images/slider/box/4a.jpg"
+                                                                                          alt="img"></a>
+
+                            <div class="box-content-overly"><a href="#" class="box-blank-url"> </a></div>
+                        </div>
+                    </div>
+                    <div class="box-4in b">
+                        <div class="box-slider-content"><a href="#" class="box-img"> <img src="images/slider/box/4b.jpg"
+                                                                                          alt="img"></a>
+
+                            <div class="box-content-overly"><a href="#" class="box-blank-url"> </a></div>
+                        </div>
+                    </div>
+                    <div class="box-4in c">
+                        <div class="box-slider-content"><a href="#" class="box-img"> <img src="images/slider/box/4c.jpg"
+                                                                                          alt="img"></a>
+
+                            <div class="box-content-overly box-content-overly-white">
+                                <div class="box-text-table">
+                                    <div class="box-text-cell"><a class="btn btn-stroke-dark"> VIEW DEAL</a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-4in d">
+                        <div class="box-slider-content"><a href="#" class="box-img"> <img src="images/slider/box/4d.jpg"
+                                                                                          alt="img"></a>
+
+                            <div class="box-content-overly box-content-overly-white">
+                                <div class="box-text-table">
+                                    <div class="box-text-cell"><a class="btn btn-stroke-dark"> VIEW DEAL</a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-slide slide-2x">
+                    <div class="box-slider-content" ng-bind-html="block.getSlide('home-page-block-5').content | to_trusted">
+
+                    </div>
+                </div>
+                <div class="swiper-slide slide-2x">
+                    <div class="slider-box-top">
+                        <div class="box-slider-content" ng-bind-html="block.getSlide('home-page-block-6').content | to_trusted">
+
+                        </div>
+                    </div>
+                    <div class="slider-box-bottom">
+                        <div class="box-4in c">
+                            <div class="box-slider-content" ng-bind-html="block.getSlide('home-page-block-7').content | to_trusted">
+                            </div>
+                        </div>
+                        <div class="box-4in d">
+                            <div class="box-slider-content" ng-bind-html="block.getSlide('home-page-block-8').content | to_trusted">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-slide slide-1x">
+                    <div class="box-slider-content" ng-bind-html="block.getSlide('home-page-block-9').content | to_trusted">
+                        ng-bind-html="block.getSlide('home-page-block-1').content | to_trusted"
+                    </div>
+                </div>
+            </div>
+            <div class="box-pagination"></div>
+        </div>
+    </div>
+</div>

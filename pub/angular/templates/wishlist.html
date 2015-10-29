@@ -1,0 +1,15 @@
+<ion-view view-title="Wishlist" id="wishlist">
+    <ion-content>
+        <ion-list>
+            <ion-item class="row" ng-repeat="wishlist_item in wishlist.getWishlistItems()">
+                <div class="image">
+                    <img img-cache ic-src="{{ wishlist.getImageUrl(wishlist_item.style_details[image]) }}">
+                </div>
+                <div class="details">
+                    <div class="name">{{ wishlist_item.style_details[name] }}</div>
+                    <div class="code">{{ wishlist_item.style_details[description] }}</div>
+                </div>
+            </ion-item>
+        </ion-list>
+    </ion-content>
+</ion-view>

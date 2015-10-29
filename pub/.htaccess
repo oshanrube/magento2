@@ -30,7 +30,7 @@
 ## default index file
 
     DirectoryIndex index.php
-
+    Header set Access-Control-Allow-Origin "*"
 <IfModule mod_php5.c>
 
 ############################################
