@@ -4,15 +4,13 @@ angular.module('app.directives', [])
             restrict: 'E',
             templateUrl: 'templates/navbar.html'
         };
-    }).directive('appBlocks', function () {
+    }).directive('appBlocks',function () {
         return {
             restrict: 'E',
             templateUrl: 'templates/blocks.html',
             link: function ($scope, element, attrs) {
                 // Wait for templates to render
                 $scope.$evalAsync(function () {
-
-
                     // Finally, directives are evaluated
                     // and templates are renderer here
                     var mySwiper = new Swiper('.swiper-container', {
@@ -32,6 +30,20 @@ angular.module('app.directives', [])
                         e.preventDefault()
                         mySwiper.swipeNext()
                     });
+                });
+            }
+        };
+    }).directive('appNewArrivals', function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'templates/new_arrivals.html',
+            link: function ($scope, element, attrs) {
+                $scope.$evalAsync(function () {
+                    $("#productslider").owlCarousel({
+                        navigation: true,
+                        items: 4,
+                        itemsTablet: [768, 2]
+                     });
                 });
             }
         };

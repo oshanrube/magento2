@@ -460,7 +460,7 @@ angular.module('app.controllers', [])
                 }
             }
         }
-    }).controller('NavbarController', function ($http, $scope, API, Page) {
+    }).controller('NavbarController',function ($http, $scope, API, Page) {
         this.getPhone = function () {
             if ($scope.data.store_config === undefined) {
                 var query = '/store/storeConfigs';
@@ -497,7 +497,30 @@ angular.module('app.controllers', [])
                 var query = '/categories';
                 API.getAPIData(query, 'categories');
             }
-                return $scope.data.categories.children_data;
+            return $scope.data.categories.children_data;
+        }
+    }).controller('ProductsController', function ($http, $scope, API, Page) {
+        this.getNewArrivals = function () {
+            if ($scope.data.new_arrivals === undefined) {
+                var myObject = {
+                    searchCriteria: {
+                        sortOrders: [
+                            {
+                                field: 'created_at',
+                                direction: 'asc'
+                            }
+                        ],
+                        pageSize: 10
+                    }
+                };
+                var recursiveEncoded = $.param(myObject);
+                var query = '/products?' + recursiveEncoded;
+                API.getAPIData(query, 'new_arrivals');
+            }
+
+            return $scope.data.new_arrivals.items;
         }
     })
+;
+
 ;
