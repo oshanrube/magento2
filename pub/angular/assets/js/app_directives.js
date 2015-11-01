@@ -1,5 +1,13 @@
 angular.module('app.directives', [])
-    .directive('appNavbar',function () {
+    .directive('onLastRepeat',function () {
+        return function (scope, element, attrs) {
+            if (scope.$last) {
+                setTimeout(function () {
+                    scope.$emit('onRepeatLast', element, attrs);
+                }, 1)
+            }
+        };
+    }).directive('appNavbar',function () {
         return {
             restrict: 'E',
             templateUrl: 'templates/navbar.html'
@@ -39,11 +47,7 @@ angular.module('app.directives', [])
             templateUrl: 'templates/new_arrivals.html',
             link: function ($scope, element, attrs) {
                 $scope.$evalAsync(function () {
-                    $("#productslider").owlCarousel({
-                        navigation: true,
-                        items: 4,
-                        itemsTablet: [768, 2]
-                     });
+
                 });
             }
         };

@@ -501,6 +501,13 @@ angular.module('app.controllers', [])
         }
     }).controller('ProductsController', function ($http, $scope, API, Page) {
         this.getNewArrivals = function () {
+            $scope.$on('onRepeatLast', function (scope, element, attrs) {
+                $("#productslider").owlCarousel({
+                    navigation: true,
+                    items: 4,
+                    itemsTablet: [768, 2]
+                });
+            });
             if ($scope.data.new_arrivals === undefined) {
                 var myObject = {
                     searchCriteria: {
@@ -517,10 +524,18 @@ angular.module('app.controllers', [])
                 var query = '/products?' + recursiveEncoded;
                 API.getAPIData(query, 'new_arrivals');
             }
-
             return $scope.data.new_arrivals.items;
         }
-    })
-;
 
+        this.getProductAttribute = function (product, code) {
+            for (var x = 0; x < product.custom_attributes.length; x++) {
+                if (product.custom_attributes[x].attribute_code == code) {
+                    if (code == 'small_image') {
+                        return API.getServerUrl() + 'media/catalog/product' + product.custom_attributes[x].value;
+                    }
+                    return product.custom_attributes[x].value;
+                }
+            }
+        }
+    })
 ;
