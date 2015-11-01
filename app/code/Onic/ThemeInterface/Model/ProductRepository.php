@@ -38,8 +38,8 @@ class ProductRepository extends \Magento\Catalog\Model\ProductRepository
      */
     public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria)
     {
-        $width        = 100;
-        $height       = 100;
+        $width        = 180;
+        $height       = 240;
         $searchResult = parent::getList($searchCriteria);
         $items        = array();
         foreach ($searchResult->getItems() as $item)
@@ -48,9 +48,8 @@ class ProductRepository extends \Magento\Catalog\Model\ProductRepository
             $item->getTierPrices();
             /** @var \Magento\Catalog\Helper\Image $helper */
             $helper = $this->helperFactory->create()->init($item, 'new_products_content_widget_grid', array('type' => 'image', 'width' => $width, 'height' => $height));
-            $image  = $item->getCustomAttribute('image');
+            $image  = $item->getCustomAttribute('small_image');
             $image->setValue($helper->getUrl());
-            $item->setCustomAttribute('image', $image->getValue());
             $items[] = $item;
         }
         $searchResult->setItems($items);

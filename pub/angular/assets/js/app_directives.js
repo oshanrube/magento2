@@ -41,14 +41,29 @@ angular.module('app.directives', [])
                 });
             }
         };
-    }).directive('appNewArrivals', function () {
+    }).directive('appNewArrivals',function () {
         return {
             restrict: 'E',
-            templateUrl: 'templates/new_arrivals.html',
-            link: function ($scope, element, attrs) {
-                $scope.$evalAsync(function () {
-
-                });
-            }
+            templateUrl: 'templates/new_arrivals.html'
+        };
+    }).directive('appFreeShipping', function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'templates/free_shipping.html'
+        };
+    }).directive('appTrustedSeller', function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'templates/trusted_seller.html'
+        };
+    }).directive('appFeaturedProducts', function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'templates/featured_products.html'
+        };
+    }).directive('footer', function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'templates/footer.html'
         };
     });

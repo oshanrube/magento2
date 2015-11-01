@@ -9,6 +9,7 @@ class StoreConfig extends \Magento\Store\Model\Data\StoreConfig
     const KEY_GENERAL_STORE_INFORMATION_PHONE      = 'general_store_information_phone';
     const KEY_GENERAL_STORE_INFORMATION_HOURS      = 'general_store_information_hours';
     const KEY_GENERAL_STORE_INFORMATION_COUNTRY_ID = 'general_store_information_country_id';
+    const KEY_TRANS_EMAIL_IDENT_SUPPORT_EMAIL      = 'trans_email_ident_support_email';
 
 
     /**
@@ -85,5 +86,25 @@ class StoreConfig extends \Magento\Store\Model\Data\StoreConfig
     public function setStoreCountryId($countryId)
     {
         return $this->setData(self::KEY_GENERAL_STORE_INFORMATION_COUNTRY_ID, $countryId);
+    }
+
+
+    /**
+     * Set support email
+     * @param string $support_email
+     * @return $this
+     */
+    public function setSupportEmail($support_email)
+    {
+        return $this->setData(self::KEY_TRANS_EMAIL_IDENT_SUPPORT_EMAIL, $support_email);
+    }
+
+    /**
+     * Get support email
+     * @return string
+     */
+    public function getSupportEmail()
+    {
+        return $this->_get(self::KEY_TRANS_EMAIL_IDENT_SUPPORT_EMAIL);
     }
 }

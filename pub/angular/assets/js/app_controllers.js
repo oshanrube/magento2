@@ -460,6 +460,17 @@ angular.module('app.controllers', [])
                 }
             }
         }
+        this.getBlock = function (identifier) {
+            if ($scope.data.blocks === undefined) {
+                var query = '/cmsBlock/search?searchCriteria';
+                API.getAPIData(query, 'blocks');
+            }
+            for (var x = 0; x < $scope.data.blocks.items.length; x++) {
+                if (identifier == $scope.data.blocks.items[x].identifier) {
+                    return $scope.data.blocks.items[x];
+                }
+            }
+        }
     }).controller('NavbarController',function ($http, $scope, API, Page) {
         this.getPhone = function () {
             if ($scope.data.store_config === undefined) {
@@ -468,6 +479,14 @@ angular.module('app.controllers', [])
             }
 
             return $scope.data.store_config[0].store_phone;
+        }
+        this.getEmail = function () {
+            if ($scope.data.store_config === undefined) {
+                var query = '/store/storeConfigs';
+                API.getAPIData(query, 'store_config');
+            }
+
+            return $scope.data.store_config[0].support_email;
         }
         this.isUserLoggedIn = function () {
             return (Page.getToken() !== null);
@@ -527,12 +546,49 @@ angular.module('app.controllers', [])
             return $scope.data.new_arrivals.items;
         }
 
+        this.getFeaturedProducts = function () {
+            if ($scope.data.featured_products === undefined) {
+                var myObject = {
+                    searchCriteria: {
+                        filterGroups: [
+                            {
+                                filters: [
+                                    {
+                                        field: 'featured',
+                                        value: 1
+                                    }
+                                ]}
+                        ],
+                        pageSize: 10
+                    }
+                };
+                var recursiveEncoded = $.param(myObject);
+                var query = '/products?' + recursiveEncoded;
+                API.getAPIData(query, 'featured_products');
+            }
+            return $scope.data.featured_products.items;
+        }
+        this.isProductVisible = function (product) {
+            if ($scope.visible_products === undefined) {
+                $scope.visible_products = 3;
+            }
+            for (var x = 0; x < $scope.data.featured_products.items.length; x++) {
+                if ($scope.data.featured_products.items[x].id == product.id && $scope.visible_products >= x) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        this.loadMoreProducts = function () {
+            $scope.visible_products += 4;
+        }
+        this.hasMoreProducts = function () {
+            return ($scope.data.featured_products.items.length >= $scope.visible_products);
+        }
+
         this.getProductAttribute = function (product, code) {
             for (var x = 0; x < product.custom_attributes.length; x++) {
                 if (product.custom_attributes[x].attribute_code == code) {
-                    if (code == 'small_image') {
-                        return API.getServerUrl() + 'media/catalog/product' + product.custom_attributes[x].value;
-                    }
                     return product.custom_attributes[x].value;
                 }
             }

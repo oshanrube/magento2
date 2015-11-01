@@ -5,7 +5,10 @@ namespace Onic\ThemeInterface\Model;
 class StoreConfigManager extends \Magento\Store\Model\Service\StoreConfigManager
 {
 
-    protected $configPaths = ['setLocale' => 'general/locale/code', 'setBaseCurrencyCode' => 'currency/options/base', 'setDefaultDisplayCurrencyCode' => 'currency/options/default', 'setTimezone' => 'general/locale/timezone', 'setWeightUnit' => \Magento\Directory\Helper\Data::XML_PATH_WEIGHT_UNIT, 'setStoreName' => 'general/store_information/name', 'setStorePhone' => 'general/store_information/phone', 'setStoreHours' => 'general/store_information/hours', 'setStoreCountryId' => 'general/store_information/country_id'];
+    protected $configPaths = ['setLocale' => 'general/locale/code', 'setBaseCurrencyCode' => 'currency/options/base',
+                              'setDefaultDisplayCurrencyCode' => 'currency/options/default', 'setTimezone' => 'general/locale/timezone', 'setWeightUnit' => \Magento\Directory\Helper\Data::XML_PATH_WEIGHT_UNIT, 'setStoreName' => 'general/store_information/name', 'setStorePhone' => 'general/store_information/phone', 'setStoreHours' => 'general/store_information/hours',
+                              'setStoreCountryId' => 'general/store_information/country_id',
+                              'setSupportEmail' => 'trans_email/ident_support/email'];
     /**
      * @param string[] $storeCodes list of stores by store codes, will return all if storeCodes is not set
      * @return \Onic\ThemeInterface\Model\StoreConfig[]
