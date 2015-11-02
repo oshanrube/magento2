@@ -1,4 +1,4 @@
-﻿// Ion.CheckRadio
+// Ion.CheckRadio
 // version 1.0.2 Build: 19
 // © 2013 Denis Ineshin | IonDen.com
 //

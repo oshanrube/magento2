@@ -472,6 +472,7 @@ angular.module('app.controllers', [])
             }
         }
     }).controller('NavbarController',function ($http, $scope, API, Page) {
+        this.newsletter = null;
         this.getPhone = function () {
             if ($scope.data.store_config === undefined) {
                 var query = '/store/storeConfigs';
@@ -517,6 +518,11 @@ angular.module('app.controllers', [])
                 API.getAPIData(query, 'categories');
             }
             return $scope.data.categories.children_data;
+        }
+
+        this.addSubscription = function () {
+            alert(this.newsletter);
+            //API.postAPIData();
         }
     }).controller('ProductsController', function ($http, $scope, API, Page) {
         this.getNewArrivals = function () {

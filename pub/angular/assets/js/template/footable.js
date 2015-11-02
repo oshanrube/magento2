@@ -1,4 +1,4 @@
-﻿/*!
+/*!
  * FooTable - Awesome Responsive Tables
  * Version : 0.5
  * http://themergency.com/footable

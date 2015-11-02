@@ -1,6 +1,6 @@
 (function () {
 
-    var app = angular.module('store', ['app.controllers', 'app.services','app.directives', 'app.filters','ngAnimate', 'ngResource', 'ngRoute', 'ngStorage',"ui.router", 'ImgCache']).config(function ($httpProvider) {
+    var app = angular.module('store', ['app.controllers', 'app.services', 'app.directives', 'app.filters', 'ngAnimate', 'ngResource', 'ngRoute', 'ngStorage', "ui.router", 'ngMaterial', 'ngAria', 'ngMessages', 'ImgCache']).config(function ($httpProvider) {
         $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8';
         /**
          * The workhorse; converts an object to x-www-form-urlencoded serialization.
