@@ -616,10 +616,20 @@ fieldset[disabled] .btn-danger:active {
 fieldset[disabled] .btn-danger.active {
   background-color: #E74C3C; }
 
-.btn-success {
+md-toast {
+  padding-right: 0; }
+  md-toast button.md-button {
+    margin: 0;
+    min-height: 0;
+    padding: 0;
+    margin-left: 5px; }
+  md-toast button.md-button:hover {
+    background: none; }
+
+.btn-success, md-toast.md-success-theme {
   background-color: #2ECC71;
   color: #FFFFFF; }
-  .btn-success:hover, .btn-success:focus, .btn-success:active, .btn-success.active {
+  .btn-success:hover, .btn-success:focus, .btn-success:active, .btn-success.active, md-toast.md-success-theme:hover, md-toast.md-success-theme:focus, md-toast.md-success-theme:active, md-toast.md-success-theme.active {
     background-color: #58D68D;
     border-color: #58D68D;
     color: #FFFFFF; }
@@ -863,6 +873,9 @@ legend {
   color: #FFFFFF;
   font-size: 28px;
   font-weight: bold; }
+
+.navbar-fixed-top, .navbar-fixed-bottom {
+  z-index: 10; }
 
 .navbar .navbar-top {
   height: 30px;
@@ -4824,5 +4837,15 @@ div.quickview {
 /* material UI override */
 md-input-container {
   padding-bottom: 5px; }
+
+md-toolbar:not(.md-menu-toolbar) {
+  background: #4ec67f; }
+  md-toolbar:not(.md-menu-toolbar) .md-toolbar-tools h2 {
+    color: #FFFFFF;
+    font-family: Oswald;
+    font-size: 38px;
+    font-weight: lighter;
+    padding: 13px 0;
+    text-transform: uppercase; }
 
 /*# sourceMappingURL=styles.css.map */

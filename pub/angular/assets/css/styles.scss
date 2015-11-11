@@ -30,37 +30,26 @@
 /* IMPORT CSS
 /* =============================================================== */
 @import url("owl.carousel.css");
-
 /* owl.carousel */
 @import url("owl.theme.css");
-
 /* owl.carousel */
 @import url("font-awesome.css");
-
 /* Font Awesome Icon */
 @import url("animate.min.css");
-
 /* css3 animation */
 @import url("jquery.mCustomScrollbar.css");
-
 /* mCustomScrollbar */
 @import url("alpha.css");
-
 /* Background opacity IE fix */
 @import url("jquery.minimalect.min.css");
-
 /* jQuery Custom Select by jquery.minimalect.min.js */
 @import url("smoothproducts.css");
-
 /* Product zoom  */
 @import url("ion.checkRadio.css");
-
 /* ion.checkRadio.min.js || customs checkbox and radio plugin  */
 @import url("ion.checkRadio.cloudy.css");
-
 /* ion.checkRadio.min.js || customs checkbox and radio plugin  */
 @import url("skin-0.css");
-
 /* Template Theme color skin */
 @import url("grocery_bag_fonts.css");
 
@@ -826,7 +815,20 @@ fieldset[disabled] .btn-danger.active {
   background-color: #E74C3C;
 }
 
-.btn-success {
+md-toast {
+  padding-right: 0;
+  button.md-button {
+    margin: 0;
+    min-height: 0;
+    padding: 0;
+    margin-left: 5px;
+  }
+  button.md-button:hover {
+    background: none;
+  }
+}
+
+.btn-success, md-toast.md-success-theme {
   background-color: #2ECC71;
   color: #FFFFFF;
   &:hover, &:focus, &:active, &.active {
@@ -1170,13 +1172,18 @@ legend {
   border-top: 1px solid rgba(0, 0, 0, 0.07);
 }
 
-.brandWrap {}
+.brandWrap {
+}
 
 .navbar-brand {
   padding: 10px;
   color: #FFFFFF;
   font-size: 28px;
   font-weight: bold;
+}
+
+.navbar-fixed-top, .navbar-fixed-bottom {
+  z-index: 10;
 }
 
 .navbar {
@@ -1377,7 +1384,8 @@ legend {
 
 @media (min-width: 979px) {
   .navbar-tshop ul.nav li.dropdown {
-    ul.dropdown-menu {}
+    ul.dropdown-menu {
+    }
     &:hover ul.dropdown-menu {
       display: block;
       filter: none;
@@ -1762,7 +1770,8 @@ legend {
 }
 
 .newCollectionUl {
-  ul li:first-child {}
+  ul li:first-child {
+  }
   li {
     font-weight: 600;
   }
@@ -2275,7 +2284,7 @@ h1.bolder-style {
   -ms-transition: opacity 0.5s linear, -ms-transform 0.7s cubic-bezier(0.56, 0.48, 0, 0.99);
   transition: opacity 0.5s linear, transform 0.7s cubic-bezier(0.56, 0.48, 0, 0.99);
   opacity: 0;
-  filter: alpha(opacity = 0);
+  filter: alpha(opacity=0);
   /* IE FIX */
   -ms-filter: "alpha(Opacity=0)";
   &:nth-child(n) {
@@ -2307,7 +2316,7 @@ h1.bolder-style {
   -ms-transition: opacity 0.5s linear, -ms-transform 0.7s cubic-bezier(0.56, 0.48, 0, 0.99);
   transition: opacity 0.5s linear, transform 0.7s cubic-bezier(0.56, 0.48, 0, 0.99);
   opacity: 0;
-  filter: alpha(opacity = 0);
+  filter: alpha(opacity=0);
   /* IE FIX */
   -ms-filter: "alpha(Opacity=0)";
 }
@@ -2337,7 +2346,7 @@ h1.bolder-style {
   -ms-transition: opacity 0.5s linear, -ms-transform 0.7s cubic-bezier(0.56, 0.48, 0, 0.99);
   transition: opacity 0.5s linear, transform 0.7s cubic-bezier(0.56, 0.48, 0, 0.99);
   opacity: 0;
-  filter: alpha(opacity = 0);
+  filter: alpha(opacity=0);
   /* IE FIX */
   -ms-filter: "alpha(Opacity=0)";
 }
@@ -2451,7 +2460,7 @@ h1.bolder-style {
   -ms-transition: opacity 0.5s linear, -ms-transform 0.7s cubic-bezier(0.56, 0.48, 0, 0.99);
   transition: opacity 0.5s linear, transform 0.7s cubic-bezier(0.56, 0.48, 0, 0.99);
   opacity: 0;
-  filter: alpha(opacity = 0);
+  filter: alpha(opacity=0);
   -ms-filter: "alpha(Opacity=0)";
 }
 
@@ -2479,7 +2488,7 @@ h1.bolder-style {
   -ms-transition: opacity 0.5s linear, -ms-transform 0.7s cubic-bezier(0.56, 0.48, 0, 0.99);
   transition: opacity 0.5s linear, transform 0.7s cubic-bezier(0.56, 0.48, 0, 0.99);
   opacity: 0;
-  filter: alpha(opacity = 0);
+  filter: alpha(opacity=0);
   -ms-filter: "alpha(Opacity=0)";
 }
 
@@ -2505,7 +2514,8 @@ h1.bolder-style {
     &:nth-child(n) {
       filter: none;
     }
-    h1 {}
+    h1 {
+    }
   }
   h3.price {
     font-weight: lighter;
@@ -3162,7 +3172,7 @@ h1.bolder-style {
   -ms-transition: opacity 0.3s linear, -ms-transform 0.7s cubic-bezier(0.56, 0.48, 0, 0.99);
   transition: opacity 0.3s linear, transform 0.7s cubic-bezier(0.56, 0.48, 0, 0.99);
   opacity: 0;
-  filter: alpha(opacity = 0);
+  filter: alpha(opacity=0);
   -ms-filter: "alpha(Opacity=0)";
 }
 
@@ -4556,7 +4566,8 @@ tr.CartProduct {
   img {
     max-width: 100%;
   }
-  .section-title-inner {}
+  .section-title-inner {
+  }
 }
 
 .categoryListPanel {
@@ -6086,9 +6097,22 @@ div.quickview {
   color: #E7711B;
 }
 
-.reviewtitle {}
+.reviewtitle {
+}
 
 /* material UI override */
-md-input-container{
+md-input-container {
   padding-bottom: 5px;
+}
+
+md-toolbar:not(.md-menu-toolbar) {
+  background: #4ec67f;
+  .md-toolbar-tools h2 {
+    color: #FFFFFF;
+    font-family: Oswald;
+    font-size: 38px;
+    font-weight: lighter;
+    padding: 13px 0;
+    text-transform: uppercase;
+  }
 }

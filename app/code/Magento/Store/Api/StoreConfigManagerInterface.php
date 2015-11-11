@@ -1,23 +1,23 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
- * See COPYING.txt for license details.
+ * copyright © 2015 magento. all rights reserved.
+ * see copying.txt for license details.
  */
-namespace Magento\Store\Api;
+namespace magento\Store\Api;
 
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Store\Model\StoreIsInactiveException;
+use magento\Framework\Exception\Nosuchentityexception;
+use magento\Store\Model\Storeisinactiveexception;
 
 /**
- * Store config manager interface
+ * store config manager interface
  *
  * @api
  */
-interface StoreConfigManagerInterface
+interface storeconfigmanagerinterface
 {
     /**
-     * @param string[] $storeCodes
-     * @return \Onic\ThemeInterface\Model\StoreConfig[]
+     * @param string[] $storecodes
+     * @return \Magento\Store\Api\Data\Storeconfiginterface[]
      */
-    public function getStoreConfigs(array $storeCodes = null);
+    public function getstoreconfigs(array $storecodes = null);
 }

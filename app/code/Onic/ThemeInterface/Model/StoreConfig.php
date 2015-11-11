@@ -2,7 +2,8 @@
 
 namespace Onic\ThemeInterface\Model;
 
-class StoreConfig extends \Magento\Store\Model\Data\StoreConfig
+class StoreConfig extends \Magento\Store\Model\Data\StoreConfig implements
+    \Onic\ThemeInterface\Api\Data\StoreConfigInterface
 {
 
     const KEY_GENERAL_STORE_INFORMATION_NAME       = 'general_store_information_name';

@@ -1,8 +1,8 @@
 angular.module('app.controllers', [])
-    .controller('LoginController',function ($http, $timeout, $state, Page, $location, API) {
+    .controller('LoginController', function ($http, $timeout, $state, Page, $location, API) {
         //redirect
         if (Page.getToken() !== null) {
-            $state.go('app.home');
+            $state.go('home');
         }
         //model
         this.user = {
@@ -30,7 +30,7 @@ angular.module('app.controllers', [])
                     }, 2000);
                     Page.setSuccessMessage(response.message);
                     Page.setToken(response.data.sessionToken);
-                    $state.go('app.home');
+                    $state.go('home');
                 } else {
                     //show the error
                     Page.setErrorMessage(response.message);
@@ -49,224 +49,192 @@ angular.module('app.controllers', [])
                 Page.setLoading(false);
             });
         };
-    }).controller('ContainerController',function ($scope, Page) {
-        this.getPage = function () {
-            return Page;
-        };
-    }).controller('MainController',function ($scope, $ionicHistory, $localStorage, $state, Page, API) {
-        this.getFullName = function () {
-            var name = '';
-            if ($scope.data.profile === undefined && Page.getToken() !== null) {
-                API.getAPIData('profile', 'profile');
-            }
-            //concat the name
-            if ($scope.data.profile !== undefined) {
-                if ($scope.data.profile.firstname !== undefined && $scope.data.profile.firstname !== null) {
-                    name += $scope.data.profile.firstname + " ";
-                }
-                if ($scope.data.profile.middlename !== undefined && $scope.data.profile.middlename !== null) {
-                    name += $scope.data.profile.middlename + " ";
-                }
-                if ($scope.data.profile.lastname !== undefined && $scope.data.profile.lastname !== null) {
-                    name += $scope.data.profile.lastname + " ";
-                }
-            }
-            return name;
-        };
-
-        this.isLoggedIn = function () {
-            return (Page.getToken() !== null);
-        };
-
-        this.LogOut = function () {
-            Page.setToken(null);
-            ImgCache.clearCache(function () {
-                // continue cleanup...
-            }, function () {
-                // something went wrong
-            });
-            //delete localstorage
-            $localStorage.$reset();
-            $ionicHistory.clearHistory();
-            $ionicHistory.clearCache();
-            $state.go('app.login');
-        }
-        this.isActive = function (route) {
-            return route === $location.path();
-        }
-        this.getBackUrl = function () {
-            return Page.getBackUrl();
-        }
-    }).controller('HomeController',function ($location, $ionicActionSheet, $ionicModal, $http, Page, $scope, FBC, API, ionicMaterialMotion) {
-        Page.setBackUrl(false);
-
-
-        //get Coupons
-        if ($scope.data.coupons === undefined) {
-            API.getAPIData('coupons/list', 'coupons');
-        }
-
-        if ($scope.data.hottest_products === undefined) {
-            API.getAPIData('hottest_products', 'hottest_products');
-        }
-
-        //coupons
-        this.getCoupons = function () {
-            return $scope.data.coupons;
-        }
-        this.getImageUrl = function (image_url) {
-            return API.getAPIUrl() + image_url + '/70/70';
-        }
-        this.getCouponUrl = function () {
-            return $scope.coupon_url;
-        }
-        this.getCouponTitle = function () {
-            return $scope.coupon_title;
-        }
-        this.showCoupon = function (coupon) {
-            $scope.coupon = coupon;
-            $scope.coupon_url = API.getServerUrl() + coupon.qr_code;
-            // Create the login modal that we will use later
-            $ionicModal.fromTemplateUrl('templates/coupon.html', {
-                scope: $scope
-            }).then(function (modal) {
-                $scope.modal = modal;
-                $scope.modal.show();
-            });
-        }
-        //hottest products
-        this.getHottestProducts = function () {
-            return $scope.data.hottest_products;
-        }
-
-//        WebPullToRefresh().init({
-//            loadingFunction: function () {
-//                return new Promise(function (resolve, reject) {
-//                    // Run some async loading code here
-//                    API.getAPIData('coupons/list', 'coupons', 'coupons', undefined, resolve);
-//                    API.getAPIData('hottest_products', 'hottest_products', 'hottest_products', undefined, resolve);
-//                });
-//            },
-//            contentEl: home
-//        })
-
-        this.getFacebookLikesCount = function (product) {
-            if (FBC.isReady() && product.facebook_id !== null && product.facebook_update_pending === undefined) {
-                product.facebook_update_pending = true;
-
-                FBC.get('/' + product.facebook_id + '?fields=likes,comments,sharedposts').then(
-                    function (response) {
-                        if (response.likes !== undefined) {
-                            product.facebook_likes = response.likes.data;
-                        }
-                        if (response.comments !== undefined) {
-                            product.facebook_comments = response.comments.data;
-                        }
-                        if (response.sharedposts !== undefined) {
-                            product.facebook_shares = response.sharedposts.data;
-                        }
-                    },
-                    function (response) {
-                        console.error(response.error.message);
-                    }
-                );
-            }
-            return (product.facebook_likes !== undefined && product.facebook_likes !== null ? product.facebook_likes.length : 0);
-
-        }
-        this.getFacebookCommentsCount = function (product) {
-            return (product.facebook_comments !== undefined && product.facebook_comments !== null ? product.facebook_comments.length : 0);
-
-        }
-        this.getFacebookSharesCount = function (product) {
-            return (product.facebook_shares !== undefined && product.facebook_shares !== null ? product.facebook_shares.length : 0);
-
-        }
-        this.hasUserLiked = function (product) {
-            if ($scope.user !== undefined) {
-                //
-                $(product.facebook_likes).each(function (key, value) {
-                    if (value.id == $scope.user.id) {
-                        product.facebook_user_liked = true;
-                    }
-                });
-            }
-            return product.facebook_user_liked;
-        }
-// Triggered on a button click, or some other target
-        this.openFacebook = function ($event, product) {
-            $event.preventDefault();
-            // Show the action sheet
-            var hideSheet = $ionicActionSheet.show({
-                buttons: [
-                    {
-                        text: 'Like'
-                    },
-                    {
-                        text: 'Comment'
-                    },
-                    {
-                        text: 'Share'
-                    }
-                ],
-                titleText: 'Facebook functions',
-                cancelText: 'Cancel',
-                cancel: function () {
-                    // add cancel code..
-                },
-                buttonClicked: function (index) {
-                    switch (index) {
-                        case 1:
-                            if (FBC.isReady() && product.facebook_id !== null) {
-                                //like
-                                FBC.post('/' + product.facebook_id + '/likes').then(function (result) {
-                                    console.log(result);
-                                }, function (data) {
-                                    console.log(result);
-                                });
-                            }
-                            break;
-                        case 2:
-                            console.log('add comment');
-                            break;
-                        case 3:
-                            console.log('share');
-                            break;
-                    }
-                    return true;
-                }
-            });
-        };
-
-    }).controller('HottestProductsController',function ($http, $scope, Page, API) {
-        Page.setBackUrl(false);
-        //hottest products
-        this.getHottestProducts = function () {
-            if ($scope.data.hottest_products === undefined) {
-                API.getAPIData('hottest_products', 'hottest_products');
-            }
-            return $scope.data.hottest_products;
-        }
-        this.getImageUrl = function (image_url) {
-            if (image_url !== undefined) {
-                return API.getAPIUrl() + image_url + '/80/80';
-            }
-        }
+    }).controller('ContainerController', function ($scope, Page, Modal) {
+    this.getPage = function () {
+        return Page;
+    };
+    this.getModal = function () {
+        return Modal;
     }
-).controller('ProductsController',function ($http, $scope, Page, API) {
-        Page.setBackUrl(false);
-        //products
-        this.getProducts = function () {
-            if ($scope.data.products === undefined) {
-                API.getAPIData('products', 'products');
+}).controller('MainController', function ($scope, $localStorage, $state, Page, API) {
+    this.getFullName = function () {
+        var name = '';
+        if ($scope.getData('profile') === undefined && Page.getToken() !== null) {
+            API.getAPIRequest()
+                .execute('profile', 'profile');
+        }
+        //concat the name
+        if ($scope.getData('profile') !== undefined) {
+            if ($scope.getData('profile.firstname') !== undefined && $scope.getData('profile.firstname') !== null) {
+                name += $scope.getData('profile.firstname') + " ";
             }
-            return $scope.data.products;
+            if ($scope.getData('profile.middlename') !== undefined && $scope.getData('profile.middlename') !== null) {
+                name += $scope.getData('profile.middlename') + " "
+            }
+            if ($scope.getData('profile.lastname') !== undefined && $scope.getData('profile.lastname') !== null) {
+                name += $scope.getData('profile.lastname') + " "
+            }
         }
-        this.getImageUrl = function (image_url) {
-            return API.getAPIUrl() + image_url + '/80/80';
+        return name;
+    };
+    this.isLoggedIn = function () {
+        return (Page.getToken() !== null);
+    };
+    this.LogOut = function () {
+        Page.setToken(null);
+        ImgCache.clearCache(function () {
+            // continue cleanup...
+        }, function () {
+            // something went wrong
+        });
+        //delete localstorage
+        $localStorage.$reset();
+        $ionicHistory.clearHistory();
+        $ionicHistory.clearCache();
+        $state.go('app.login');
+    }
+    this.isActive = function (route) {
+        return route === $location.path();
+    }
+    this.getBackUrl = function () {
+        return Page.getBackUrl();
+    }
+}).controller('HomeController', function ($location, $ionicActionSheet, $ionicModal, $http, Page, $scope, FBC, API, ionicMaterialMotion) {
+    Page.setBackUrl(false);
+    //get Coupons
+    if ($scope.getData('coupons') === undefined) {
+        API.getAPIRequest()
+            .execute('coupons/list', 'coupons');
+    }
+    if ($scope.getData('hottest_products') === undefined) {
+        API.getAPIRequest()
+            .execute('hottest_products', 'hottest_products');
+    }
+    //coupons
+    this.getCoupons = function () {
+        return $scope.getData('coupons')
+    }
+    this.getImageUrl = function (image_url) {
+        return API.getAPIUrl() + image_url + '/70/70';
+    }
+    this.getCouponUrl = function () {
+        return $scope.coupon_url;
+    }
+    this.getCouponTitle = function () {
+        return $scope.coupon_title;
+    }
+    this.showCoupon = function (coupon) {
+        $scope.coupon = coupon;
+        $scope.coupon_url = API.getServerUrl() + coupon.qr_code;
+        // Create the login modal that we will use later
+        $ionicModal.fromTemplateUrl('templates/coupon.html', {
+            scope: $scope
+        }).then(function (modal) {
+            $scope.modal = modal;
+            $scope.modal.show();
+        });
+    }
+    //hottest products
+    this.getHottestProducts = function () {
+        return $scope.getData('hottest_products')
+    }
+    this.getFacebookLikesCount = function (product) {
+        if (FBC.isReady() && product.facebook_id !== null && product.facebook_update_pending === undefined) {
+            product.facebook_update_pending = true;
+            FBC.get('/' + product.facebook_id + '?fields=likes,comments,sharedposts').then(
+                function (response) {
+                    if (response.likes !== undefined) {
+                        product.facebook_likes = response.likes.data;
+                    }
+                    if (response.comments !== undefined) {
+                        product.facebook_comments = response.comments.data;
+                    }
+                    if (response.sharedposts !== undefined) {
+                        product.facebook_shares = response.sharedposts.data;
+                    }
+                },
+                function (response) {
+                    console.error(response.error.message);
+                }
+            );
         }
-
-    }).controller('ProductController',function ($http, $scope, Page, $stateParams, API) {
+        return (product.facebook_likes !== undefined && product.facebook_likes !== null ? product.facebook_likes.length : 0);
+    }
+    this.getFacebookCommentsCount = function (product) {
+        return (product.facebook_comments !== undefined && product.facebook_comments !== null ? product.facebook_comments.length : 0);
+    }
+    this.getFacebookSharesCount = function (product) {
+        return (product.facebook_shares !== undefined && product.facebook_shares !== null ? product.facebook_shares.length : 0);
+    }
+    this.hasUserLiked = function (product) {
+        if ($scope.user !== undefined) {
+            //
+            $(product.facebook_likes).each(function (key, value) {
+                if (value.id == $scope.user.id) {
+                    product.facebook_user_liked = true;
+                }
+            });
+        }
+        return product.facebook_user_liked;
+    }
+// Triggered on a button click, or some other target
+    this.openFacebook = function ($event, product) {
+        $event.preventDefault();
+        // Show the action sheet
+        var hideSheet = $ionicActionSheet.show({
+            buttons: [
+                {
+                    text: 'Like'
+                },
+                {
+                    text: 'Comment'
+                },
+                {
+                    text: 'Share'
+                }
+            ],
+            titleText: 'Facebook functions',
+            cancelText: 'Cancel',
+            cancel: function () {
+                // add cancel code..
+            },
+            buttonClicked: function (index) {
+                switch (index) {
+                    case 1:
+                        if (FBC.isReady() && product.facebook_id !== null) {
+                            //like
+                            FBC.post('/' + product.facebook_id + '/likes').then(function (result) {
+                                console.log(result);
+                            }, function (data) {
+                                console.log(result);
+                            });
+                        }
+                        break;
+                    case 2:
+                        console.log('add comment');
+                        break;
+                    case 3:
+                        console.log('share');
+                        break;
+                }
+                return true;
+            }
+        });
+    };
+}).controller('ProductsController', function ($http, $scope, Page, API) {
+    Page.setBackUrl(false);
+    //products
+    this.getProducts = function () {
+        if ($scope.getData('products') === undefined) {
+            API.getAPIRequest()
+                .execute('products', 'products');
+        }
+        return $scope.getData('products')
+    }
+    this.getImageUrl = function (image_url) {
+        return API.getAPIUrl() + image_url + '/80/80';
+    }
+}).controller('ProductController', function ($http, $scope, Page, $stateParams, API) {
         if ($stateParams.type == "hottest_products") {
             Page.setBackUrl('#/hottest_products');
         } else if ($stateParams.type == "products") {
@@ -277,10 +245,11 @@ angular.module('app.controllers', [])
         this.getProduct = function () {
             var product_id = $stateParams.id;
             var name = "product_" + product_id;
-            if ($scope.data[name] === undefined) {
-                API.getAPIData('product/' + product_id, name, 'product');
+            if ($scope.getData(name) === undefined) {
+                API.getAPIRequest()
+                    .execute('product/' + product_id, name, 'product');
             }
-            return $scope.data[name];
+            return $scope.getData(name);
         }
         this.getImageUrl = function (image_url, id) {
             if (image_url !== undefined) {
@@ -297,16 +266,16 @@ angular.module('app.controllers', [])
             if (collection_product.attribute_images[collection_product.selected_color] !== undefined && collection_product.attribute_images[collection_product.selected_color][collection_product.selected_size] !== undefined) {
                 collection_product.image = collection_product.attribute_images[collection_product.selected_color][collection_product.selected_size];
             }
-
         }
     }
-).controller('PromotionsController',function ($http, $ionicModal, $scope, Page, API) {
+).controller('PromotionsController', function ($http, $ionicModal, $scope, Page, API) {
         //products
         this.getPromotions = function () {
-            if ($scope.data.promotions === undefined) {
-                API.getAPIData('promotions/list', 'promotions');
+            if ($scope.getData('promotions') === undefined) {
+                API.getAPIRequest()
+                    .execute('promotions/list', 'promotions');
             }
-            return $scope.data.promotions;
+            return $scope.getData('promotions')
         }
         this.getImageUrl = function (image_url) {
             return API.getAPIUrl() + image_url + '/80/80';
@@ -328,50 +297,8 @@ angular.module('app.controllers', [])
                 $scope.modal.show();
             });
         }
-
-    }).controller('CouponsController',function ($http, $ionicModal, $scope, Page, API) {
-        this.getCoupons = function () {
-            if ($scope.data.coupons === undefined) {
-                API.getAPIData('coupons/list', 'coupons');
-            }
-            return $scope.data.coupons;
-        }
-        this.getImageUrl = function (image_url) {
-            return API.getAPIUrl() + image_url + '/80/80';
-        }
-        this.getCouponUrl = function () {
-            return $scope.coupon_url;
-        }
-        this.getCouponTitle = function () {
-            return $scope.coupon_title;
-        }
-        this.showCoupon = function (coupon) {
-            $scope.coupon = coupon;
-            $scope.coupon_url = API.getServerUrl() + coupon.qr_code;
-            // Create the login modal that we will use later
-            $ionicModal.fromTemplateUrl('templates/coupon.html', {
-                scope: $scope
-            }).then(function (modal) {
-                $scope.modal = modal;
-                $scope.modal.show();
-            });
-        }
-
-    }).controller('WishlistController', function ($http, $scope, Page, API) {
-        //wishlist
-        this.getWishlistItems = function () {
-            if ($scope.data.wishlist === undefined) {
-                API.getAPIData('wishlist/list', 'wishlist');
-            }
-            return $scope.data.wishlist;
-        }
-        this.getImageUrl = function (image_url) {
-            return API.getAPIUrl() + image_url + '/80/80';
-        }
-
     })
-    .controller('MapsController',function ($http, $scope, Page, API) {
-
+    .controller('MapsController', function ($http, $scope, Page, API) {
         $scope.map = {
             center: {
                 latitude: 6.91,
@@ -383,7 +310,6 @@ angular.module('app.controllers', [])
         $scope.options = {
             scrollwheel: true
         };
-
         $scope.randomMarkers = [];
         // Get the bounds from the map once it's loaded
         $scope.$watch(function () {
@@ -395,7 +321,6 @@ angular.module('app.controllers', [])
                 $scope.getRandomMarkers(maps);
             }
         }, true);
-
         $scope.getRandomMarkers = function (maps) {
             var markers = [];
             if (maps !== undefined) {
@@ -415,189 +340,290 @@ angular.module('app.controllers', [])
             }
             $scope.randomMarkers = markers;
         }
-
         $scope.getMaps = function () {
-            if ($scope.data.maps === undefined) {
-                API.getAPIData('maps/list', 'maps', 'maps', function () {
-                    $scope.getRandomMarkers($scope.data.maps)
-                });
+            if ($scope.getData('maps') === undefined) {
+                API.getAPIRequest()
+                    .setOnSuccess(function () {
+                        $scope.getRandomMarkers($scope.getData('maps'))
+                    })
+                    .execute('maps/list', 'maps');
             }
-            return $scope.data.maps;
+            return $scope.getData('maps')
         }
         this.getImageUrl = function (image_url) {
             return API.getAPIUrl() + image_url + '/80/80';
         }
-
-    }).controller('BlocksController',function ($http, $scope, API) {
-        this.getSlides = function () {
-            if ($scope.data.slides === undefined) {
-                var myObject = {
-                    searchCriteria: {
-                        filterGroups: [
-                            {filters: [
+    }).controller('BlocksController', function ($http, $scope, API) {
+    this.getSlides = function () {
+        if ($scope.getData('slides') === undefined) {
+            var myObject = {
+                searchCriteria: {
+                    filterGroups: [
+                        {
+                            filters: [
                                 {
                                     field: 'identifier',
                                     value: 'home-page-block%',
                                     condition_type: 'like'
                                 }
-                            ]}
-                        ]
-                    }
-                };
-                var recursiveEncoded = $.param(myObject);
-                var query = '/cmsBlock/search?' + recursiveEncoded;
-
-                API.getAPIData(query, 'slides');
-            }
-
-            return $scope.data.slides.items;
+                            ]
+                        }
+                    ]
+                }
+            };
+            API.getAPIRequest()
+                .execute('/cmsBlock/search?' + $.param(myObject), 'slides');
         }
-        this.getSlide = function (identifier) {
-            var slides = this.getSlides();
+        return $scope.getData('slides.items')
+    }
+    this.getSlide = function (identifier) {
+        var slides = this.getSlides();
+        if (slides !== undefined) {
             for (var x = 0; x < slides.length; x++) {
                 if (identifier == slides[x].identifier) {
                     return slides[x];
                 }
             }
         }
-        this.getBlock = function (identifier) {
-            if ($scope.data.blocks === undefined) {
-                var query = '/cmsBlock/search?searchCriteria';
-                API.getAPIData(query, 'blocks');
-            }
-            for (var x = 0; x < $scope.data.blocks.items.length; x++) {
-                if (identifier == $scope.data.blocks.items[x].identifier) {
-                    return $scope.data.blocks.items[x];
+        return {};
+    }
+    this.getBlock = function (identifier) {
+        if ($scope.getData('blocks') === undefined) {
+            API.getAPIRequest()
+                .execute('/cmsBlock/search?searchCriteria', 'blocks');
+        } else {
+            for (var x = 0; x < $scope.getData('blocks.items').length; x++) {
+                if (identifier == $scope.getData('blocks.items')[x].identifier) {
+                    return $scope.getData('blocks.items')[x];
                 }
             }
         }
-    }).controller('NavbarController',function ($http, $scope, API, Page) {
-        this.newsletter = null;
-        this.getPhone = function () {
-            if ($scope.data.store_config === undefined) {
-                var query = '/store/storeConfigs';
-                API.getAPIData(query, 'store_config');
+    }
+}).controller('NavbarController', function ($http, $scope, API, Page, Modal) {
+    this.getPhone = function () {
+        if ($scope.getData('store_config') === undefined) {
+            API.getAPIRequest()
+                .execute('/store/storeConfigs', 'store_config');
+        } else {
+            return $scope.getData('store_config')[0].store_phone
+        }
+    };
+    this.getEmail = function () {
+        if ($scope.getData('store_config') === undefined) {
+            API.getAPIRequest()
+                .execute('/store/storeConfigs', 'store_config');
+        } else {
+            return $scope.getData('store_config')[0].support_email
+        }
+    };
+    this.isUserLoggedIn = function () {
+        return (Page.getToken() !== null);
+    };
+    this.getCategory = function () {
+        if ($scope.getData('categories') === undefined) {
+            API.getAPIRequest()
+                .execute('/categories', 'categories');
+        }
+        return $scope.getData('categories.children_data')
+    };
+    this.showSignInModal = function () {
+        Modal.loadTemplate('login');
+    };
+}).controller('CartController', function ($http, $scope, API, Page) {
+    $scope.$on('onRepeatLast', function (scope, element, attrs) {
+        if ($scope.scroll_loaded === undefined) {
+            loadScrollPanel();
+            $scope.scroll_loaded = true;
+        }
+    });
+    this.isUserLoggedIn = function () {
+        return (Page.getToken() !== null);
+    };
+    this.getCartTotal = function () {
+        if (this.isUserLoggedIn()) {
+            console.log('asd');
+        } else {
+            if (Page.getCartId() === null) {
+                //create guest cart
+                API.getAPIRequest()
+                    .setPostmethod()
+                    .setOnSuccess(function () {
+                        Page.setCartId($scope.getData('guest_cart_id'));
+                    })
+                    .execute('/guest-carts', 'guest_cart_id');
+            } else if ($scope.getData('guest_cart_totals.grand_total') === undefined) {
+                API.getAPIRequest()
+                    .execute('/guest-carts/' + Page.getCartId() + '/totals', 'guest_cart_totals');
             }
 
-            return $scope.data.store_config[0].store_phone;
+            return $scope.getData('guest_cart_totals.grand_total');
         }
-        this.getEmail = function () {
-            if ($scope.data.store_config === undefined) {
-                var query = '/store/storeConfigs';
-                API.getAPIData(query, 'store_config');
-            }
+    };
+    this.getCartCurrency = function () {
+        return $scope.getData('guest_cart_totals.base_currency_code')
+    };
 
-            return $scope.data.store_config[0].support_email;
+    this.getCartItems = function () {
+        if ($scope.getData('guest-carts-' + Page.getCartId() + '-items') === undefined) {
+            API.getAPIRequest()
+                .execute('/guest-carts/' + Page.getCartId() + '/items', 'guest-carts-' + Page.getCartId() + '-items');
         }
-        this.isUserLoggedIn = function () {
-            return (Page.getToken() !== null);
-        }
-        this.getCartTotal = function () {
-            if (this.isUserLoggedIn()) {
-
-            } else {
-                if (Page.getCartId() === null) {
-                    //create guest cart
-                    var query = '/guest-carts';
-                    API.postAPIData(query, 'guest_cart_id', function () {
-                        Page.setCartId($scope.data.guest_cart_id);
-                    });
-                } else if ($scope.data.guest_cart_totals.grand_total === undefined) {
-                    var query = '/guest-carts/' + Page.getCartId() + '/totals';
-                    API.getAPIData(query, 'guest_cart_totals');
-                }
-                return $scope.data.guest_cart_totals.grand_total;
-            }
-        }
-        this.getCartCurrency = function () {
-            return $scope.data.guest_cart.currency.base_currency_code;
-        }
-        this.getCatgory = function () {
-            if ($scope.data.categories === undefined) {
-                var query = '/categories';
-                API.getAPIData(query, 'categories');
-            }
-            return $scope.data.categories.children_data;
-        }
-
-        this.addSubscription = function () {
-            alert(this.newsletter);
-            //API.postAPIData();
-        }
-    }).controller('ProductsController', function ($http, $scope, API, Page) {
-        this.getNewArrivals = function () {
-            $scope.$on('onRepeatLast', function (scope, element, attrs) {
-                $("#productslider").owlCarousel({
-                    navigation: true,
-                    items: 4,
-                    itemsTablet: [768, 2]
-                });
+        return $scope.getData('guest-carts-' + Page.getCartId() + '-items');
+    };
+    this.removeFromCart = function (product) {
+        API.getAPIRequest()
+            .setDeletemethod()
+            .setOnSuccess(function () {
+                Page.setSuccessMessage('this product has been removed from the cart!');
+                $scope.resetData('guest-carts-' + Page.getCartId() + '-items');
+                $scope.resetData('guest_cart_totals.grand_total');
+            })
+            .execute('/guest-carts/' + Page.getCartId() + '/items/' + product.item_id, 'guest-carts-' + Page.getCartId() + '-items-' + product.id);
+    };
+    this.isLoading = function (product) {
+        return API.isLoading('guest-carts-' + Page.getCartId() + '-items-' + product.id);
+    };
+}).controller('NewsLetterController', function (API, $scope, $mdToast, Page) {
+    this.email = null;
+    this.isLoading = function () {
+        return API.isLoading('newsletter');
+    };
+    this.addSubscription = function () {
+        API.getAPIRequest()
+            .setPostmethod()
+            .setData({email: this.email})
+            .setOnSuccess(function () {
+                Page.setSuccessMessage('You have successfully subscribed to the newsletter!');
+            })
+            .execute('/newsletter/new', 'newsletter');
+    }
+}).controller('ProductsController', function ($http, $scope, API, Page) {
+    this.getNewArrivals = function () {
+        $scope.$on('onRepeatLast', function (scope, element, attrs) {
+            $("#productslider").owlCarousel({
+                navigation: true,
+                items: 4,
+                itemsTablet: [768, 2]
             });
-            if ($scope.data.new_arrivals === undefined) {
-                var myObject = {
-                    searchCriteria: {
-                        sortOrders: [
-                            {
-                                field: 'created_at',
-                                direction: 'asc'
-                            }
-                        ],
-                        pageSize: 10
-                    }
-                };
-                var recursiveEncoded = $.param(myObject);
-                var query = '/products?' + recursiveEncoded;
-                API.getAPIData(query, 'new_arrivals');
-            }
-            return $scope.data.new_arrivals.items;
+        });
+        if ($scope.getData('new_arrivals') === undefined) {
+            var myObject = {
+                searchCriteria: {
+                    sortOrders: [
+                        {
+                            field: 'created_at',
+                            direction: 'asc'
+                        }
+                    ],
+                    pageSize: 10
+                }
+            };
+            API.getAPIRequest()
+                .execute('/products?' + $.param(myObject), 'new_arrivals');
         }
-
-        this.getFeaturedProducts = function () {
-            if ($scope.data.featured_products === undefined) {
-                var myObject = {
-                    searchCriteria: {
-                        filterGroups: [
-                            {
-                                filters: [
-                                    {
-                                        field: 'featured',
-                                        value: 1
-                                    }
-                                ]}
-                        ],
-                        pageSize: 10
-                    }
-                };
-                var recursiveEncoded = $.param(myObject);
-                var query = '/products?' + recursiveEncoded;
-                API.getAPIData(query, 'featured_products');
-            }
-            return $scope.data.featured_products.items;
+        return $scope.getData('new_arrivals.items')
+    };
+    this.getFeaturedProducts = function () {
+        if ($scope.getData('featured_products') === undefined) {
+            var myObject = {
+                searchCriteria: {
+                    filterGroups: [
+                        {
+                            filters: [
+                                {
+                                    field: 'featured',
+                                    value: 1
+                                }
+                            ]
+                        }
+                    ],
+                    pageSize: 10
+                }
+            };
+            API.getAPIRequest()
+                .execute('/products?' + $.param(myObject), 'featured_products');
         }
-        this.isProductVisible = function (product) {
-            if ($scope.visible_products === undefined) {
-                $scope.visible_products = 3;
-            }
-            for (var x = 0; x < $scope.data.featured_products.items.length; x++) {
-                if ($scope.data.featured_products.items[x].id == product.id && $scope.visible_products >= x) {
+        return $scope.getData('featured_products.items')
+    };
+    this.isProductVisible = function (product) {
+        if ($scope.visible_products === undefined) {
+            $scope.visible_products = 3;
+        }
+        if ($scope.getData('featured_products.items') !== undefined) {
+            for (var x = 0; x < $scope.getData('featured_products.items').length; x++) {
+                if ($scope.getData('featured_products.items')[x].id == product.id && $scope.visible_products >= x) {
                     return true;
                 }
             }
-            return false;
         }
-        this.loadMoreProducts = function () {
-            $scope.visible_products += 4;
-        }
-        this.hasMoreProducts = function () {
-            return ($scope.data.featured_products.items.length >= $scope.visible_products);
+        return false;
+    };
+    this.isNew = function (product) {
+        function daydiff(created) {
+            var now = new Date();
+            var date = created.split(' ');
+            var mdy = date[0].split('-');
+            var second = new Date(mdy[0], mdy[1] - 1, mdy[2]);
+            return Math.round((now - second) / (1000 * 60 * 60 * 24));
         }
 
-        this.getProductAttribute = function (product, code) {
-            for (var x = 0; x < product.custom_attributes.length; x++) {
-                if (product.custom_attributes[x].attribute_code == code) {
-                    return product.custom_attributes[x].value;
-                }
+        var diff = daydiff(product.created_at);
+        //show new if the product is created within 15 days
+        return (diff < 15);
+    };
+    this.getOffer = function (product) {
+        return this.getProductAttribute(product, 'offer');
+    };
+
+    this.loadMoreProducts = function () {
+        $scope.visible_products += 4;
+    };
+    this.hasMoreProducts = function () {
+
+        return ($scope.getData('featured_products.items') !== undefined && $scope.getData('featured_products.items').length >= $scope.visible_products)
+    };
+    this.getProductAttribute = function (product, code) {
+        for (var x = 0; x < product.custom_attributes.length; x++) {
+            if (product.custom_attributes[x].attribute_code == code) {
+                return product.custom_attributes[x].value;
             }
         }
-    })
-;
+    };
+    this.getCartCurrency = function () {
+        return $scope.getData('guest_cart_totals.base_currency_code')
+    };
+    this.addToWishlist = function (product) {
+        API.getAPIRequest()
+            .setPostmethod()
+            .setData({product_id: product.id})
+            .setOnSuccess(function () {
+                Page.setSuccessMessage('this product has been added to the wishlist!');
+            })
+            .execute('/wishlist/new', 'wishlist');
+    };
+    this.addToCart = function (product) {
+        API.getAPIRequest()
+            .setPostmethod()
+            .setData({cartItem: {sku: product.sku, qty: 1, price: product.price, quoteId: Page.getCartId()}})
+            .setOnSuccess(function () {
+                Page.setSuccessMessage('this product has been added to the cart!');
+                $scope.resetData('guest-carts-' + Page.getCartId() + '-items');
+                $scope.resetData('guest_cart_totals.grand_total');
+            })
+            .execute('/guest-carts/items', 'guest-carts-items-' + product.id);
+    };
+
+    this.isLoading = function (product) {
+        return API.isLoading('guest-carts-items-' + product.id);
+    };
+}).controller('DialogController', function ($scope, $mdDialog) {
+    $scope.hide = function () {
+        $mdDialog.hide();
+    };
+    $scope.cancel = function () {
+        $mdDialog.cancel();
+    };
+    $scope.answer = function (answer) {
+        $mdDialog.hide(answer);
+    };
+});

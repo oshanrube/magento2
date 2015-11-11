@@ -1,0 +1,6 @@
+<md-toast class="ng-scope md-bottom md-right alert" ng-show="container.getPage().hasMessage()" ng-class="container.getPage().messageType()?'alert-success':'alert-danger'" role="alert">
+    <span class="flex ng-binding">{{ container.getPage().getMessage() }}</span>
+    <button class="md-action md-button" ng-click="container.getPage().hideMessage()" tabindex="0">
+        <span class="ng-binding ng-scope">X</span>
+    </button>
+</md-toast>

@@ -12,6 +12,11 @@ angular.module('app.directives', [])
             restrict: 'E',
             templateUrl: 'templates/navbar.html'
         };
+    }).directive('product', function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'templates/product.html'
+        };
     }).directive('appBlocks',function () {
         return {
             restrict: 'E',
@@ -65,5 +70,15 @@ angular.module('app.directives', [])
         return {
             restrict: 'E',
             templateUrl: 'templates/footer.html'
+        };
+    }).directive('toast', function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'templates/toast.html'
+        };
+    }).directive('navbarCart', function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'templates/navbar_cart.html'
         };
     });

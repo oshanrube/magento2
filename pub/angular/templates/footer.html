@@ -60,17 +60,18 @@
                 <h3> Stay in touch </h3>
                 <ul>
                     <li>
-                        <div class="input-append newsLatterBox">
+                        <div class="input-append newsLatterBox" ng-controller="NewsLetterController as newsletter">
                             <form name="newsLatterBox">
                                 <md-input-container class="md-block">
                                     <label>Email</label>
-                                    <input type="email" name="email" ng-model="footer.newsletter" minlength="10" maxlength="100" ng-pattern="/^.+@.+\..+$/"/>
+                                    <input type="email" name="email" ng-model="newsletter.email" minlength="10" maxlength="100" ng-pattern="/^.+@.+\..+$/"/>
                                     <div ng-messages="newsLatterBox.email.$error" role="alert">
                                         <div ng-message-exp="['required', 'minlength', 'maxlength', 'pattern']"> Your email must be between 10 and 100 characters long and look like an e-mail address.</div>
                                     </div>
                                 </md-input-container>
-                                <paper-button ng-disabled="newsLatterBox.$invalid || !footer.newsletter.length" class="btn bg-gray" ng-click="footer.addSubscription()" raised>
-                                    Subscribe <i class="fa fa-long-arrow-right"> </i>
+                                <paper-button ng-disabled="newsLatterBox.$invalid || !newsletter.email.length || newsletter.isLoading()" class="btn bg-gray" ng-click="newsletter.addSubscription()" raised>
+                                    <md-progress-linear ng-show="newsletter.isLoading()" md-mode="indeterminate"></md-progress-linear>
+                                    <span>Subscribe <i class="fa fa-long-arrow-right"> </i></span>
                                 </paper-button>
                             </form>
                         </div>

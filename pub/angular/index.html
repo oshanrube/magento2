@@ -9,75 +9,70 @@
     <link rel="apple-touch-icon-precomposed" href="assets/ico/apple-touch-icon-57-precomposed.png">
     <link rel="shortcut icon" href="assets/ico/favicon.png">
     <title>Grocery shop</title>
-    <link href="assets/bootstrap/css/bootstrap.css" rel="stylesheet">
-    <link href="assets/css/idangerous.swiper.css" rel="stylesheet">
-    <link href="assets/css/angular-material.css" rel="stylesheet">
-    <link href="assets/css/styles.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="assets/css/idangerous.swiper.css">
+    <link rel="stylesheet" href="assets/css/angular-material.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
     <!--[if lt IE 9]>
     <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
     <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
     <![endif]-->
     <script>
-        paceOptions = {
-            elements: true
-        };
+        paceOptions = {elements: true};
     </script>
     <script src="assets/js/template/pace.min.js"></script>
-
 </head>
-<body>
-<app-navbar></app-navbar>
-<app-blocks></app-blocks>
-<app-new-arrivals></app-new-arrivals>
-<app-free-shipping></app-free-shipping>
-<app-featured-products></app-featured-products>
-<app-trusted-seller></app-trusted-seller>
-<footer></footer>
-
-<script type="text/javascript" src="assets/js/jquery/jquery-1.10.1.min.js"></script>
-<script type="text/javascript" src="assets/bootstrap/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="assets/js/template/idangerous.swiper-2.1.min.js"></script>
-<script type="text/javascript" src="assets/js/template/jquery.cycle2.min.js"></script>
-<script type="text/javascript" src="assets/js/template/jquery.easing.1.3.js"></script>
-<script type="text/javascript" src="assets/js/template/jquery.parallax-1.1.js"></script>
-<script type="text/javascript" src="assets/js/helper-plugins/jquery.mousewheel.min.js"></script>
-<script type="text/javascript" src="assets/js/template/jquery.mCustomScrollbar.js"></script>
-<script type="text/javascript" src="assets/js/ion-checkRadio/ion.checkRadio.min.js"></script>
-<script type="text/javascript" src="assets/js/template/grids.js"></script>
-<script type="text/javascript" src="assets/js/template/owl.carousel.min.js"></script>
-<script type="text/javascript" src="assets/js/template/jquery.minimalect.min.js"></script>
-<script type="text/javascript" src="assets/js/template/bootstrap.touchspin.js"></script>
-<script type="text/javascript" src="assets/js/template/home.js"></script>
-<script type="text/javascript" src="assets/js/template/script.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angular.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angular-resource.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angular-route.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angular-storage.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angular-animate.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angular-ui-router.js"></script>
-<script type="text/javascript" src="assets/js/vendor/lodash.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angular-google-maps.js"></script>
-<script type="text/javascript" src="assets/js/vendor/hammer.js"></script>
-<script type="text/javascript" src="assets/js/vendor/jquery.hammer.js"></script>
-<script type="text/javascript" src="assets/js/vendor/wptr.1.1.js"></script>
-<script type="text/javascript" src="assets/js/vendor/imgcache.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angular-imgcache.js"></script>
-<script type="text/javascript" src="assets/js/vendor/bootstrap.js"></script>
-<script type="text/javascript" src="assets/js/vendor/offcanvas.js"></script>
-<script type="text/javascript" src="assets/js/vendor/plugins.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angular-facebook.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angular-facebook-phonegap.js"></script>
-<script type="text/javascript" src="assets/js/vendor/facebookConnectPlugin-angular.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angularfire.min.js"></script>
-<script type="text/javascript" src="assets/js/vendor/ng-polymer-elements-0.3.0/ng-polymer-elements.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angular-aria.min.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angular-messages.js"></script>
-<script type="text/javascript" src="assets/js/vendor/angular-material.min.js"></script>
-<script type="text/javascript" src="assets/js/binders.js"></script>
-<script type="text/javascript" src="assets/js/app.js"></script>
-<script type="text/javascript" src="assets/js/app_controllers.js"></script>
-<script type="text/javascript" src="assets/js/app_directives.js"></script>
-<script type="text/javascript" src="assets/js/app_services.js"></script>
-<script type="text/javascript" src="assets/js/app_filters.js"></script>
+<body ng-controller="ContainerController as container">
+    <app-navbar></app-navbar>
+    <section ui-view>
+        <i>Loading....!</i>
+    </section>
+    <footer></footer>
+    <toast></toast>
+    <script type="text/javascript" src="assets/js/jquery/jquery-1.10.1.min.js"></script>
+    <script type="text/javascript" src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="assets/js/template/idangerous.swiper-2.1.min.js"></script>
+    <script type="text/javascript" src="assets/js/template/jquery.cycle2.min.js"></script>
+    <script type="text/javascript" src="assets/js/template/jquery.easing.1.3.js"></script>
+    <script type="text/javascript" src="assets/js/template/jquery.parallax-1.1.js"></script>
+    <script type="text/javascript" src="assets/js/helper-plugins/jquery.mousewheel.min.js"></script>
+    <script type="text/javascript" src="assets/js/template/jquery.mCustomScrollbar.js"></script>
+    <script type="text/javascript" src="assets/js/ion-checkRadio/ion.checkRadio.min.js"></script>
+    <script type="text/javascript" src="assets/js/template/grids.js"></script>
+    <script type="text/javascript" src="assets/js/template/owl.carousel.min.js"></script>
+    <script type="text/javascript" src="assets/js/template/jquery.minimalect.min.js"></script>
+    <script type="text/javascript" src="assets/js/template/bootstrap.touchspin.js"></script>
+    <script type="text/javascript" src="assets/js/template/home.js"></script>
+    <script type="text/javascript" src="assets/js/template/script.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angular.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angular-resource.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angular-route.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angular-storage.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angular-animate.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angular-ui-router.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/lodash.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angular-google-maps.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/hammer.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/jquery.hammer.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/wptr.1.1.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/imgcache.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angular-imgcache.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/bootstrap.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/offcanvas.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/plugins.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angular-facebook.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angular-facebook-phonegap.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/facebookConnectPlugin-angular.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angularfire.min.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/ng-polymer-elements-0.3.0/ng-polymer-elements.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angular-aria.min.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angular-messages.js"></script>
+    <script type="text/javascript" src="assets/js/vendor/angular-material.js"></script>
+    <script type="text/javascript" src="assets/js/binders.js"></script>
+    <script type="text/javascript" src="assets/js/app.js"></script>
+    <script type="text/javascript" src="assets/js/app_controllers.js"></script>
+    <script type="text/javascript" src="assets/js/app_directives.js"></script>
+    <script type="text/javascript" src="assets/js/app_services.js"></script>
+    <script type="text/javascript" src="assets/js/app_filters.js"></script>
 </body>
 </html>

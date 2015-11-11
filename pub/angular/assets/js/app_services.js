@@ -1,115 +1,102 @@
 angular.module('app.services', [])
-    .factory("API", function ($http, $rootScope,$sce, Page) {
+    .factory("API", function ($http, $rootScope, $sce, Page, $mdToast) {
         var loadingdata = [];
 
         return {
-            getServerUrl: function () {
-                //dynamic url
-                var server_url = 'http://fedora-server/grocery_bag/magento2/pub/';
-                return server_url;
+            isLoading: function ($key) {
+                return (loadingdata[$key] !== undefined);
             },
-            getAPIUrl: function () {
-                //server_url = 'https://localhost:8081/';
-                return this.getServerUrl() + 'rest/default/V1';
-            },
-            getAPIData: function (action, $key, onsucces, oncomplete) {
-
-                if (loadingdata[$key] === undefined) {
-                    loadingdata[$key] = true;
-                    Page.setLoading(true);
-                    $http({
-                        method: 'GET',
-                        url: this.getAPIUrl() + action,
-                        crossDomain: true,
-                        headers: {
-                            Accept: "application/json"
+            getAPIRequest: function () {
+                var method = 'GET';
+                var data = null;
+                var onsuccess = null;
+                var onfailure = null;
+                return {
+                    getServerUrl: function () {
+                        //dynamic url
+                        var server_url = 'http://fedora-server/grocery_bag/magento2/pub/';
+                        return server_url;
+                    },
+                    getAPIUrl: function () {
+                        //server_url = 'https://localhost:8081/';
+                        return this.getServerUrl() + 'rest/default/V1';
+                    },
+                    setPostmethod: function () {
+                        method = 'POST';
+                        return this;
+                    },
+                    setDeletemethod: function () {
+                        method = 'DELETE';
+                        return this;
+                    },
+                    setData: function ($data) {
+                        data = $data;
+                        return this;
+                    },
+                    setOnSuccess: function ($onsuccess) {
+                        onsuccess = $onsuccess;
+                        return this;
+                    },
+                    setOnFailure: function ($onfailure) {
+                        onfailure = $onfailure;
+                        return this;
+                    },
+                    setOnComplete: function ($oncomplete) {
+                        oncomplete = $oncomplete;
+                        return this;
+                    },
+                    execute: function (url, key) {
+                        if (loadingdata[key] === undefined) {
+                            loadingdata[key] = true;
+                            $http({
+                                method: method,
+                                data: JSON.stringify(data),
+                                url: this.getAPIUrl() + url,
+                                crossDomain: true,
+                                headers: {
+                                    Accept: "application/json",
+                                    "Content-Type": "application/json"
+                                }
+                            }).success(function (response) {
+                                if (response.errors == undefined) {
+                                    //save the data to the key
+                                    $rootScope.data[key] = response;
+                                    if (onsuccess !== null) {
+                                        onsuccess();
+                                    }
+                                } else {
+                                    //show the error
+                                    Page.setErrorMessage(response.message);
+                                }
+                            }).error(function (status, response) {
+                                // called asynchronously if an error occurs
+                                // or server returns response with an error status.
+                                //Page.setErrorMessage("Unable to connect to the server at the moment, please try again later");
+                                Page.setErrorMessage(status.message);
+                            }).finally(function () {
+                                //remove key
+                                delete loadingdata[key];
+                                //check for the rest
+                                var count = 0;
+                                for (var k in loadingdata) {
+                                    if (loadingdata.hasOwnProperty(k)) {
+                                        ++count;
+                                    }
+                                }
+                                if (count === 0) {
+                                    Page.setLoading(false);
+                                    if (oncomplete !== null) {
+                                        oncomplete();
+                                    }
+                                }
+                            });
                         }
-                    }).success(function (response) {
-                        if (response.errors == undefined) {
-
-                            //save the data to the key
-                            $rootScope.data[$key] = response;
-                            if (onsucces !== undefined) {
-                                onsucces();
-                            }
-                        } else {
-                            //show the error
-                            Page.setErrorMessage(response.message);
-                        }
-                    }).error(function (status, response) {
-                        // called asynchronously if an error occurs
-                        // or server returns response with an error status.
-                        Page.setErrorMessage("Unable to connect to the server at the moment, please try again later");
-                    }).finally(function () {
-                        //remove key
-                        delete loadingdata[$key];
-                        //check for the rest
-                        var count = 0;
-                        for (var k in loadingdata) {
-                            if (loadingdata.hasOwnProperty(k)) {
-                                ++count;
-                            }
-                        }
-
-                        if (count === 0) {
-                            Page.setLoading(false);
-                            if (oncomplete !== undefined) {
-                                oncomplete();
-                            }
-                        }
-                    });
-                }
-            },
-            postAPIData: function (action, $key, onsucces, oncomplete) {
-
-                if (loadingdata[$key] === undefined) {
-                    loadingdata[$key] = true;
-                    Page.setLoading(true);
-                    $http({
-                        method: 'POST',
-                        url: this.getAPIUrl() + action,
-                        crossDomain: true,
-                        headers: {
-                            Accept: "application/json"
-                        }
-                    }).success(function (response) {
-                        if (response.errors == undefined) {
-                            //save the data to the key
-                            $rootScope.data[$key] = response;
-                            if (onsucces !== undefined) {
-                                onsucces();
-                            }
-                        } else {
-                            //show the error
-                            Page.setErrorMessage(response.message);
-                        }
-                    }).error(function (status, response) {
-                        // called asynchronously if an error occurs
-                        // or server returns response with an error status.
-                        Page.setErrorMessage("Unable to connect to the server at the moment, please try again later");
-                    }).finally(function () {
-                        //remove key
-                        delete loadingdata[$key];
-                        //check for the rest
-                        var count = 0;
-                        for (var k in loadingdata) {
-                            if (loadingdata.hasOwnProperty(k)) {
-                                ++count;
-                            }
-                        }
-
-                        if (count === 0) {
-                            Page.setLoading(false);
-                            if (oncomplete !== undefined) {
-                                oncomplete();
-                            }
-                        }
-                    });
-                }
+                    }
+                };
             }
         }
     })
-    .factory("Page", function ($localStorage) {
+    .factory("Page",function ($localStorage, $timeout) {
         var loading = false;
         var message = null;
         var messageType = true;
@@ -137,13 +124,20 @@ angular.module('app.services', [])
             hideMessage: function () {
                 message = null;
             },
+            startTimeout: function () {
+                $timeout(function () {
+                    message = null;
+                }, 5000);
+            },
             setSuccessMessage: function (successMessage) {
                 message = successMessage;
                 messageType = true;
+                this.startTimeout();
             },
             setErrorMessage: function (errorMessage) {
                 message = errorMessage;
                 messageType = false;
+                this.startTimeout();
             },
             getToken: function () {
                 if ($localStorage.token === undefined) {
@@ -154,7 +148,7 @@ angular.module('app.services', [])
             setToken: function (newSessionToken) {
                 $localStorage.token = newSessionToken;
             },
-            getCartId: function(){
+            getCartId: function () {
                 if ($localStorage.cart_id === undefined) {
                     $localStorage.cart_id = null;
                 }
@@ -174,6 +168,23 @@ angular.module('app.services', [])
             },
             getBackUrl: function () {
                 return back_url;
+            }
+        };
+    }).factory("Modal", function ($mdDialog, $rootScope) {
+        return {
+            loadTemplate: function (ev) {
+                $mdDialog.show({
+                    controller: 'DialogController',
+                    templateUrl: 'templates/dialog.tmpl.html',
+                    parent: angular.element(document.body),
+                    targetEvent: ev,
+                    clickOutsideToClose: true
+                })
+                .then(function (answer) {
+                    $rootScope.status = 'You said the information was "' + answer + '".';
+                }, function () {
+                    $rootScope.status = 'You cancelled the dialog.';
+                });
             }
         };
     })

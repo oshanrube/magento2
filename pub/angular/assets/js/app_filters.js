@@ -3,9 +3,15 @@ angular.module('app.filters', [])
         return function (text) {
             return $sce.trustAsHtml(text);
         };
+    }]).filter('to_text', ['$sce', function ($sce) {
+        return function (text) {
+            return $sce.trustAsHtml(text ? String(text).replace(/<[^>]+>/gm, '') : '');
+        };
     }]).filter('tel', function () {
         return function (tel) {
-            if (!tel) { return ''; }
+            if (!tel) {
+                return '';
+            }
 
             var value = tel.toString().trim().replace(/^\+/, '');
 

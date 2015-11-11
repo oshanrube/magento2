@@ -7,12 +7,10 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../../lib/internal/Magento/Framework/ObjectManager/etc/config.xsd">
 
-    <preference for="Onic\ThemeInterface\Api\CalculatorInterface"
-                type="Onic\ThemeInterface\Model\Calculator" />
-    <preference for="Magento\Cms\Api\BlockRepositoryInterface"
-                type="Onic\ThemeInterface\Model\BlockRepository" />
-    <preference for="Magento\Store\Api\StoreConfigManagerInterface"
+    <preference for="Onic\ThemeInterface\Api\StoreConfigManagerInterface"
                 type="Onic\ThemeInterface\Model\StoreConfigManager" />
+    <preference for="Onic\ThemeInterface\Api\Data\StoreConfigInterface"
+                type="Onic\ThemeInterface\Model\StoreConfig" />
     <preference for="Magento\Store\Model\Data\StoreConfig"
                 type="Onic\ThemeInterface\Model\StoreConfig" />
     <preference for="Magento\Catalog\Api\ProductRepositoryInterface"

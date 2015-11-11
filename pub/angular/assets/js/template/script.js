@@ -335,3 +335,17 @@ function initialize() {
      end
      ========================================================================================*/
 } // end Ready
+
+
+function loadScrollPanel(){
+    $(".scroll-pane").mCustomScrollbar({
+        advanced: {
+            updateOnContentResize: true
+        },
+        scrollButtons: {
+            enable: false
+        },
+        mouseWheelPixels: "200",
+        theme: "dark-2"
+    });
+}
