@@ -23,56 +23,163 @@
     <script src="assets/js/template/pace.min.js"></script>
 </head>
 <body ng-controller="ContainerController as container">
-    <app-navbar></app-navbar>
-    <section ui-view>
-        <i>Loading....!</i>
-    </section>
-    <footer></footer>
-    <toast></toast>
-    <script type="text/javascript" src="assets/js/jquery/jquery-1.10.1.min.js"></script>
-    <script type="text/javascript" src="assets/bootstrap/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="assets/js/template/idangerous.swiper-2.1.min.js"></script>
-    <script type="text/javascript" src="assets/js/template/jquery.cycle2.min.js"></script>
-    <script type="text/javascript" src="assets/js/template/jquery.easing.1.3.js"></script>
-    <script type="text/javascript" src="assets/js/template/jquery.parallax-1.1.js"></script>
-    <script type="text/javascript" src="assets/js/helper-plugins/jquery.mousewheel.min.js"></script>
-    <script type="text/javascript" src="assets/js/template/jquery.mCustomScrollbar.js"></script>
-    <script type="text/javascript" src="assets/js/ion-checkRadio/ion.checkRadio.min.js"></script>
-    <script type="text/javascript" src="assets/js/template/grids.js"></script>
-    <script type="text/javascript" src="assets/js/template/owl.carousel.min.js"></script>
-    <script type="text/javascript" src="assets/js/template/jquery.minimalect.min.js"></script>
-    <script type="text/javascript" src="assets/js/template/bootstrap.touchspin.js"></script>
-    <script type="text/javascript" src="assets/js/template/home.js"></script>
-    <script type="text/javascript" src="assets/js/template/script.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angular.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angular-resource.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angular-route.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angular-storage.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angular-animate.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angular-ui-router.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/lodash.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angular-google-maps.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/hammer.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/jquery.hammer.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/wptr.1.1.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/imgcache.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angular-imgcache.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/bootstrap.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/offcanvas.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/plugins.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angular-facebook.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angular-facebook-phonegap.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/facebookConnectPlugin-angular.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angularfire.min.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/ng-polymer-elements-0.3.0/ng-polymer-elements.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angular-aria.min.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angular-messages.js"></script>
-    <script type="text/javascript" src="assets/js/vendor/angular-material.js"></script>
-    <script type="text/javascript" src="assets/js/binders.js"></script>
-    <script type="text/javascript" src="assets/js/app.js"></script>
-    <script type="text/javascript" src="assets/js/app_controllers.js"></script>
-    <script type="text/javascript" src="assets/js/app_directives.js"></script>
-    <script type="text/javascript" src="assets/js/app_services.js"></script>
-    <script type="text/javascript" src="assets/js/app_filters.js"></script>
+<app-navbar></app-navbar>
+<section ui-view>
+    <style>
+        .sk-folding-cube {
+            margin: 40px auto;
+            width: 40px;
+            height: 40px;
+            position: relative;
+            -webkit-transform: rotateZ(45deg);
+            transform: rotateZ(45deg);
+        }
+
+        .sk-folding-cube .sk-cube {
+            float: left;
+            width: 50%;
+            height: 50%;
+            position: relative;
+            -webkit-transform: scale(1.1);
+            -ms-transform: scale(1.1);
+            transform: scale(1.1);
+        }
+
+        .sk-folding-cube .sk-cube:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #333;
+            -webkit-animation: sk-foldCubeAngle 2.4s infinite linear both;
+            animation: sk-foldCubeAngle 2.4s infinite linear both;
+            -webkit-transform-origin: 100% 100%;
+            -ms-transform-origin: 100% 100%;
+            transform-origin: 100% 100%;
+        }
+
+        .sk-folding-cube .sk-cube2 {
+            -webkit-transform: scale(1.1) rotateZ(90deg);
+            transform: scale(1.1) rotateZ(90deg);
+        }
+
+        .sk-folding-cube .sk-cube3 {
+            -webkit-transform: scale(1.1) rotateZ(180deg);
+            transform: scale(1.1) rotateZ(180deg);
+        }
+
+        .sk-folding-cube .sk-cube4 {
+            -webkit-transform: scale(1.1) rotateZ(270deg);
+            transform: scale(1.1) rotateZ(270deg);
+        }
+
+        .sk-folding-cube .sk-cube2:before {
+            -webkit-animation-delay: 0.3s;
+            animation-delay: 0.3s;
+        }
+
+        .sk-folding-cube .sk-cube3:before {
+            -webkit-animation-delay: 0.6s;
+            animation-delay: 0.6s;
+        }
+
+        .sk-folding-cube .sk-cube4:before {
+            -webkit-animation-delay: 0.9s;
+            animation-delay: 0.9s;
+        }
+
+        @-webkit-keyframes sk-foldCubeAngle {
+            0%, 10% {
+                -webkit-transform: perspective(140px) rotateX(-180deg);
+                transform: perspective(140px) rotateX(-180deg);
+                opacity: 0;
+            }
+            25%, 75% {
+                -webkit-transform: perspective(140px) rotateX(0deg);
+                transform: perspective(140px) rotateX(0deg);
+                opacity: 1;
+            }
+            90%, 100% {
+                -webkit-transform: perspective(140px) rotateY(180deg);
+                transform: perspective(140px) rotateY(180deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes sk-foldCubeAngle {
+            0%, 10% {
+                -webkit-transform: perspective(140px) rotateX(-180deg);
+                transform: perspective(140px) rotateX(-180deg);
+                opacity: 0;
+            }
+            25%, 75% {
+                -webkit-transform: perspective(140px) rotateX(0deg);
+                transform: perspective(140px) rotateX(0deg);
+                opacity: 1;
+            }
+            90%, 100% {
+                -webkit-transform: perspective(140px) rotateY(180deg);
+                transform: perspective(140px) rotateY(180deg);
+                opacity: 0;
+            }
+        }
+    </style>
+    <div class="sk-folding-cube">
+        <div class="sk-cube1 sk-cube"></div>
+        <div class="sk-cube2 sk-cube"></div>
+        <div class="sk-cube4 sk-cube"></div>
+        <div class="sk-cube3 sk-cube"></div>
+    </div>
+    <i style="text-align: center;width: 100%;display: block;">Loading....!</i>
+</section>
+<footer></footer>
+<toast></toast>
+<script type="text/javascript" src="assets/js/jquery/jquery-1.10.1.min.js"></script>
+<script type="text/javascript" src="assets/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="assets/js/template/idangerous.swiper-2.1.min.js"></script>
+<script type="text/javascript" src="assets/js/template/jquery.cycle2.min.js"></script>
+<script type="text/javascript" src="assets/js/template/jquery.easing.1.3.js"></script>
+<script type="text/javascript" src="assets/js/template/jquery.parallax-1.1.js"></script>
+<script type="text/javascript" src="assets/js/helper-plugins/jquery.mousewheel.min.js"></script>
+<script type="text/javascript" src="assets/js/template/jquery.mCustomScrollbar.js"></script>
+<script type="text/javascript" src="assets/js/ion-checkRadio/ion.checkRadio.min.js"></script>
+<script type="text/javascript" src="assets/js/template/grids.js"></script>
+<script type="text/javascript" src="assets/js/template/owl.carousel.min.js"></script>
+<script type="text/javascript" src="assets/js/template/jquery.minimalect.min.js"></script>
+<script type="text/javascript" src="assets/js/template/bootstrap.touchspin.js"></script>
+<script type="text/javascript" src="assets/js/template/home.js"></script>
+<script type="text/javascript" src="assets/js/template/script.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angular.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angular-resource.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angular-route.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angular-storage.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angular-animate.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angular-ui-router.js"></script>
+<script type="text/javascript" src="assets/js/vendor/lodash.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angular-google-maps.js"></script>
+<script type="text/javascript" src="assets/js/vendor/hammer.js"></script>
+<script type="text/javascript" src="assets/js/vendor/jquery.hammer.js"></script>
+<script type="text/javascript" src="assets/js/vendor/wptr.1.1.js"></script>
+<script type="text/javascript" src="assets/js/vendor/imgcache.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angular-imgcache.js"></script>
+<script type="text/javascript" src="assets/js/vendor/bootstrap.js"></script>
+<script type="text/javascript" src="assets/js/vendor/offcanvas.js"></script>
+<script type="text/javascript" src="assets/js/vendor/plugins.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angular-facebook.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angular-facebook-phonegap.js"></script>
+<script type="text/javascript" src="assets/js/vendor/facebookConnectPlugin-angular.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angularfire.min.js"></script>
+<script type="text/javascript" src="assets/js/vendor/ng-polymer-elements-0.3.0/ng-polymer-elements.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angular-aria.min.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angular-messages.js"></script>
+<script type="text/javascript" src="assets/js/vendor/angular-material.js"></script>
+<script type="text/javascript" src="assets/js/binders.js"></script>
+<script type="text/javascript" src="assets/js/app.js"></script>
+<script type="text/javascript" src="assets/js/app_controllers.js"></script>
+<script type="text/javascript" src="assets/js/app_directives.js"></script>
+<script type="text/javascript" src="assets/js/app_services.js"></script>
+<script type="text/javascript" src="assets/js/app_filters.js"></script>
 </body>
 </html>

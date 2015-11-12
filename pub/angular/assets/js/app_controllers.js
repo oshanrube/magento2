@@ -1,5 +1,14 @@
 angular.module('app.controllers', [])
-    .controller('LoginController', function ($http, $timeout, $state, Page, $location, API) {
+    .controller('ContainerController', function ($scope, Page, Modal) {
+        this.getPage = function () {
+            return Page;
+        };
+
+        this.getModal = function () {
+            return Modal;
+        }
+    })
+    .controller('LoginController', function ($http, $scope, $timeout, $state, Page, $location, API, Modal) {
         //redirect
         if (Page.getToken() !== null) {
             $state.go('home');
@@ -12,50 +21,109 @@ angular.module('app.controllers', [])
         };
         //sample data
         this.user.email = 'oshanrube@gmail.com';
-        this.user.password = 'asdasd';
+        this.user.password = 'lomino';
+
         this.login = function () {
-            Page.setLoading(true);
-            $http({
-                method: 'POST',
-                url: API.getAPIUrl() + 'login',
-                crossDomain: true,
-                data: this.user
-            }).success(function (response) {
-                // this callback will be called asynchronously
-                // when the response is available
-                if (response.success) {
-                    //save the token and move on
-                    $timeout(function () {
-                        Page.hideMessage();
-                    }, 2000);
-                    Page.setSuccessMessage(response.message);
-                    Page.setToken(response.data.sessionToken);
-                    $state.go('home');
-                } else {
-                    //show the error
-                    Page.setErrorMessage(response.message);
-                    $timeout(function () {
-                        Page.hideMessage();
-                    }, 2000);
-                }
-            }).error(function (status, response) {
-                // called asynchronously if an error occurs
-                // or server returns response with an error status.
-                Page.setErrorMessage("Unable to connect to the server at the moment, please try again later");
-                $timeout(function () {
-                    Page.hideMessage();
-                }, 2000);
-            }).finally(function () {
-                Page.setLoading(false);
-            });
+
+            API.getAPIRequest()
+                .setPostmethod()
+                .setData({username: this.user.email, password: this.user.password})
+                .setOnSuccess(function () {
+                    Page.setSuccessMessage('You have successfully sign in!');
+                    $scope.hide();
+                })
+                .execute('/integration/customer/token', 'token');
         };
-    }).controller('ContainerController', function ($scope, Page, Modal) {
-    this.getPage = function () {
-        return Page;
+
+        this.isLoading = function () {
+            return API.isLoading('token');
+        };
+
+        this.showSignUpModal = function () {
+            Modal.loadTemplate('signup');
+        };
+        this.showPasswordResetModal = function () {
+            Modal.loadTemplate('password_reset');
+        };
+        this.showSignInModal = function () {
+            Modal.loadTemplate('login');
+        };
+
+    }).controller('PasswordResetController', function ($http, $scope, $timeout, $state, Page, $location, API, Modal) {
+    //model
+    this.user = {
+        email: null
     };
-    this.getModal = function () {
-        return Modal;
-    }
+    //sample data
+    this.user.email = 'oshanrube@gmail.com';
+
+    this.reset = function () {
+        API.getAPIRequest()
+            .setPutmethod()
+            .setData({email: this.user.email})
+            .setOnSuccess(function () {
+                Page.setSuccessMessage('Link for the password reset process has been sent to your email!');
+                $scope.hide();
+            })
+            .execute('/customers/password', 'reset');
+    };
+
+    this.isLoading = function () {
+        return API.isLoading('reset');
+    };
+
+    this.showSignUpModal = function () {
+        Modal.loadTemplate('signup');
+    };
+    this.showSignInModal = function () {
+        Modal.loadTemplate('login');
+    };
+
+}).controller('SignUpController', function ($http, $scope, $timeout, $state, Page, $location, API, Modal) {
+
+    //model
+    this.user = {
+        email: null,
+        firstname: null,
+        middlename: null,
+        lastname: null,
+        dob: null,
+        gender: null,
+        password: null
+    };
+    this.user.email = 'oshanrube@gmail.com';
+    this.user.password = 'asdasd';
+    this.signup = function () {
+
+        API.getAPIRequest()
+            .setPostmethod()
+            .setData({
+                customer: {
+                    email: this.user.email,
+                    firstname: this.user.firstname,
+                    lastname: this.user.lastname,
+                    middlename: this.user.middlename,
+                    dob: this.user.dob,
+                    gender: this.user.gender
+                }, password: this.user.password
+            })
+            .setOnSuccess(function () {
+                Page.setSuccessMessage('You have successfully signed up!');
+                $scope.hide();
+            })
+            .execute('/customers', 'signup');
+    };
+    this.isLoading = function () {
+        return API.isLoading('signup');
+    };
+
+    this.showSignInModal = function () {
+        Modal.loadTemplate('login');
+    };
+
+    this.showPasswordResetModal = function () {
+        Modal.loadTemplate('password_reset');
+    };
 }).controller('MainController', function ($scope, $localStorage, $state, Page, API) {
     this.getFullName = function () {
         var name = '';
@@ -92,13 +160,13 @@ angular.module('app.controllers', [])
         $ionicHistory.clearHistory();
         $ionicHistory.clearCache();
         $state.go('app.login');
-    }
+    };
     this.isActive = function (route) {
         return route === $location.path();
-    }
+    };
     this.getBackUrl = function () {
         return Page.getBackUrl();
-    }
+    };
 }).controller('HomeController', function ($location, $ionicActionSheet, $ionicModal, $http, Page, $scope, FBC, API, ionicMaterialMotion) {
     Page.setBackUrl(false);
     //get Coupons
@@ -113,16 +181,16 @@ angular.module('app.controllers', [])
     //coupons
     this.getCoupons = function () {
         return $scope.getData('coupons')
-    }
+    };
     this.getImageUrl = function (image_url) {
         return API.getAPIUrl() + image_url + '/70/70';
-    }
+    };
     this.getCouponUrl = function () {
         return $scope.coupon_url;
-    }
+    };
     this.getCouponTitle = function () {
         return $scope.coupon_title;
-    }
+    };
     this.showCoupon = function (coupon) {
         $scope.coupon = coupon;
         $scope.coupon_url = API.getServerUrl() + coupon.qr_code;
@@ -133,11 +201,11 @@ angular.module('app.controllers', [])
             $scope.modal = modal;
             $scope.modal.show();
         });
-    }
+    };
     //hottest products
     this.getHottestProducts = function () {
         return $scope.getData('hottest_products')
-    }
+    };
     this.getFacebookLikesCount = function (product) {
         if (FBC.isReady() && product.facebook_id !== null && product.facebook_update_pending === undefined) {
             product.facebook_update_pending = true;
@@ -159,13 +227,13 @@ angular.module('app.controllers', [])
             );
         }
         return (product.facebook_likes !== undefined && product.facebook_likes !== null ? product.facebook_likes.length : 0);
-    }
+    };
     this.getFacebookCommentsCount = function (product) {
         return (product.facebook_comments !== undefined && product.facebook_comments !== null ? product.facebook_comments.length : 0);
-    }
+    };
     this.getFacebookSharesCount = function (product) {
         return (product.facebook_shares !== undefined && product.facebook_shares !== null ? product.facebook_shares.length : 0);
-    }
+    };
     this.hasUserLiked = function (product) {
         if ($scope.user !== undefined) {
             //
@@ -176,7 +244,7 @@ angular.module('app.controllers', [])
             });
         }
         return product.facebook_user_liked;
-    }
+    };
 // Triggered on a button click, or some other target
     this.openFacebook = function ($event, product) {
         $event.preventDefault();
@@ -416,6 +484,14 @@ angular.module('app.controllers', [])
             return $scope.getData('store_config')[0].support_email
         }
     };
+    this.getName = function () {
+        if ($scope.getData('store_config') === undefined) {
+            API.getAPIRequest()
+                .execute('/store/storeConfigs', 'store_config');
+        } else {
+            return $scope.getData('store_config')[0].store_name
+        }
+    }
     this.isUserLoggedIn = function () {
         return (Page.getToken() !== null);
     };
@@ -429,6 +505,15 @@ angular.module('app.controllers', [])
     this.showSignInModal = function () {
         Modal.loadTemplate('login');
     };
+
+    this.showSignUpModal = function () {
+        Modal.loadTemplate('signup');
+    };
+    this.logOut = function () {
+        Page.setToken(null);
+        $scope.resetData('carts-' + Page.getCartId() + '-items');
+        $scope.resetData('cart_totals.grand_total');
+    };
 }).controller('CartController', function ($http, $scope, API, Page) {
     $scope.$on('onRepeatLast', function (scope, element, attrs) {
         if ($scope.scroll_loaded === undefined) {
@@ -441,47 +526,86 @@ angular.module('app.controllers', [])
     };
     this.getCartTotal = function () {
         if (this.isUserLoggedIn()) {
-            console.log('asd');
-        } else {
             if (Page.getCartId() === null) {
                 //create guest cart
                 API.getAPIRequest()
                     .setPostmethod()
                     .setOnSuccess(function () {
-                        Page.setCartId($scope.getData('guest_cart_id'));
+                        Page.setCartId($scope.getData('cart_id'));
+                    })
+                    .execute('/carts', 'cart_id');
+            } else if ($scope.getData('cart_totals.grand_total') === undefined) {
+                API.getAPIRequest()
+                    .execute('/carts/' + Page.getCartId() + '/totals', 'cart_totals');
+            }
+            return $scope.getData('cart_totals.grand_total');
+        } else {
+            if (Page.getGuestCartId() === null) {
+                //create guest cart
+                API.getAPIRequest()
+                    .setPostmethod()
+                    .setOnSuccess(function () {
+                        Page.setGuestCartId($scope.getData('guest_cart_id'));
                     })
                     .execute('/guest-carts', 'guest_cart_id');
             } else if ($scope.getData('guest_cart_totals.grand_total') === undefined) {
                 API.getAPIRequest()
-                    .execute('/guest-carts/' + Page.getCartId() + '/totals', 'guest_cart_totals');
+                    .execute('/guest-carts/' + Page.getGuestCartId() + '/totals', 'guest_cart_totals');
             }
 
             return $scope.getData('guest_cart_totals.grand_total');
         }
     };
     this.getCartCurrency = function () {
-        return $scope.getData('guest_cart_totals.base_currency_code')
+        if (this.isUserLoggedIn()) {
+            return $scope.getData('cart_totals.base_currency_code')
+        } else {
+            return $scope.getData('guest_cart_totals.base_currency_code')
+        }
     };
 
     this.getCartItems = function () {
-        if ($scope.getData('guest-carts-' + Page.getCartId() + '-items') === undefined) {
-            API.getAPIRequest()
-                .execute('/guest-carts/' + Page.getCartId() + '/items', 'guest-carts-' + Page.getCartId() + '-items');
+        if (this.isUserLoggedIn()) {
+            if ($scope.getData('carts-' + Page.getCartId() + '-items') === undefined) {
+                API.getAPIRequest()
+                    .execute('/carts/' + Page.getCartId() + '/items', 'carts-' + Page.getCartId() + '-items');
+            }
+            return $scope.getData('carts-' + Page.getCartId() + '-items');
+        } else {
+            if ($scope.getData('guest-carts-' + Page.getGuestCartId() + '-items') === undefined) {
+                API.getAPIRequest()
+                    .execute('/guest-carts/' + Page.getGuestCartId() + '/items', 'guest-carts-' + Page.getGuestCartId() + '-items');
+            }
+            return $scope.getData('guest-carts-' + Page.getGuestCartId() + '-items');
         }
-        return $scope.getData('guest-carts-' + Page.getCartId() + '-items');
     };
     this.removeFromCart = function (product) {
-        API.getAPIRequest()
-            .setDeletemethod()
-            .setOnSuccess(function () {
-                Page.setSuccessMessage('this product has been removed from the cart!');
-                $scope.resetData('guest-carts-' + Page.getCartId() + '-items');
-                $scope.resetData('guest_cart_totals.grand_total');
-            })
-            .execute('/guest-carts/' + Page.getCartId() + '/items/' + product.item_id, 'guest-carts-' + Page.getCartId() + '-items-' + product.id);
+        if (this.isUserLoggedIn()) {
+            API.getAPIRequest()
+                .setDeletemethod()
+                .setOnSuccess(function () {
+                    Page.setSuccessMessage('this product has been removed from the cart!');
+                    $scope.resetData('carts-' + Page.getCartId() + '-items');
+                    $scope.resetData('cart_totals.grand_total');
+                })
+                .execute('/carts/' + Page.getCartId() + '/items/' + product.item_id, 'carts-' + Page.getCartId() + '-items-' + product.id);
+        } else {
+            API.getAPIRequest()
+                .setDeletemethod()
+                .setOnSuccess(function () {
+                    Page.setSuccessMessage('this product has been removed from the cart!');
+                    $scope.resetData('guest-carts-' + Page.getGuestCartId() + '-items');
+                    $scope.resetData('guest_cart_totals.grand_total');
+                })
+                .execute('/guest-carts/' + Page.getGuestCartId() + '/items/' + product.item_id, 'guest-carts-' + Page.getGuestCartId() + '-items-' + product.id);
+        }
     };
     this.isLoading = function (product) {
-        return API.isLoading('guest-carts-' + Page.getCartId() + '-items-' + product.id);
+        if (this.isUserLoggedIn()) {
+            return API.isLoading('carts-' + Page.getCartId() + '-items-' + product.id);
+        } else {
+            return API.isLoading('guest-carts-' + Page.getGuestCartId() + '-items-' + product.id);
+        }
     };
 }).controller('NewsLetterController', function (API, $scope, $mdToast, Page) {
     this.email = null;
@@ -522,6 +646,9 @@ angular.module('app.controllers', [])
                 .execute('/products?' + $.param(myObject), 'new_arrivals');
         }
         return $scope.getData('new_arrivals.items')
+    };
+    this.isUserLoggedIn = function () {
+        return (Page.getToken() !== null);
     };
     this.getFeaturedProducts = function () {
         if ($scope.getData('featured_products') === undefined) {
@@ -579,7 +706,6 @@ angular.module('app.controllers', [])
         $scope.visible_products += 4;
     };
     this.hasMoreProducts = function () {
-
         return ($scope.getData('featured_products.items') !== undefined && $scope.getData('featured_products.items').length >= $scope.visible_products)
     };
     this.getProductAttribute = function (product, code) {
@@ -599,23 +725,44 @@ angular.module('app.controllers', [])
             .setOnSuccess(function () {
                 Page.setSuccessMessage('this product has been added to the wishlist!');
             })
-            .execute('/wishlist/new', 'wishlist');
+            .execute('/wishlist/new', 'wishlist-' + product.id);
     };
     this.addToCart = function (product) {
-        API.getAPIRequest()
-            .setPostmethod()
-            .setData({cartItem: {sku: product.sku, qty: 1, price: product.price, quoteId: Page.getCartId()}})
-            .setOnSuccess(function () {
-                Page.setSuccessMessage('this product has been added to the cart!');
-                $scope.resetData('guest-carts-' + Page.getCartId() + '-items');
-                $scope.resetData('guest_cart_totals.grand_total');
-            })
-            .execute('/guest-carts/items', 'guest-carts-items-' + product.id);
+        if (this.isUserLoggedIn()) {
+            API.getAPIRequest()
+                .setPostmethod()
+                .setData({cartItem: {sku: product.sku, qty: 1, price: product.price, quoteId: Page.getCartId()}})
+                .setOnSuccess(function () {
+                    Page.setSuccessMessage('this product has been added to the cart!');
+                    $scope.resetData('carts-' + Page.getCartId() + '-items');
+                    $scope.resetData('cart_totals.grand_total');
+                })
+                .execute('/carts/items', 'carts-items-' + product.id);
+
+        } else {
+            API.getAPIRequest()
+                .setPostmethod()
+                .setData({cartItem: {sku: product.sku, qty: 1, price: product.price, quoteId: Page.getGuestCartId()}})
+                .setOnSuccess(function () {
+                    Page.setSuccessMessage('this product has been added to the cart!');
+                    $scope.resetData('guest-carts-' + Page.getGuestCartId() + '-items');
+                    $scope.resetData('guest_cart_totals.grand_total');
+                })
+                .execute('/guest-carts/items', 'guest-carts-items-' + product.id);
+        }
     };
 
     this.isLoading = function (product) {
-        return API.isLoading('guest-carts-items-' + product.id);
+        if (this.isUserLoggedIn()) {
+            return API.isLoading('carts-items-' + product.id);
+        } else {
+            return API.isLoading('guest-carts-items-' + product.id);
+        }
     };
+    this.isWishlistLoading = function (product) {
+        return API.isLoading('wishlist-' + product.id);
+    };
+
 }).controller('DialogController', function ($scope, $mdDialog) {
     $scope.hide = function () {
         $mdDialog.hide();

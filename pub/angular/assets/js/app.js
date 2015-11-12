@@ -50,7 +50,16 @@
                 .state('home', {
                     url: '/home',
                     templateUrl: 'templates/home.html'
-                });
+                }).state('product', {
+                url: '/product/:id',
+                templateUrl: 'templates/home.html'
+            }).state('catalog', {
+                url: '/catalog/:id',
+                templateUrl: 'templates/home.html'
+            }).state('cart', {
+                url: '/product/:id',
+                templateUrl: 'templates/home.html'
+            });
 //
             // if none of the above states are matched, use this as the fallback
             $urlRouterProvider.otherwise('/home');

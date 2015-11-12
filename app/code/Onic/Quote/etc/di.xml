@@ -10,13 +10,18 @@
 
     <preference for="Onic\ThemeInterface\Api\StoreConfigManagerInterface"
                 type="Onic\ThemeInterface\Model\StoreConfigManager"/>
-    <preference for="Onic\Quote\Api\Data\CartItemInterface"
-                type="Onic\Quote\Model\Quote\Item"/>
-    <preference for="Magento\Quote\Model\Quote\Item"
-                type="Onic\Quote\Model\Quote\Item"/>
+
     <preference for="Onic\Quote\Api\GuestCartItemRepositoryInterface"
                 type="Onic\Quote\Model\GuestCart\GuestCartItemRepository"/>
+
+    <preference for="Onic\Quote\Api\Data\CartItemInterface" type="Onic\Quote\Model\Quote\Item"/>
+    <preference for="Onic\Quote\Api\CartItemRepositoryInterface"
+                type="Onic\Quote\Model\Quote\Item\Repository"/>
+
+    <preference for="Magento\Quote\Model\Quote\Item"
+                type="Onic\Quote\Model\Quote\Item"/>
+
     <preference for="Magento\Quote\Api\Data\TotalsItemInterface"
-                type="Onic\Quote\Model\Cart\Totals\Item" />
+                type="Onic\Quote\Model\Cart\Totals\Item"/>
 
 </config>

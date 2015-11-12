@@ -1,0 +1,61 @@
+<md-dialog ng-cloak ng-controller="SignUpController as signup">
+    <form name="signupForm">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Sign Up</h2>
+                <span flex></span>
+                <md-button type="button" class="md-icon-button" ng-click="cancel()">
+                    <md-icon md-svg-src="images/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-dialog-content style="max-width:800px;max-height:810px;width: 400px;">
+            <div class="md-dialog-content">
+                <md-input-container class="md-block" required>
+                    <label>Email</label>
+                    <input type="email" name="email" ng-model="signup.user.email" minlength="10" maxlength="100"
+                           ng-pattern="/^.+@.+\..+$/"/>
+                </md-input-container>
+                <md-input-container>
+                    <label>First name</label>
+                    <input required ng-model="signup.user.firstname">
+                </md-input-container>
+                <md-input-container>
+                    <label>Middle name</label>
+                    <input ng-model="signup.user.middlename">
+                </md-input-container>
+                <md-input-container>
+                    <label>Last Name</label>
+                    <input required ng-model="signup.user.lastname">
+                </md-input-container>
+                <md-datepicker ng-model="signup.user.dob" md-placeholder="Enter DOB" md-max-date="maxDate"></md-datepicker>
+                <md-radio-group ng-model="signup.user.gender" required>
+                    <md-radio-button value="Male">Male</md-radio-button>
+                    <md-radio-button value="Female">Female</md-radio-button>
+                </md-radio-group>
+                <md-input-container class="md-block">
+                    <label>Password</label>
+                    <input type="password" required name="password" ng-model="signup.user.password" minlength="6" maxlength="100"/>
+                </md-input-container>
+                <div class="modal-footer">
+                    <p class="text-center"> Already have an account?
+                        <a ng-click="signup.showSignInModal($event)"> Sign In. </a>
+                        <br>
+                        <a ng-click="signup.showPasswordResetModal($event)"> Lost your password? </a></p>
+                </div>
+            </div>
+        </md-dialog-content>
+        <div class="md-actions" layout="row">
+            <md-button ng-click="answer('cancel')">
+                cancel
+            </md-button>
+            <button ng-click="signup.signup()" ng-disabled="signupForm.$invalid"
+                    style="margin-right:20px;margin-left: 10px;"
+                    class="btn  btn-block btn-lg btn-primary"
+                    ng-disabled="signup.isLoading()">
+                <md-progress-linear ng-show="signup.isLoading()" md-mode="indeterminate"></md-progress-linear>
+                Sign Up
+            </button>
+        </div>
+    </form>
+</md-dialog>

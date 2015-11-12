@@ -1,0 +1,67 @@
+<md-dialog ng-cloak ng-controller="LoginController as login">
+    <form name="loginForm" ng-submit="login.login()">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Login</h2>
+                <span flex></span>
+                <md-button type="button" class="md-icon-button" ng-click="cancel()">
+                    <md-icon md-svg-src="images/ic_close_24px.svg" aria-label="Close dialog"></md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-dialog-content style="max-width:800px;max-height:810px; ">
+            <div class="md-dialog-content">
+                <md-input-container class="md-block">
+                    <label>Email</label>
+                    <input type="email" name="email" ng-model="login.user.email" minlength="10" maxlength="100"
+                           ng-pattern="/^.+@.+\..+$/"/>
+
+                    <div ng-messages="loginForm.user.email.$error" role="alert">
+                        <div ng-message-exp="['required', 'minlength', 'maxlength', 'pattern']"> Your email must be
+                            between 10 and 100 characters long and look like an e-mail address.
+                        </div>
+                    </div>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Password</label>
+                    <input type="password" name="password" ng-model="login.user.password" minlength="6" maxlength="100"/>
+
+                    <div ng-messages="loginForm.user.password.$error" role="alert">
+                        <div ng-message-exp="['required', 'minlength', 'maxlength']"> Your password must be between
+                            atleast 6 characters long.
+                        </div>
+                    </div>
+                </md-input-container>
+                <div class="form-group" style="width: 400px;">
+                    <div>
+                        <div class="checkbox login-remember">
+                            <label>
+                                <md-checkbox ng-model="login.user.remember_me" aria-label="Remember Me">
+                                    Remember Me
+                                </md-checkbox>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <p class="text-center"> Not here before?
+                        <a ng-click="login.showSignUpModal($event)"> Sign Up. </a>
+                        <br>
+                        <a ng-click="login.showPasswordResetModal($event)"> Lost your password? </a></p>
+                </div>
+            </div>
+        </md-dialog-content>
+        <div class="md-actions" layout="row">
+            <md-button type="button" ng-click="answer('cancel')">
+                cancel
+            </md-button>
+            <button type="submit" ng-click="login.login()" ng-disabled="loginForm.$invalid"
+                    style="margin-right:20px;margin-left: 10px;"
+                    class="btn  btn-block btn-lg btn-primary"
+                    ng-disabled="login.isLoading()">
+                <md-progress-linear ng-show="login.isLoading()" md-mode="indeterminate"></md-progress-linear>
+                Login
+            </button>
+        </div>
+    </form>
+</md-dialog>

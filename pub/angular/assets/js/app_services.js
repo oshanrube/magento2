@@ -29,6 +29,10 @@ angular.module('app.services', [])
                         method = 'DELETE';
                         return this;
                     },
+                    setPutmethod: function () {
+                        method = 'PUT';
+                        return this;
+                    },
                     setData: function ($data) {
                         data = $data;
                         return this;
@@ -96,7 +100,7 @@ angular.module('app.services', [])
             }
         }
     })
-    .factory("Page",function ($localStorage, $timeout) {
+    .factory("Page", function ($localStorage, $timeout) {
         var loading = false;
         var message = null;
         var messageType = true;
@@ -148,6 +152,9 @@ angular.module('app.services', [])
             setToken: function (newSessionToken) {
                 $localStorage.token = newSessionToken;
             },
+            isUserLoggedIn: function () {
+                return (this.getToken() !== null);
+            },
             getCartId: function () {
                 if ($localStorage.cart_id === undefined) {
                     $localStorage.cart_id = null;
@@ -156,6 +163,15 @@ angular.module('app.services', [])
             },
             setCartId: function (cartId) {
                 $localStorage.cart_id = cartId;
+            },
+            getGuestCartId: function () {
+                if ($localStorage.guest_cart_id === undefined) {
+                    $localStorage.guest_cart_id = null;
+                }
+                return $localStorage.guest_cart_id;
+            },
+            setGuestCartId: function (cartId) {
+                $localStorage.guest_cart_id = cartId;
             },
             getStorage: function () {
                 return $localStorage;
@@ -171,21 +187,20 @@ angular.module('app.services', [])
             }
         };
     }).factory("Modal", function ($mdDialog, $rootScope) {
-        return {
-            loadTemplate: function (ev) {
-                $mdDialog.show({
+    return {
+        loadTemplate: function (ev) {
+            $mdDialog.show({
                     controller: 'DialogController',
-                    templateUrl: 'templates/dialog.tmpl.html',
+                    templateUrl: 'templates/modal/' + ev + '.tmpl.html',
                     parent: angular.element(document.body),
                     targetEvent: ev,
-                    clickOutsideToClose: true
+                    clickOutsideToClose: false
                 })
                 .then(function (answer) {
                     $rootScope.status = 'You said the information was "' + answer + '".';
                 }, function () {
                     $rootScope.status = 'You cancelled the dialog.';
                 });
-            }
-        };
-    })
-;
+        }
+    };
+});

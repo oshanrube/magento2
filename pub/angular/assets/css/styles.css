@@ -1021,6 +1021,24 @@ legend {
 .phone-number span {
   float: left; }
 
+.hasUserMenu > .dropdown-menu {
+  padding-top: 0;
+  padding-bottom: 0;
+  left: auto !important;
+  right: 0 !important; }
+  .hasUserMenu > .dropdown-menu > li {
+    float: none; }
+    .hasUserMenu > .dropdown-menu > li.divider {
+      clear: both; }
+    .hasUserMenu > .dropdown-menu > li > a {
+      color: #454545;
+      font-size: 12px;
+      padding: 5px 15px;
+      float: left;
+      width: 100%; }
+      .hasUserMenu > .dropdown-menu > li > a i {
+        margin-right: 10px; }
+
 /***  ------- Main Navigation onhover issue for ipad and mobile ------- ***/
 @media (min-width: 979px) {
   .navbar-tshop ul.nav li.dropdown:hover ul.dropdown-menu {
@@ -1883,7 +1901,7 @@ h1.bolder-style {
   opacity: 1; }
   .sliderControl:hover {
     background: white;
-    background: transparent \9;
+    background: transparent \9 ;
     background: rgba(255, 255, 255, 0.6);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#99ffffff, endColorstr=#99ffffff);
     /* IE FIX */
@@ -1945,7 +1963,7 @@ h1.bolder-style {
 
 .sliderText.white {
   background: white;
-  background: transparent \9;
+  background: transparent \9 ;
   background: rgba(255, 255, 255, 0.8);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#ccffffff, endColorstr=#ccffffff);
   /* IE FIX */
@@ -4847,5 +4865,21 @@ md-toolbar:not(.md-menu-toolbar) {
     font-weight: lighter;
     padding: 13px 0;
     text-transform: uppercase; }
+
+@-webkit-keyframes pulse {
+  0% {
+    background-color: #45CEEF; }
+  25% {
+    background-color: #FFF5A5; }
+  50% {
+    background-color: #FFD4DA; }
+  75% {
+    background-color: #99D2E4; }
+  100% {
+    background-color: #D8CAB4; } }
+.product .add-fav.loading {
+  opacity: 1;
+  background-color: #45CEEF;
+  -webkit-animation: pulse 35s infinite; }
 
 /*# sourceMappingURL=styles.css.map */

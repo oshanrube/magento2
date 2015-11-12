@@ -1380,6 +1380,29 @@ legend {
   float: left;
 }
 
+.hasUserMenu > .dropdown-menu {
+  padding-top: 0;
+  padding-bottom: 0;
+  left: auto !important;
+  right: 0 !important;
+  > li {
+    float: none;
+    &.divider {
+      clear: both;
+    }
+    > a {
+      color: #454545;
+      font-size: 12px;
+      padding: 5px 15px;
+      float: left;
+      width: 100%;
+      i {
+        margin-right: 10px;
+      }
+    }
+  }
+}
+
 /***  ------- Main Navigation onhover issue for ipad and mobile ------- ***/
 
 @media (min-width: 979px) {
@@ -1747,7 +1770,8 @@ legend {
   text-transform: capitalize;
   font-size: 16px;
   background: rgb(0, 0, 0);
-  background: transparent \9;
+  background: transparent \9
+;
   background: rgba(0, 0, 0, 0.8);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#cc000000, endColorstr=#cc000000);
   /* IE FIX */
@@ -1807,7 +1831,8 @@ legend {
   position: absolute;
   width: 100%;
   background: rgb(0, 0, 0);
-  background: transparent \9;
+  background: transparent \9
+;
   background: rgba(0, 0, 0, 0.8);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#cc000000, endColorstr=#cc000000);
   /* IE FIX */
@@ -2439,7 +2464,8 @@ h1.bolder-style {
       filter: none;
     }
     background: rgb(255, 255, 255);
-    background: transparent \9;
+    background: transparent \9
+  ;
     background: rgba(255, 255, 255, 0.6);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#99ffffff, endColorstr=#99ffffff);
     /* IE FIX */
@@ -2506,7 +2532,8 @@ h1.bolder-style {
 .sliderText {
   &.white {
     background: rgb(255, 255, 255);
-    background: transparent \9;
+    background: transparent \9
+  ;
     background: rgba(255, 255, 255, 0.8);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#ccffffff, endColorstr=#ccffffff);
     /* IE FIX */
@@ -2567,7 +2594,8 @@ h1.bolder-style {
   padding: 20px 10px;
   width: auto;
   background: rgb(0, 0, 0);
-  background: transparent \9;
+  background: transparent \9
+;
   background: rgba(0, 0, 0, 0.8);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#cc000000, endColorstr=#cc000000);
   /* IE FIX */
@@ -6115,4 +6143,28 @@ md-toolbar:not(.md-menu-toolbar) {
     padding: 13px 0;
     text-transform: uppercase;
   }
+}
+
+@-webkit-keyframes pulse {
+  0% {
+    background-color: #45CEEF;
+  }
+  25% {
+    background-color: #FFF5A5;
+  }
+  50% {
+    background-color: #FFD4DA;
+  }
+  75% {
+    background-color: #99D2E4;
+  }
+  100% {
+    background-color: #D8CAB4;
+  }
+}
+
+.product .add-fav.loading {
+  opacity: 1;
+  background-color: #45CEEF;
+  -webkit-animation: pulse 35s infinite;
 }

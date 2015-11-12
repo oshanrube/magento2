@@ -1,6 +1,6 @@
 <div class="product">
     <a class="add-fav tooltipHere" data-toggle="tooltip" data-original-title="Add to Wishlist"
-       data-placement="left" ng-click="products.addToWishlist(product)">
+       data-placement="left" ng-click="products.addToWishlist(product)" ng-class="products.isWishlistLoading(product)?'loading':''">
         <i class="glyphicon glyphicon-heart"></i>
     </a>
 

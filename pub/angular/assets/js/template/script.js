@@ -13,23 +13,7 @@ function initialize() {
      Carousel
      ====================================*/
 
-    // BRAND  carousel
-    var owl = $(".brand-carousel");
-    owl.owlCarousel({
-        //navigation : true, // Show next and prev buttons
-        navigation: false,
-        pagination: false,
-        items: 8,
-        itemsTablet: [768, 4],
-        itemsMobile: [400, 2]
-    });
-    // Custom Navigation Events
-    $("#nextBrand").click(function () {
-        owl.trigger('owl.next');
-    })
-    $("#prevBrand").click(function () {
-        owl.trigger('owl.prev');
-    })
+
     // YOU MAY ALSO LIKE  carousel
     $("#SimilarProductSlider").owlCarousel({
         navigation: true
@@ -76,10 +60,10 @@ function initialize() {
     /*=======================================================================================
      Code for equal height - // your div will never broken if text get overflow
      ========================================================================================*/
-    
-	
-	  $(function () {
-		 $('.categoryProduct > .item').responsiveEqualHeightGrid()
+
+
+    $(function () {
+        $('.categoryProduct > .item').responsiveEqualHeightGrid()
     });
     $(function () {
         $('.thumbnail.equalheight').responsiveEqualHeightGrid(); // add class with selector class equalheight
@@ -104,14 +88,7 @@ function initialize() {
         $(this).toggleClass("pressed"); //you can list several class names 
         e.preventDefault();
     });
-    $('.search-box .getFullSearch').on('click', function (e) {
-        $('.search-full').addClass("active"); //you can list several class names 
-        e.preventDefault();
-    });
-    $('.search-close').on('click', function (e) {
-        $('.search-full').removeClass("active"); //you can list several class names 
-        e.preventDefault();
-    });
+
     // Customs tree menu script
     $(".dropdown-tree-a").click(function () { //use a class, since your ID gets mangled
         $(this).parent('.dropdown-tree').toggleClass("open-tree active"); //add the class to the clicked element
@@ -133,12 +110,12 @@ function initialize() {
         e.preventDefault();
         $('.item').removeClass("list-view"); //add the class to the clicked element
         $('.categoryProduct > .item').detectGridColumns();
-        setTimeout( function(){
+        setTimeout(function () {
                 //  reload function after 0.5 second
                 $('.categoryProduct > .item').responsiveEqualHeightGrid();
             }
-            , 500 );
-     
+            , 500);
+
     });
     // product details color switch 
     $(".swatches li").click(function () {
@@ -161,8 +138,8 @@ function initialize() {
     };
     if (isMobile()) {
         // For  mobile , ipad, tab
-		 $('.introContent').addClass('ismobile');
-		
+        $('.introContent').addClass('ismobile');
+
     } else {
         $(function () {
             //Keep track of last scroll
@@ -215,6 +192,7 @@ function initialize() {
             var sc = ((scrolledY * 0.3)) + 'px';
             $('.parallaximg').css('marginTop', '' + ((scrolledY * 0.3)) + 'px');
         }
+
         if ($(window).width() < 768) {
         } else {
             $('.parallax-image-aboutus').parallax("50%", 0, 0.2, true);
@@ -290,6 +268,70 @@ function initialize() {
         buttondown_class: "btn btn-link",
         buttonup_class: "btn btn-link"
     });
+
+    // scroll to certain anchor/div
+    $(".scrollto").click(function (event) {
+        event.preventDefault();
+        //calculate destination place
+        var dest = 0;
+        if ($(this.hash).offset().top > $(document).height() - $(window).height()) {
+            dest = $(document).height() - $(window).height();
+        } else {
+            dest = $(this.hash).offset().top;
+        }
+        //go to destination
+        $('html,body').animate({scrollTop: dest - 51}, 1000, 'swing');
+    });
+    /*=======================================================================================
+     end
+     ========================================================================================*/
+} // end Ready
+
+
+function loadScrollPanel() {
+    $(".scroll-pane").mCustomScrollbar({
+        advanced: {
+            updateOnContentResize: true
+        },
+        scrollButtons: {
+            enable: false
+        },
+        mouseWheelPixels: "200",
+        theme: "dark-2"
+    });
+}
+
+function loadBrandCarosel() {
+    // BRAND  carousel
+    var owl = $(".brand-carousel");
+    owl.owlCarousel({
+        //navigation : true, // Show next and prev buttons
+        navigation: false,
+        pagination: false,
+        items: 8,
+        itemsTablet: [768, 4],
+        itemsMobile: [400, 2]
+    });
+    // Custom Navigation Events
+    $("#nextBrand").click(function () {
+        owl.trigger('owl.next');
+    })
+    $("#prevBrand").click(function () {
+        owl.trigger('owl.prev');
+    })
+}
+function loadSearchBox() {
+    $('.search-box .getFullSearch').on('click', function (e) {
+        $('.search-full').addClass("active"); //you can list several class names
+        e.preventDefault();
+    });
+    $('.search-close').on('click', function (e) {
+        $('.search-full').removeClass("active"); //you can list several class names
+        e.preventDefault();
+    });
+}
+
+function loadDropDownMenu() {
     // bootstrap tooltip
     // $('.tooltipHere').tooltip();
     $('.tooltipHere').tooltip('hide')
@@ -318,34 +360,5 @@ function initialize() {
     $('.dropdown-menu').find('input').click(function (e) {
         e.stopPropagation();
     });
-    // scroll to certain anchor/div
-    $(".scrollto").click(function (event) {
-        event.preventDefault();
-        //calculate destination place
-        var dest = 0;
-        if ($(this.hash).offset().top > $(document).height() - $(window).height()) {
-            dest = $(document).height() - $(window).height();
-        } else {
-            dest = $(this.hash).offset().top;
-        }
-        //go to destination
-        $('html,body').animate({scrollTop: dest - 51}, 1000, 'swing');
-    });
-    /*=======================================================================================
-     end
-     ========================================================================================*/
-} // end Ready
-
-
-function loadScrollPanel(){
-    $(".scroll-pane").mCustomScrollbar({
-        advanced: {
-            updateOnContentResize: true
-        },
-        scrollButtons: {
-            enable: false
-        },
-        mouseWheelPixels: "200",
-        theme: "dark-2"
-    });
+    $('[data-toggle="dropdown"]').dropdown()
 }
