@@ -14,10 +14,7 @@ function initialize() {
      ====================================*/
 
 
-    // YOU MAY ALSO LIKE  carousel
-    $("#SimilarProductSlider").owlCarousel({
-        navigation: true
-    });
+
     // Home Look 2 || Single product showcase 
     // productShowCase  carousel
     var pshowcase = $("#productShowCase");
@@ -77,12 +74,7 @@ function initialize() {
     /*==================================
      Customs Script
      ====================================*/
-    // Product Details Modal Change large image when click thumb image
-    $(".modal-product-thumb a").click(function () {
-        var largeImage = $(this).find("img").attr('data-large');
-        $(".product-largeimg").attr('src', largeImage);
-        $(".zoomImg").attr('src', largeImage);
-    });
+
     // collapse according add  active class
     $('.collapseWill').on('click', function (e) {
         $(this).toggleClass("pressed"); //you can list several class names 
@@ -116,16 +108,6 @@ function initialize() {
             }
             , 500);
 
-    });
-    // product details color switch 
-    $(".swatches li").click(function () {
-        $(".swatches li.selected").removeClass("selected");
-        $(this).addClass('selected');
-    });
-    // Modal thumb link selected
-    $(".modal-product-thumb a").click(function () {
-        $(".modal-product-thumb a.selected").removeClass("selected");
-        $(this).addClass('selected');
     });
     if (/IEMobile/i.test(navigator.userAgent)) {
         // Detect windows phone//..
@@ -261,8 +243,6 @@ function initialize() {
     $(function () {
         $("input[type='radio'], input[type='checkbox']").ionCheckRadio();
     });
-    // customs select by minimalect
-    $("select").minimalect();
     // cart quantity changer sniper
     $("input[name='quanitySniper']").TouchSpin({
         buttondown_class: "btn btn-link",
@@ -361,4 +341,25 @@ function loadDropDownMenu() {
         e.stopPropagation();
     });
     $('[data-toggle="dropdown"]').dropdown()
+}
+
+function loadProductDetails() {
+    // Product Details Modal Change large image when click thumb image
+    $(".modal-product-thumb a").click(function () {
+        var largeImage = $(this).find("img").attr('data-large');
+        $(".product-largeimg").attr('src', largeImage);
+        $(".zoomImg").attr('src', largeImage);
+    });
+    // product details color switch
+    $(".swatches li").click(function () {
+        $(".swatches li.selected").removeClass("selected");
+        $(this).addClass('selected');
+    });
+    // Modal thumb link selected
+    $(".modal-product-thumb a").click(function () {
+        $(".modal-product-thumb a.selected").removeClass("selected");
+        $(this).addClass('selected');
+    });
+    // customs select by minimalect
+    $("select").minimalect();
 }

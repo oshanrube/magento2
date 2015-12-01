@@ -15,6 +15,8 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\StateException;
 use Magento\Catalog\Model\ProductFactory;
 use Magento\Catalog\Helper\ImageFactory as HelperFactory;
+use Magento\Catalog\Model\Product\ImageFactory;
+
 
 class ProductRepository extends \Magento\Catalog\Model\ProductRepository
 {
@@ -25,12 +27,22 @@ class ProductRepository extends \Magento\Catalog\Model\ProductRepository
     protected $helperFactory;
 
     /**
+     * Product image factory
+     * @var \Magento\Catalog\Model\Product\ImageFactory
+     */
+    protected $_productImageFactory;
+
+    /**
      * {@inheritdoc}
      */
-    public function __construct(ProductFactory $productFactory, \Magento\Catalog\Controller\Adminhtml\Product\Initialization\Helper $initializationHelper, \Magento\Catalog\Api\Data\ProductSearchResultsInterfaceFactory $searchResultsFactory, \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $collectionFactory, \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder, \Magento\Catalog\Api\ProductAttributeRepositoryInterface $attributeRepository, \Magento\Catalog\Model\ResourceModel\Product $resourceModel, \Magento\Catalog\Model\Product\Initialization\Helper\ProductLinks $linkInitializer, \Magento\Catalog\Model\Product\LinkTypeProvider $linkTypeProvider, \Magento\Store\Model\StoreManagerInterface $storeManager, \Magento\Framework\Api\FilterBuilder $filterBuilder, \Magento\Catalog\Api\ProductAttributeRepositoryInterface $metadataServiceInterface, \Magento\Framework\Api\ExtensibleDataObjectConverter $extensibleDataObjectConverter, \Magento\Catalog\Model\Product\Option\Converter $optionConverter, \Magento\Framework\Filesystem $fileSystem, ImageContentValidatorInterface $contentValidator, ImageContentInterfaceFactory $contentFactory, MimeTypeExtensionMap $mimeTypeExtensionMap, ImageProcessorInterface $imageProcessor, \Magento\Framework\Api\ExtensionAttribute\JoinProcessorInterface $extensionAttributesJoinProcessor, HelperFactory $helperFactory)
+    public function __construct(ProductFactory $productFactory, \Magento\Catalog\Controller\Adminhtml\Product\Initialization\Helper $initializationHelper, \Magento\Catalog\Api\Data\ProductSearchResultsInterfaceFactory $searchResultsFactory, \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $collectionFactory, \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder, \Magento\Catalog\Api\ProductAttributeRepositoryInterface $attributeRepository, \Magento\Catalog\Model\ResourceModel\Product $resourceModel, \Magento\Catalog\Model\Product\Initialization\Helper\ProductLinks $linkInitializer, \Magento\Catalog\Model\Product\LinkTypeProvider $linkTypeProvider, \Magento\Store\Model\StoreManagerInterface $storeManager, \Magento\Framework\Api\FilterBuilder $filterBuilder, \Magento\Catalog\Api\ProductAttributeRepositoryInterface $metadataServiceInterface, \Magento\Framework\Api\ExtensibleDataObjectConverter $extensibleDataObjectConverter, \Magento\Catalog\Model\Product\Option\Converter $optionConverter, \Magento\Framework\Filesystem $fileSystem, ImageContentValidatorInterface $contentValidator, ImageContentInterfaceFactory $contentFactory, MimeTypeExtensionMap $mimeTypeExtensionMap, ImageProcessorInterface $imageProcessor, \Magento\Framework\Api\ExtensionAttribute\JoinProcessorInterface $extensionAttributesJoinProcessor, HelperFactory $helperFactory, ImageFactory $productImageFactory)
     {
-        $this->helperFactory = $helperFactory;
-        parent::__construct($productFactory, $initializationHelper, $searchResultsFactory, $collectionFactory, $searchCriteriaBuilder, $attributeRepository, $resourceModel, $linkInitializer, $linkTypeProvider, $storeManager, $filterBuilder, $metadataServiceInterface, $extensibleDataObjectConverter, $optionConverter, $fileSystem, $contentValidator, $contentFactory, $mimeTypeExtensionMap, $imageProcessor, $extensionAttributesJoinProcessor);
+        $this->_productImageFactory = $productImageFactory;
+        $this->helperFactory        = $helperFactory;
+        parent::__construct($productFactory, $initializationHelper, $searchResultsFactory,
+            $collectionFactory, $searchCriteriaBuilder, $attributeRepository, $resourceModel, $linkInitializer,
+            $linkTypeProvider, $storeManager, $filterBuilder, $metadataServiceInterface, $extensibleDataObjectConverter,
+            $optionConverter, $fileSystem, $contentValidator, $contentFactory, $mimeTypeExtensionMap, $imageProcessor, $extensionAttributesJoinProcessor);
     }
 
     /**
@@ -38,18 +50,44 @@ class ProductRepository extends \Magento\Catalog\Model\ProductRepository
      */
     public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria)
     {
-        $width        = 180;
-        $height       = 240;
         $searchResult = parent::getList($searchCriteria);
         $items        = array();
         foreach ($searchResult->getItems() as $item)
         {
+            $item->load($item->getId());
             $item->getProductLinks();
             $item->getTierPrices();
-            /** @var \Magento\Catalog\Helper\Image $helper */
-            $helper = $this->helperFactory->create()->init($item, 'new_products_content_widget_grid', array('type' => 'image', 'width' => $width, 'height' => $height));
-            $image  = $item->getCustomAttribute('small_image');
-            $image->setValue($helper->getUrl());
+
+            $model = $this->_productImageFactory->create();
+            $model->setDestinationSubdir('image');
+
+            $images              = array();
+            $images['original']  = $model->setBaseFile($item->getImage())->getUrl();
+            $images['large']     = $model->setSize('370x463')->setBaseFile($item->getImage())->resize()->saveFile()->getUrl();
+            $images['medium']    = $model->setSize('370x463')->setBaseFile($item->getImage())->resize()->saveFile()->getUrl();
+            $images['small']     = $model->setSize('180x240')->setBaseFile($item->getImage())->resize()->saveFile()->getUrl();
+            $images['thumbnail'] = $model->setSize('50x67')->setBaseFile($item->getImage())->resize()->saveFile()->getUrl();
+            $image               = $item->getCustomAttribute('image');
+            $image->setValue($images);
+            $item->setImage($images);
+
+            $media_gallery = $item->getMediaGalleryEntries();
+            foreach ($media_gallery as &$media_entry)
+            {
+                $model = $this->_productImageFactory->create();
+                $model->setDestinationSubdir('image');
+                $images              = array();
+                $images['original']  = $model->setBaseFile($media_entry->getFile())->getUrl();
+                $images['large']     = $model->setSize('370x463')->setBaseFile($media_entry->getFile())->resize()->saveFile()->getUrl();
+                $images['medium']    = $model->setSize('370x463')->setBaseFile($media_entry->getFile())->resize()->saveFile()->getUrl();
+                $images['small']     = $model->setSize('180x240')->setBaseFile($media_entry->getFile())->resize()->saveFile()->getUrl();
+                $images['thumbnail'] = $model->setSize('50x67')->setBaseFile($media_entry->getFile())->resize()->saveFile()->getUrl();
+
+                $media_entry->setFile($images);
+
+            }
+            $item->setMediaGalleryEntries($media_gallery);
+
             $items[] = $item;
         }
         $searchResult->setItems($items);

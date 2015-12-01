@@ -1,16 +1,17 @@
 <div class="product">
     <a class="add-fav tooltipHere" data-toggle="tooltip" data-original-title="Add to Wishlist"
-       data-placement="left" ng-click="products.addToWishlist(product)" ng-class="products.isWishlistLoading(product)?'loading':''">
+       data-placement="left" ng-click="products.addToWishlist(product)"
+       ng-class="products.isWishlistLoading(product)?'loading':''">
         <i class="glyphicon glyphicon-heart"></i>
     </a>
 
     <div class="image">
         <div class="quickview">
-            <a title="Quick View" class="btn btn-xs  btn-quickview"
-               data-target="#product-details-modal" data-toggle="modal"> Quick View </a>
+            <a title="Quick View" class="btn btn-xs  btn-quickview" ng-click="products.openProductModal(product)"> Quick
+                View </a>
         </div>
-        <a href="product-details.html">
-            <img ng-src="{{ products.getProductAttribute(product, 'small_image') }}" alt="img"
+        <a ui-sref="product({id: product.id})">
+            <img ng-src="{{ products.getProductImage(product, 'small') }}" alt="img"
                  class="img-responsive"></a>
 
         <div class="promotion">

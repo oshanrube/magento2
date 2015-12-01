@@ -14,4 +14,10 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    <route url="/V1/cmsBlock/search" method="GET">
+        <service class="Magento\Cms\Api\BlockRepositoryInterface" method="getList"/>
+        <resources>
+            <resource override="true" ref="anonymous"/>
+        </resources>
+    </route>
 </routes>

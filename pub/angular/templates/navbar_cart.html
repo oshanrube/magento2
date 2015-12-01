@@ -22,7 +22,12 @@
                 <span>{{ product.price | currency:cart.getCartCurrency() }}</span>
             </td>
             <td style="5%" class="delete">
-                <a ng-click="cart.removeFromCart(product)" ng-disabled="cart.isLoading(product)"> x </a>
+                <a title="Remove from Cart" data-toggle="tooltip" ng-click="cart.removeFromCart(product)" ng-disabled="cart.isLoading(product)"> x </a>
+            </td>
+        </tr>
+        <tr class="miniCartProduct" ng-hide="cart.getCartItems().length > 0">
+            <td colspan="5" style="padding-left: 10px;">
+                No items in your cart at the moment
             </td>
         </tr>
         </tbody>

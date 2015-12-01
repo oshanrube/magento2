@@ -4191,7 +4191,7 @@ h5.parallaxSubtitle {
 }
 
 .sp-wrap {
-  z-index: 10;
+  z-index: 9;
   width: 100%;
   background: none !important;
 }
@@ -6167,4 +6167,15 @@ md-toolbar:not(.md-menu-toolbar) {
   opacity: 1;
   background-color: #45CEEF;
   -webkit-animation: pulse 35s infinite;
+}
+
+//cart remove button
+.cartMenu table tr td.delete {
+  vertical-align: top;
+}
+
+@media (min-width: 768px) {
+  .modal-dialog {
+    margin: 0;
+  }
 }

@@ -4,7 +4,7 @@ namespace SchumacherFM\AdvancedRESTPerms\Controller\Adminhtml\Integration;
 
 use Magento\Backend\App\Action;
 use Magento\Integration\Exception as IntegrationException;
-use Magento\Integration\Model\Integration\Factory as IntegrationFactory;
+use Magento\Integration\Model\IntegrationService;
 use SchumacherFM\AdvancedRESTPerms\Service\V1\GuestAuthServiceInterface;
 
 //use Magento\Authorization\Model\UserContextInterface;
@@ -15,26 +15,26 @@ class CreateGuest extends Action
     protected $_guestAuthService = null;
     /** @var \Psr\Log\LoggerInterface */
     protected $_logger;
-    /** @var \Magento\Core\Helper\Data */
+    /** @var \Magento\Backend\Helper\Data */
     protected $_coreHelper;
     /** @var \Magento\Framework\Escaper */
     protected $_escaper;
-    /** @var IntegrationFactory */
+    /** @var IntegrationService */
     protected $_integrationFactory;
 
     /**
      * @param \Magento\Backend\App\Action\Context $context
      * @param \Psr\Log\LoggerInterface $logger
-     * @param \Magento\Core\Helper\Data $coreHelper
-     * @param IntegrationFactory $integrationFactory
+     * @param \Magento\Backend\Helper\Data $coreHelper
+     * @param IntegrationService $integrationFactory
      * @param \Magento\Framework\Escaper $escaper
      * @param GuestAuthServiceInterface $guestAuthService
      */
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         \Psr\Log\LoggerInterface $logger,
-        \Magento\Core\Helper\Data $coreHelper,
-        IntegrationFactory $integrationFactory,
+        \Magento\Backend\Helper\Data $coreHelper,
+        IntegrationService $integrationFactory,
         \Magento\Framework\Escaper $escaper,
         GuestAuthServiceInterface $guestAuthService
     )
@@ -85,6 +85,7 @@ class CreateGuest extends Action
                 'Magento_Catalog::catalog_inventory',
                 'Magento_Catalog::products',
                 'Magento_Catalog::categories',
+                'Magento_Cms::block'
             ];
             $this->_guestAuthService->grantPermissions($integration->getId(), $resources);
 

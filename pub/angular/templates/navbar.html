@@ -37,7 +37,7 @@
                             </li>
                             <li ng-show="navbar.isUserLoggedIn()" class="dropdown hasUserMenu">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                                    <i class="glyphicon glyphicon-log-in hide visible-xs "></i> Hi, User
+                                    <i class="glyphicon glyphicon-log-in hide visible-xs "></i> Hi, {{ navbar.getCustomer().firstname }}
                                     <b class="caret"></b>
                                 </a>
                                 <ul class="dropdown-menu">
@@ -104,20 +104,6 @@
                                 <li ng-repeat="subsubcat in subcat.children_data">
                                     <a href="#"> {{ subsubcat.name }} </a>
                                 </li>
-                            </ul>
-                            <ul class="col-lg-3  col-sm-3 col-md-3 col-xs-6">
-                                <li class="no-margin productPopItem "><a href="product-details.html"><img
-                                        class="img-responsive" src="images/site/g4.jpg" alt="img"> </a><a
-                                        class="text-center productInfo alpha90" href="product-details.html"> Eodem modo
-                                    typi <br>
-                                    <span> $60 </span> </a></li>
-                            </ul>
-                            <ul class="col-lg-3  col-sm-3 col-md-3 col-xs-6">
-                                <li class="no-margin productPopItem relative"><a href="product-details.html"><img
-                                        class="img-responsive" src="images/site/g5.jpg" alt="img"> </a><a
-                                        class="text-center productInfo alpha90" href="product-details.html"> Eodem modo
-                                    typi <br>
-                                    <span> $60 </span> </a></li>
                             </ul>
                         </li>
                     </ul>

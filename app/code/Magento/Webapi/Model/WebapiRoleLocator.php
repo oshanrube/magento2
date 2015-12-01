@@ -47,7 +47,9 @@ class WebapiRoleLocator implements RoleLocatorInterface
 
         $roleCollection = $this->roleCollectionFactory->create();
         /** @var Role $role */
-        $role = $roleCollection->setUserFilter($userId, $userType)->getFirstItem();
+        $role = $roleCollection
+            ->addFieldToFilter('user_type', $userType)
+            ->getFirstItem();
 
         if (!$role->getId()) {
             return null;

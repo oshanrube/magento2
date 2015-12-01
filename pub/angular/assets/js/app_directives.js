@@ -89,6 +89,11 @@ angular.module('app.directives', [])
 }).directive('navbarCart', function () {
     return {
         restrict: 'E',
-        templateUrl: 'templates/navbar_cart.html'
+        templateUrl: 'templates/navbar_cart.html',
+        link: function ($scope) {
+            $scope.$evalAsync(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+            });
+        }
     };
 });

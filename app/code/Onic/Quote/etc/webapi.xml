@@ -11,14 +11,14 @@
     <route url="/V1/guest-carts/:cartId/items" method="GET">
         <service class="Onic\Quote\Api\GuestCartItemRepositoryInterface" method="getList"/>
         <resources>
-            <resource ref="anonymous" />
+            <resource ref="anonymous"/>
         </resources>
     </route>
     <!-- Managing Cart Items -->
     <route url="/V1/carts/:cartId/items" method="GET">
         <service class="Onic\Quote\Api\CartItemRepositoryInterface" method="getList"/>
         <resources>
-            <resource ref="anonymous" />
+            <resource ref="anonymous"/>
         </resources>
     </route>
 </routes>

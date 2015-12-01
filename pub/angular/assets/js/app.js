@@ -49,16 +49,29 @@
             $stateProvider
                 .state('home', {
                     url: '/home',
-                    templateUrl: 'templates/home.html'
+                    templateUrl: 'pages/home.html'
                 }).state('product', {
                 url: '/product/:id',
-                templateUrl: 'templates/home.html'
-            }).state('catalog', {
+                views: {
+                    '': {
+                        templateUrl: 'pages/product.html',
+                        controller: 'ProductsController'
+                    },
+                },
+                resolve: {
+                    simpleObj: function ($q, $timeout) {
+                        $timeout(function () {
+                            loadProductPage();
+                        }, 1);
+                    }
+                }
+            }).
+            state('catalog', {
                 url: '/catalog/:id',
-                templateUrl: 'templates/home.html'
+                templateUrl: 'pages/home.html'
             }).state('cart', {
                 url: '/product/:id',
-                templateUrl: 'templates/home.html'
+                templateUrl: 'pages/home.html'
             });
 //
             // if none of the above states are matched, use this as the fallback

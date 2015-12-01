@@ -59,10 +59,11 @@ angular.module('app.services', [])
                                 crossDomain: true,
                                 headers: {
                                     Accept: "application/json",
-                                    "Content-Type": "application/json"
+                                    "Content-Type": "application/json",
+                                    "Authorization": (Page.getToken() !== null ? "Bearer " + Page.getToken() : '')
                                 }
                             }).success(function (response) {
-                                if (response.errors == undefined) {
+                                if (response.errors == undefined && response !== "") {
                                     //save the data to the key
                                     $rootScope.data[key] = response;
                                     if (onsuccess !== null) {
@@ -70,13 +71,12 @@ angular.module('app.services', [])
                                     }
                                 } else {
                                     //show the error
-                                    Page.setErrorMessage(response.message);
+                                    Page.setErrorMessage(sprintf(response));
                                 }
-                            }).error(function (status, response) {
+                            }).error(function (response, status) {
                                 // called asynchronously if an error occurs
                                 // or server returns response with an error status.
-                                //Page.setErrorMessage("Unable to connect to the server at the moment, please try again later");
-                                Page.setErrorMessage(status.message);
+                                Page.setErrorMessage(sprintf(response));
                             }).finally(function () {
                                 //remove key
                                 delete loadingdata[key];
@@ -112,7 +112,7 @@ angular.module('app.services', [])
             },
             setLoading: function (isloading) {
                 if (isloading) {
-                    //TODO set loadin
+                    //TODO set loading
                 } else {
                 }
             },
@@ -148,6 +148,12 @@ angular.module('app.services', [])
                     $localStorage.token = null;
                 }
                 return $localStorage.token;
+            },
+            getCustomer: function () {
+                if ($localStorage.me === undefined) {
+                    $localStorage.me = null;
+                }
+                return $localStorage.me;
             },
             setToken: function (newSessionToken) {
                 $localStorage.token = newSessionToken;
@@ -188,18 +194,19 @@ angular.module('app.services', [])
         };
     }).factory("Modal", function ($mdDialog, $rootScope) {
     return {
-        loadTemplate: function (ev) {
+        loadTemplate: function (ev, dataToPass, onLoad) {
             $mdDialog.show({
                     controller: 'DialogController',
                     templateUrl: 'templates/modal/' + ev + '.tmpl.html',
                     parent: angular.element(document.body),
                     targetEvent: ev,
-                    clickOutsideToClose: false
+                    clickOutsideToClose: false,
+                    locals: {dataToPass: dataToPass, onLoad: onLoad}
                 })
                 .then(function (answer) {
-                    $rootScope.status = 'You said the information was "' + answer + '".';
+                    //console.log('You said the information was "' + answer + '".');
                 }, function () {
-                    $rootScope.status = 'You cancelled the dialog.';
+                    //console.log('You cancelled the dialog.');
                 });
         }
     };

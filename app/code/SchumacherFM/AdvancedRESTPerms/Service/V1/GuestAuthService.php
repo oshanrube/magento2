@@ -6,7 +6,7 @@
 namespace SchumacherFM\AdvancedRESTPerms\Service\V1;
 
 use Magento\Authorization\Model\UserContextInterface;
-use Magento\Integration\Service\V1\AuthorizationService;
+use Magento\Integration\Model\AuthorizationService;
 use Magento\Framework\Exception\LocalizedException;
 
 /**

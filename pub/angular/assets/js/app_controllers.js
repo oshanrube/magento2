@@ -31,6 +31,9 @@ angular.module('app.controllers', [])
                 .setOnSuccess(function () {
                     Page.setSuccessMessage('You have successfully sign in!');
                     $scope.hide();
+                    //
+                    API.getAPIRequest()
+                        .execute('/customers/me', 'me');
                 })
                 .execute('/integration/customer/token', 'token');
         };
@@ -495,12 +498,15 @@ angular.module('app.controllers', [])
     this.isUserLoggedIn = function () {
         return (Page.getToken() !== null);
     };
+    this.getCustomer = function () {
+        return Page.getCustomer();
+    };
     this.getCategory = function () {
         if ($scope.getData('categories') === undefined) {
             API.getAPIRequest()
                 .execute('/categories', 'categories');
         }
-        return $scope.getData('categories.children_data')
+        return $scope.getData('categories.children_data').slice(0, 6);
     };
     this.showSignInModal = function () {
         Modal.loadTemplate('login');
@@ -513,6 +519,7 @@ angular.module('app.controllers', [])
         Page.setToken(null);
         $scope.resetData('carts-' + Page.getCartId() + '-items');
         $scope.resetData('cart_totals.grand_total');
+        Page.setSuccessMessage('You have successfully signed out!');
     };
 }).controller('CartController', function ($http, $scope, API, Page) {
     $scope.$on('onRepeatLast', function (scope, element, attrs) {
@@ -527,16 +534,17 @@ angular.module('app.controllers', [])
     this.getCartTotal = function () {
         if (this.isUserLoggedIn()) {
             if (Page.getCartId() === null) {
-                //create guest cart
+                var customer = Page.getCustomer();
+                //create cart
                 API.getAPIRequest()
                     .setPostmethod()
                     .setOnSuccess(function () {
                         Page.setCartId($scope.getData('cart_id'));
                     })
-                    .execute('/carts', 'cart_id');
+                    .execute('/carts/mine', 'cart_id');
             } else if ($scope.getData('cart_totals.grand_total') === undefined) {
                 API.getAPIRequest()
-                    .execute('/carts/' + Page.getCartId() + '/totals', 'cart_totals');
+                    .execute('/carts/mine/totals', 'cart_totals');
             }
             return $scope.getData('cart_totals.grand_total');
         } else {
@@ -566,7 +574,7 @@ angular.module('app.controllers', [])
 
     this.getCartItems = function () {
         if (this.isUserLoggedIn()) {
-            if ($scope.getData('carts-' + Page.getCartId() + '-items') === undefined) {
+            if (Page.getCartId() != null && $scope.getData('carts-' + Page.getCartId() + '-items') === undefined) {
                 API.getAPIRequest()
                     .execute('/carts/' + Page.getCartId() + '/items', 'carts-' + Page.getCartId() + '-items');
             }
@@ -588,7 +596,7 @@ angular.module('app.controllers', [])
                     $scope.resetData('carts-' + Page.getCartId() + '-items');
                     $scope.resetData('cart_totals.grand_total');
                 })
-                .execute('/carts/' + Page.getCartId() + '/items/' + product.item_id, 'carts-' + Page.getCartId() + '-items-' + product.id);
+                .execute('/carts/' + Page.getCartId() + '/items/' + product.item_id, 'carts-' + Page.getCartId() + '-items-' + product.item_id);
         } else {
             API.getAPIRequest()
                 .setDeletemethod()
@@ -597,14 +605,14 @@ angular.module('app.controllers', [])
                     $scope.resetData('guest-carts-' + Page.getGuestCartId() + '-items');
                     $scope.resetData('guest_cart_totals.grand_total');
                 })
-                .execute('/guest-carts/' + Page.getGuestCartId() + '/items/' + product.item_id, 'guest-carts-' + Page.getGuestCartId() + '-items-' + product.id);
+                .execute('/guest-carts/' + Page.getGuestCartId() + '/items/' + product.item_id, 'guest-carts-' + Page.getGuestCartId() + '-items-' + product.item_id);
         }
     };
     this.isLoading = function (product) {
         if (this.isUserLoggedIn()) {
-            return API.isLoading('carts-' + Page.getCartId() + '-items-' + product.id);
+            return API.isLoading('carts-' + Page.getCartId() + '-items-' + product.item_id);
         } else {
-            return API.isLoading('guest-carts-' + Page.getGuestCartId() + '-items-' + product.id);
+            return API.isLoading('guest-carts-' + Page.getGuestCartId() + '-items-' + product.item_id);
         }
     };
 }).controller('NewsLetterController', function (API, $scope, $mdToast, Page) {
@@ -621,7 +629,7 @@ angular.module('app.controllers', [])
             })
             .execute('/newsletter/new', 'newsletter');
     }
-}).controller('ProductsController', function ($http, $scope, API, Page) {
+}).controller('ProductsController', function ($http, $scope, API, Page, Modal, $stateParams) {
     this.getNewArrivals = function () {
         $scope.$on('onRepeatLast', function (scope, element, attrs) {
             $("#productslider").owlCarousel({
@@ -715,17 +723,27 @@ angular.module('app.controllers', [])
             }
         }
     };
+    this.getProductImage = function (product, size) {
+        var images = this.getProductAttribute(product, 'image');
+        var sizes = {'original': 0, 'large': 1, 'medium': 2, 'small': 3, 'thumbnail': 4};
+        return images[sizes[size]];
+    };
+
     this.getCartCurrency = function () {
         return $scope.getData('guest_cart_totals.base_currency_code')
     };
     this.addToWishlist = function (product) {
-        API.getAPIRequest()
-            .setPostmethod()
-            .setData({product_id: product.id})
-            .setOnSuccess(function () {
-                Page.setSuccessMessage('this product has been added to the wishlist!');
-            })
-            .execute('/wishlist/new', 'wishlist-' + product.id);
+        if (this.isUserLoggedIn()) {
+            API.getAPIRequest()
+                .setPostmethod()
+                .setData({product_id: product.id})
+                .setOnSuccess(function () {
+                    Page.setSuccessMessage('this product has been added to the wishlist!');
+                })
+                .execute('/wishlist/new', 'wishlist-' + product.id);
+        } else {
+            Page.setErrorMessage("Please login before you add this item to the wishlist!");
+        }
     };
     this.addToCart = function (product) {
         if (this.isUserLoggedIn()) {
@@ -763,7 +781,28 @@ angular.module('app.controllers', [])
         return API.isLoading('wishlist-' + product.id);
     };
 
-}).controller('DialogController', function ($scope, $mdDialog) {
+    this.openProductModal = function (product) {
+        var onLoad = function () {
+            loadProductDetails();
+        };
+        Modal.loadTemplate('product', {product: product}, onLoad);
+    }
+    this.getProduct = function () {
+        return $scope.getData('new_arrivals.items')[0];
+    }
+}).controller('DialogController', function ($scope, $mdDialog, dataToPass, onLoad) {
+    $scope.$evalAsync(function () {
+        if (typeof onLoad === "function") {
+            setTimeout(function () {
+                //onload
+                onLoad();
+            }, 1);
+        }
+    });
+    //parse the values to scope
+    for (var key in dataToPass) {
+        $scope[key] = dataToPass[key];
+    }
     $scope.hide = function () {
         $mdDialog.hide();
     };

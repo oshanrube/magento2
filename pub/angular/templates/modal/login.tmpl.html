@@ -55,10 +55,9 @@
             <md-button type="button" ng-click="answer('cancel')">
                 cancel
             </md-button>
-            <button type="submit" ng-click="login.login()" ng-disabled="loginForm.$invalid"
+            <button type="submit" ng-click="login.login()" ng-disabled="loginForm.$invalid || login.isLoading()"
                     style="margin-right:20px;margin-left: 10px;"
-                    class="btn  btn-block btn-lg btn-primary"
-                    ng-disabled="login.isLoading()">
+                    class="btn  btn-block btn-lg btn-primary">
                 <md-progress-linear ng-show="login.isLoading()" md-mode="indeterminate"></md-progress-linear>
                 Login
             </button>
