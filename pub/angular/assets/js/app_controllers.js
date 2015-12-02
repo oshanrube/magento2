@@ -766,7 +766,7 @@ angular.module('app.controllers', [])
                     $scope.resetData('guest-carts-' + Page.getGuestCartId() + '-items');
                     $scope.resetData('guest_cart_totals.grand_total');
                 })
-                .execute('/guest-carts/items', 'guest-carts-items-' + product.id);
+                .execute('/guest-carts/' + Page.getGuestCartId() + '/items', 'guest-carts-items-' + product.id);
         }
     };
 

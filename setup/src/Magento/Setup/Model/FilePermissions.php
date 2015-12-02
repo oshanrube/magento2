@@ -139,7 +139,7 @@ class FilePermissions
 
         try {
             foreach ($directoryIterator as $subDirectory) {
-                if (!$subDirectory->isWritable()) {
+                if (!$subDirectory->isLink() &&!$subDirectory->isWritable()) {
                     return false;
                 }
             }
