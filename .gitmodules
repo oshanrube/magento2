@@ -1,0 +1,3 @@
+[submodule "pub/angular/assets/plugins/SpinKit"]
+	path = pub/angular/assets/plugins/SpinKit
+	url = https://github.com/tobiasahlin/SpinKit.git
