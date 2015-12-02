@@ -10,7 +10,7 @@ use Magento\Authorization\Model\UserContextInterface;
 /**
  * OAuth token resource model
  */
-class Token extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
+class Token extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
      * @var \Magento\Framework\Stdlib\DateTime
@@ -18,16 +18,26 @@ class Token extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
     protected $_dateTime;
 
     /**
-     * @param \Magento\Framework\Model\ModelResource\Db\Context $context
+     * Date
+     *
+     * @var \Magento\Framework\Stdlib\DateTime\DateTime
+     */
+    protected $date;
+
+    /**
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
      * @param \Magento\Framework\Stdlib\DateTime $dateTime
+     * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
      * @param string $connectionName
      */
     public function __construct(
-        \Magento\Framework\Model\ModelResource\Db\Context $context,
+        \Magento\Framework\Model\ResourceModel\Db\Context $context,
         \Magento\Framework\Stdlib\DateTime $dateTime,
+        \Magento\Framework\Stdlib\DateTime\DateTime $date,
         $connectionName = null
     ) {
         $this->_dateTime = $dateTime;
+        $this->date = $date;
         parent::__construct($context, $connectionName);
     }
 
@@ -86,7 +96,7 @@ class Token extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
                 $this->getMainTable(),
                 $connection->quoteInto(
                     'type = "' . \Magento\Integration\Model\Oauth\Token::TYPE_REQUEST . '" AND created_at <= ?',
-                    $this->_dateTime->formatDate(time() - $minutes * 60)
+                    $this->_dateTime->formatDate($this->date->gmtTimestamp() - $minutes * 60)
                 )
             );
         } else {

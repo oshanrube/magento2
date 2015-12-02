@@ -34,6 +34,8 @@ class Item extends AbstractExtensibleModel implements StockItemInterface
      */
     protected $eventPrefix = 'cataloginventory_stock_item';
 
+    const WEBSITE_ID = 'website_id';
+
     /**
      * Parameter name in event
      *
@@ -99,7 +101,7 @@ class Item extends AbstractExtensibleModel implements StockItemInterface
      * @param StockConfigurationInterface $stockConfiguration
      * @param StockRegistryInterface $stockRegistry
      * @param StockItemRepositoryInterface $stockItemRepository
-     * @param \Magento\Framework\Model\ModelResource\AbstractResource $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -114,7 +116,7 @@ class Item extends AbstractExtensibleModel implements StockItemInterface
         StockConfigurationInterface $stockConfiguration,
         StockRegistryInterface $stockRegistry,
         StockItemRepositoryInterface $stockItemRepository,
-        \Magento\Framework\Model\ModelResource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
@@ -161,7 +163,7 @@ class Item extends AbstractExtensibleModel implements StockItemInterface
     {
         $websiteId = $this->getData(static::WEBSITE_ID);
         if ($websiteId === null) {
-            $websiteId = $this->stockConfiguration->getDefaultWebsiteId();
+            $websiteId = $this->stockConfiguration->getDefaultScopeId();
         }
         return (int) $websiteId;
     }

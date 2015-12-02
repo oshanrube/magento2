@@ -8,8 +8,10 @@
 namespace Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable;
 
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable\Attribute as ConfigurableAttribute;
+use Magento\Store\Model\Store;
+use Magento\Store\Model\StoreManagerInterface;
 
-class Attribute extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
+class Attribute extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
      * Label table name cache
@@ -33,13 +35,13 @@ class Attribute extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
     protected $_storeManager;
 
     /**
-     * @param \Magento\Framework\Model\ModelResource\Db\Context $context
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Catalog\Helper\Data $catalogData
      * @param string $connectionName
      */
     public function __construct(
-        \Magento\Framework\Model\ModelResource\Db\Context $context,
+        \Magento\Framework\Model\ResourceModel\Db\Context $context,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Helper\Data $catalogData,
         $connectionName = null
@@ -58,16 +60,6 @@ class Attribute extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
     {
         $this->_init('catalog_product_super_attribute', 'product_super_attribute_id');
         $this->_labelTable = $this->getTable('catalog_product_super_attribute_label');
-    }
-
-    /**
-     * Retrieve Catalog Helper
-     *
-     * @return \Magento\Catalog\Helper\Data
-     */
-    public function getCatalogHelper()
-    {
-        return $this->_catalogData;
     }
 
     /**
@@ -90,26 +82,26 @@ class Attribute extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
         );
         $bind = [
             'product_super_attribute_id' => (int)$attribute->getId(),
-            'store_id' => (int)$attribute->getStoreId(),
+            'store_id' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,
         ];
         $valueId = $connection->fetchOne($select, $bind);
         if ($valueId) {
-            $connection->update(
-                $this->_labelTable,
-                ['use_default' => (int)$attribute->getUseDefault(), 'value' => $attribute->getLabel()],
-                $connection->quoteInto('value_id = ?', (int)$valueId)
-            );
+            $storeId = (int)$attribute->getStoreId() ?: $this->_storeManager->getStore()->getId();
         } else {
-            $connection->insert(
-                $this->_labelTable,
-                [
-                    'product_super_attribute_id' => (int)$attribute->getId(),
-                    'store_id' => (int)$attribute->getStoreId(),
-                    'use_default' => (int)$attribute->getUseDefault(),
-                    'value' => $attribute->getLabel()
-                ]
-            );
+            // if attribute label not exists, always store on default store (0)
+            $storeId = Store::DEFAULT_STORE_ID;
         }
+        $connection->insertOnDuplicate(
+            $this->_labelTable,
+            [
+                'product_super_attribute_id' => (int)$attribute->getId(),
+                'use_default' => (int)$attribute->getUseDefault(),
+                'store_id' => $storeId,
+                'value' => $attribute->getLabel(),
+            ],
+            ['value', 'use_default']
+        );
+
         return $this;
     }
 

@@ -35,35 +35,11 @@ class UpgradeData implements UpgradeDataInterface
 
     /**
      * {@inheritdoc}
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
         $setup->startSetup();
-        if (version_compare($context->getVersion(), '2.0.1') < 0) {
-            /** @var \Magento\Catalog\Setup\CategorySetup $categorySetup */
-            $categorySetup = $this->categorySetupFactory->create(['setup' => $setup]);
-
-            $entityTypeId = $categorySetup->getEntityTypeId(\Magento\Catalog\Model\Product::ENTITY);
-            $attributeSetId = $categorySetup->getDefaultAttributeSetId($entityTypeId);
-
-            $attributeGroup = $categorySetup->getAttributeGroup(
-                $entityTypeId,
-                $attributeSetId,
-                'Images',
-                'attribute_group_name'
-            );
-            if (isset($attributeGroup['attribute_group_name']) && $attributeGroup['attribute_group_name'] == 'Images') {
-                // update General Group
-                $categorySetup->updateAttributeGroup(
-                    $entityTypeId,
-                    $attributeSetId,
-                    $attributeGroup['attribute_group_id'],
-                    'attribute_group_name',
-                    'Images and Videos'
-                );
-            }
-        }
-
         if ($context->getVersion()
             && version_compare($context->getVersion(), '2.0.1') < 0
         ) {
@@ -95,6 +71,54 @@ class UpgradeData implements UpgradeDataInterface
 
             $categorySetupManager = $this->categorySetupFactory->create();
             $categorySetupManager->removeAttribute(\Magento\Catalog\Model\Product::ENTITY, 'group_price');
+        }
+
+        if (version_compare($context->getVersion(), '2.0.2') < 0) {
+            // set new resource model paths
+            /** @var \Magento\Catalog\Setup\CategorySetup $categorySetup */
+            $categorySetup = $this->categorySetupFactory->create(['setup' => $setup]);
+            $categorySetup->updateEntityType(
+                \Magento\Catalog\Model\Category::ENTITY,
+                'entity_model',
+                'Magento\Catalog\Model\ResourceModel\Category'
+            );
+            $categorySetup->updateEntityType(
+                \Magento\Catalog\Model\Category::ENTITY,
+                'attribute_model',
+                'Magento\Catalog\Model\ResourceModel\Eav\Attribute'
+            );
+            $categorySetup->updateEntityType(
+                \Magento\Catalog\Model\Category::ENTITY,
+                'entity_attribute_collection',
+                'Magento\Catalog\Model\ResourceModel\Category\Attribute\Collection'
+            );
+            $categorySetup->updateAttribute(
+                \Magento\Catalog\Model\Category::ENTITY,
+                'custom_design_from',
+                'attribute_model',
+                'Magento\Catalog\Model\ResourceModel\Eav\Attribute'
+            );
+            $categorySetup->updateEntityType(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'entity_model',
+                'Magento\Catalog\Model\ResourceModel\Product'
+            );
+            $categorySetup->updateEntityType(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'attribute_model',
+                'Magento\Catalog\Model\ResourceModel\Eav\Attribute'
+            );
+            $categorySetup->updateEntityType(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'entity_attribute_collection',
+                'Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection'
+            );
+        }
+
+        if (version_compare($context->getVersion(), '2.0.3') < 0) {
+            /** @var \Magento\Catalog\Setup\CategorySetup $categorySetup */
+            $categorySetup = $this->categorySetupFactory->create(['setup' => $setup]);
+            $categorySetup->updateAttribute(3, 51, 'default_value', 1);
         }
         $setup->endSetup();
     }

@@ -18,8 +18,7 @@ define([
         defaults: {
             template: 'ui/grid/actions',
             stickyTmpl: 'ui/grid/sticky/actions',
-            componentType: 'massaction',
-            selectProvider: '',
+            selectProvider: 'ns = ${ $.ns }, index = ids',
             actions: [],
             noItemsMsg: $t('You haven\'t selected any items!'),
             modules: {

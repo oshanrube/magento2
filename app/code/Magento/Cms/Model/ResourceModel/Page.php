@@ -11,7 +11,7 @@ namespace Magento\Cms\Model\ResourceModel;
 /**
  * Cms page mysql resource
  */
-class Page extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
+class Page extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
      * Store model
@@ -19,11 +19,6 @@ class Page extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
      * @var null|\Magento\Store\Model\Store
      */
     protected $_store = null;
-
-    /**
-     * @var \Magento\Framework\Stdlib\DateTime\DateTime
-     */
-    protected $_date;
 
     /**
      * Store manager
@@ -40,21 +35,18 @@ class Page extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
     /**
      * Construct
      *
-     * @param \Magento\Framework\Model\ModelResource\Db\Context $context
-     * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\Stdlib\DateTime $dateTime
      * @param string $connectionName
      */
     public function __construct(
-        \Magento\Framework\Model\ModelResource\Db\Context $context,
-        \Magento\Framework\Stdlib\DateTime\DateTime $date,
+        \Magento\Framework\Model\ResourceModel\Db\Context $context,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\Stdlib\DateTime $dateTime,
         $connectionName = null
     ) {
         parent::__construct($context, $connectionName);
-        $this->_date = $date;
         $this->_storeManager = $storeManager;
         $this->dateTime = $dateTime;
     }
@@ -115,13 +107,6 @@ class Page extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
                 __('The page URL key cannot be made of only numbers.')
             );
         }
-
-        if ($object->isObjectNew() && !$object->hasCreationTime()) {
-            $object->setCreationTime($this->_date->gmtDate());
-        }
-
-        $object->setUpdateTime($this->_date->gmtDate());
-
         return parent::_beforeSave($object);
     }
 

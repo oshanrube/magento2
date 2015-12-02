@@ -7,7 +7,7 @@
 namespace Magento\Sales\Model\ResourceModel\Order;
 
 use Magento\Sales\Model\ResourceModel\Order\Handler\Address as AddressHandler;
-use Magento\Framework\Model\ModelResource\Db\VersionControl\RelationInterface;
+use Magento\Framework\Model\ResourceModel\Db\VersionControl\RelationInterface;
 use Magento\Sales\Model\ResourceModel\Order\Payment as OrderPaymentResource;
 use Magento\Sales\Model\ResourceModel\Order\Status\History as OrderStatusHistoryResource;
 use Magento\Sales\Api\OrderItemRepositoryInterface;
@@ -74,13 +74,11 @@ class Relation implements RelationInterface
                 $this->orderItemRepository->save($item);
             }
         }
-        if (null !== $object->getPayments()) {
-            /** @var \Magento\Sales\Model\Order\Payment $payment */
-            foreach ($object->getPayments() as $payment) {
-                $payment->setParentId($object->getId());
-                $payment->setOrder($object);
-                $this->orderPaymentResource->save($payment);
-            }
+        if (null !== $object->getPayment()) {
+            $payment = $object->getPayment();
+            $payment->setParentId($object->getId());
+            $payment->setOrder($object);
+            $this->orderPaymentResource->save($payment);
         }
         if (null !== $object->getStatusHistories()) {
             /** @var \Magento\Sales\Model\Order\Status\History $statusHistory */

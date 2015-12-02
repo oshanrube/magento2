@@ -5,7 +5,7 @@
  */
 namespace Magento\Translation\Model\ResourceModel;
 
-class StringUtils extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
+class StringUtils extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
      * @var \Magento\Framework\Locale\ResolverInterface
@@ -23,14 +23,14 @@ class StringUtils extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
     protected $scope;
 
     /**
-     * @param \Magento\Framework\Model\ModelResource\Db\Context $context
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
      * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
      * @param \Magento\Framework\App\ScopeResolverInterface $scopeResolver
      * @param string $connectionName
      * @param string|null $scope
      */
     public function __construct(
-        \Magento\Framework\Model\ModelResource\Db\Context $context,
+        \Magento\Framework\Model\ResourceModel\Db\Context $context,
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
         \Magento\Framework\App\ScopeResolverInterface $scopeResolver,
         $connectionName = null,
@@ -208,8 +208,10 @@ class StringUtils extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
      */
     public function saveTranslate($string, $translate, $locale = null, $storeId = null)
     {
+        $string = htmlspecialchars_decode($string);
         $connection = $this->getConnection();
         $table = $this->getMainTable();
+        $translate = htmlspecialchars($translate, ENT_QUOTES);
 
         if ($locale === null) {
             $locale = $this->_localeResolver->getLocale();

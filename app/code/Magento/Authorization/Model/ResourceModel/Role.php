@@ -10,7 +10,7 @@ use Magento\Authorization\Model\Acl\Role\User as RoleUser;
 /**
  * Admin role resource model
  */
-class Role extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
+class Role extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
      * Rule table
@@ -27,23 +27,15 @@ class Role extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
     protected $_cache;
 
     /**
-     * @var \Magento\Framework\Stdlib\DateTime
-     */
-    protected $dateTime;
-
-    /**
-     * @param \Magento\Framework\Model\ModelResource\Db\Context $context
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
      * @param \Magento\Framework\App\CacheInterface $cache
-     * @param \Magento\Framework\Stdlib\DateTime $dateTime
      * @param string $connectionName
      */
     public function __construct(
-        \Magento\Framework\Model\ModelResource\Db\Context $context,
+        \Magento\Framework\Model\ResourceModel\Db\Context $context,
         \Magento\Framework\App\CacheInterface $cache,
-        \Magento\Framework\Stdlib\DateTime $dateTime,
         $connectionName = null
     ) {
-        $this->dateTime = $dateTime;
         parent::__construct($context, $connectionName);
         $this->_cache = $cache->getFrontend();
     }
@@ -67,11 +59,6 @@ class Role extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
      */
     protected function _beforeSave(\Magento\Framework\Model\AbstractModel $role)
     {
-        if (!$role->getId()) {
-            $role->setCreated($this->dateTime->formatDate(true));
-        }
-        $role->setModified($this->dateTime->formatDate(true));
-
         if ($role->getId() == '') {
             if ($role->getIdFieldName()) {
                 $role->unsetData($role->getIdFieldName());

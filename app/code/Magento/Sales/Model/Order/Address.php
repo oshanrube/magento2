@@ -61,7 +61,7 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
      * @param \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory
      * @param \Magento\Sales\Model\OrderFactory $orderFactory
      * @param \Magento\Directory\Model\RegionFactory $regionFactory
-     * @param \Magento\Framework\Model\ModelResource\AbstractResource $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      */
@@ -72,7 +72,7 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
         \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory,
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Directory\Model\RegionFactory $regionFactory,
-        \Magento\Framework\Model\ModelResource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
@@ -419,16 +419,6 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
     }
 
     /**
-     * Returns quote_address_id
-     *
-     * @return int
-     */
-    public function getQuoteAddressId()
-    {
-        return $this->getData(OrderAddressInterface::QUOTE_ADDRESS_ID);
-    }
-
-    /**
      * Returns region
      *
      * @return string
@@ -532,14 +522,6 @@ class Address extends AbstractModel implements OrderAddressInterface, AddressMod
     public function setCustomerAddressId($id)
     {
         return $this->setData(OrderAddressInterface::CUSTOMER_ADDRESS_ID, $id);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setQuoteAddressId($id)
-    {
-        return $this->setData(OrderAddressInterface::QUOTE_ADDRESS_ID, $id);
     }
 
     /**

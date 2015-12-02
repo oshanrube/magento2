@@ -8,6 +8,7 @@ namespace Magento\CatalogImportExport\Test\Unit\Model\Import;
 use Magento\CatalogImportExport\Model\Import\Product;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Stdlib\DateTime;
+use Magento\ImportExport\Model\Import;
 
 /**
  * Class ProductTest
@@ -135,10 +136,10 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
     /** @var  \Magento\CatalogImportExport\Model\Import\Product\Validator|\PHPUnit_Framework_MockObject_MockObject */
     protected $validator;
 
-    /** @var  \Magento\Framework\Model\ModelResource\Db\ObjectRelationProcessor|\PHPUnit_Framework_MockObject_MockObject */
+    /** @var  \Magento\Framework\Model\ResourceModel\Db\ObjectRelationProcessor|\PHPUnit_Framework_MockObject_MockObject */
     protected $objectRelationProcessor;
 
-    /** @var  \Magento\Framework\Model\ModelResource\Db\TransactionManagerInterface|\PHPUnit_Framework_MockObject_MockObject */
+    /** @var  \Magento\Framework\Model\ResourceModel\Db\TransactionManagerInterface|\PHPUnit_Framework_MockObject_MockObject */
     protected $transactionManager;
 
     /** @var  \Magento\CatalogImportExport\Model\Import\Product\TaxClassProcessor|\PHPUnit_Framework_MockObject_MockObject */
@@ -302,11 +303,11 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
                 ->disableOriginalConstructor()
                 ->getMock();
         $this->objectRelationProcessor =
-            $this->getMockBuilder('\Magento\Framework\Model\ModelResource\Db\ObjectRelationProcessor')
+            $this->getMockBuilder('\Magento\Framework\Model\ResourceModel\Db\ObjectRelationProcessor')
                 ->disableOriginalConstructor()
                 ->getMock();
         $this->transactionManager =
-            $this->getMockBuilder('\Magento\Framework\Model\ModelResource\Db\TransactionManagerInterface')
+            $this->getMockBuilder('\Magento\Framework\Model\ResourceModel\Db\TransactionManagerInterface')
                 ->getMock();
 
         $this->taxClassProcessor =
@@ -503,18 +504,6 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
         $this->_connection->expects($this->any())
             ->method('quoteInto')
             ->willReturnCallback([$this, 'returnQuoteCallback']);
-        $this->_connection
-            ->expects($this->once())
-            ->method('delete')
-            ->with(
-                $this->equalTo($testTable),
-                $this->equalTo(
-                    '(store_id NOT IN ('
-                    . $storeId . ') AND attribute_id = '
-                    . $attributeId . ' AND entity_id = '
-                    . self::ENTITY_ID . ')'
-                )
-            );
 
         $tableData[] = [
             'entity_id' => self::ENTITY_ID,
@@ -567,7 +556,7 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
     {
         $this->setPropertyValue($this->importProduct, '_parameters', null);
         $this->assertEquals(
-            \Magento\CatalogImportExport\Model\Import\Product::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR,
+            Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR,
             $this->importProduct->getMultipleValueSeparator()
         );
     }
@@ -650,18 +639,18 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
     }
 
     /**
-     * @dataProvider validateRowDeleteBehaviourDataProvider
+     * @dataProvider validateRowDataProvider
      */
-    public function testValidateRowDeleteBehaviour($rowScope, $oldSku, $expectedResult)
+    public function testValidateRow($rowScope, $oldSku, $expectedResult, $behaviour = Import::BEHAVIOR_DELETE)
     {
         $importProduct = $this->getMockBuilder('\Magento\CatalogImportExport\Model\Import\Product')
             ->disableOriginalConstructor()
             ->setMethods(['getBehavior', 'getRowScope', 'getErrorAggregator'])
             ->getMock();
         $importProduct
-            ->expects($this->once())
+            ->expects($this->any())
             ->method('getBehavior')
-            ->willReturn(\Magento\ImportExport\Model\Import::BEHAVIOR_DELETE);
+            ->willReturn($behaviour);
         $importProduct
             ->method('getErrorAggregator')
             ->willReturn($this->getErrorAggregatorObject());
@@ -683,7 +672,7 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
             ->setMethods(['getBehavior', 'getRowScope', 'addRowError'])
             ->getMock();
 
-        $importProduct->expects($this->once())->method('getBehavior')
+        $importProduct->expects($this->exactly(2))->method('getBehavior')
             ->willReturn(\Magento\ImportExport\Model\Import::BEHAVIOR_DELETE);
         $importProduct->expects($this->once())->method('getRowScope')
             ->willReturn(\Magento\CatalogImportExport\Model\Import\Product::SCOPE_DEFAULT);
@@ -1290,7 +1279,7 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
         ];
     }
 
-    public function validateRowDeleteBehaviourDataProvider()
+    public function validateRowDataProvider()
     {
         return [
             [
@@ -1312,6 +1301,12 @@ class ProductTest extends \Magento\ImportExport\Test\Unit\Model\Import\AbstractI
                 '$rowScope' => \Magento\CatalogImportExport\Model\Import\Product::SCOPE_DEFAULT,
                 '$oldSku' => true,
                 '$expectedResult' => true,
+            ],
+            [
+                '$rowScope' => \Magento\CatalogImportExport\Model\Import\Product::SCOPE_DEFAULT,
+                '$oldSku' => null,
+                '$expectedResult' => false,
+                '$behaviour' => Import::BEHAVIOR_REPLACE
             ],
         ];
     }

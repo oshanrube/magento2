@@ -28,7 +28,7 @@ class CustomerForm extends FormTabs
      *
      * @var string
      */
-    protected $activeFormTab = '#container [data-bind="visible: active"]:not([style="display: none;"])';
+    protected $activeFormTab = '#container [data-area-active="true"]';
 
     /**
      * Field wrapper with label on form.
@@ -140,5 +140,22 @@ class CustomerForm extends FormTabs
         $this->waitForElementNotVisible($this->tabReadiness);
 
         return $this;
+    }
+
+    /**
+     * Get array of label => js error text.
+     *
+     * @return array
+     */
+    public function getJsErrors()
+    {
+        $tabs = ['account_information', 'addresses'];
+        $jsErrors = [];
+        foreach ($tabs as $tabName) {
+            $tab = $this->getTab($tabName);
+            $this->openTab($tabName);
+            $jsErrors = array_merge($jsErrors, $tab->getJsErrors());
+        }
+        return $jsErrors;
     }
 }

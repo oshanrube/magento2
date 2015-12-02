@@ -14,6 +14,11 @@ define([
         defaults: {
             headerTmpl: 'ui/grid/columns/onoff',
             bodyTmpl: 'ui/grid/cells/onoff',
+            fieldClass: {
+                'admin__scope-old': true,
+                'data-grid-onoff-cell': true,
+                'data-grid-checkbox-cell': false
+            },
             imports: {
                 selectedData: '${ $.provider }:data.selectedData'
             },
@@ -23,28 +28,11 @@ define([
         },
 
         /**
-         * @param {Integer} id
+         * @param {Number} id
          * @returns {*}
          */
         getLabel: function (id) {
             return this.selected.indexOf(id) !== -1 ? $t('On') : $t('Off');
-        },
-
-        /**
-         * Initializes components' static properties.
-         *
-         * @returns {Column} Chainable.
-         */
-        initProperties: function () {
-            this.actions = [{
-                value: 'selectPage',
-                label: $t('Select all on this page')
-            }, {
-                value: 'deselectPage',
-                label: $t('Deselect all on this page')
-            }];
-
-            return this._super();
         },
 
         /**
@@ -58,7 +46,7 @@ define([
 
             registry.set('position_cache_valid', true);
 
-            if (this.selected().length === this.selectedData.length || positionCacheValid) {
+            if (this.selectedData.length === 0 || positionCacheValid) {
                 return;
             }
             // Check selected data
@@ -71,12 +59,13 @@ define([
             for (i = 0; i < this.selected().length; i++) {
                 key = this.selected()[i];
                 this.selectedData.hasOwnProperty(key) || this.selected.splice(this.selected().indexOf(key), 1);
+                this.selectedData.hasOwnProperty(key) || i--;
             }
         },
 
         /**
          * Show/hide action in the massaction menu
-         * @param {Integer} actionId
+         * @param {Number} actionId
          * @returns {Boolean}
          */
         isActionRelevant: function (actionId) {
@@ -99,7 +88,7 @@ define([
          * Updates values of the 'allSelected'
          * and 'indetermine' properties.
          *
-         * @returns {Multiselect} Chainable.
+         * @returns {Object} Chainable.
          */
         updateState: function () {
             var totalRecords    = this.totalRecords(),

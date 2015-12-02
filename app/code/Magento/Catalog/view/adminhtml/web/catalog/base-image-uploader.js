@@ -6,11 +6,12 @@
 define([
     'jquery',
     'mage/template',
+    'Magento_Ui/js/modal/alert',
     'jquery/ui',
     'jquery/file-uploader',
     'mage/translate',
     'mage/backend/notification'
-], function ($, mageTemplate) {
+], function ($, mageTemplate, alert) {
     'use strict';
 
     $.widget('mage.baseImage', {
@@ -37,7 +38,7 @@ define([
 
             var findElement = function (data) {
                 return $container.find('.image:not(.image-placeholder)').filter(function () {
-                    if(!$(this).data('image')) {
+                    if (!$(this).data('image')) {
                         return false;
                     }
                     return $(this).data('image').file === data.file;
@@ -131,7 +132,9 @@ define([
                     if (!data.result.error) {
                         $galleryContainer.trigger('addItem', data.result);
                     } else {
-                        alert($.mage.__('We don\'t recognize or support this file extension type.'));
+                        alert({
+                            content: $.mage.__('We don\'t recognize or support this file extension type.')
+                        });
                     }
                 },
                 change: function(e, data) {

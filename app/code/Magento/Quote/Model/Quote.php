@@ -345,6 +345,13 @@ class Quote extends AbstractExtensibleModel implements \Magento\Quote\Api\Data\C
     protected $shippingAssignmentFactory;
 
     /**
+     * Quote shipping addresses items cache
+     *
+     * @var array
+     */
+    protected $shippingAddressesItems;
+
+    /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
@@ -382,7 +389,7 @@ class Quote extends AbstractExtensibleModel implements \Magento\Quote\Api\Data\C
      * @param Quote\TotalsReader $totalsReader
      * @param ShippingFactory $shippingFactory
      * @param ShippingAssignmentFactory $shippingAssignmentFactory
-     * @param \Magento\Framework\Model\ModelResource\AbstractResource|null $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -425,7 +432,7 @@ class Quote extends AbstractExtensibleModel implements \Magento\Quote\Api\Data\C
         Quote\TotalsReader $totalsReader,
         \Magento\Quote\Model\ShippingFactory $shippingFactory,
         \Magento\Quote\Model\ShippingAssignmentFactory $shippingAssignmentFactory,
-        \Magento\Framework\Model\ModelResource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
@@ -1862,27 +1869,12 @@ class Quote extends AbstractExtensibleModel implements \Magento\Quote\Api\Data\C
     }
 
     /**
-     * @param string $paymentId
-     * @return bool
-     * @SuppressWarnings(PHPMD.BooleanGetMethodName)
-     */
-    public function getPaymentById($paymentId)
-    {
-        foreach ($this->getPaymentsCollection() as $payment) {
-            if ($payment->getId() == $paymentId) {
-                return $payment;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Adds a payment to quote
      *
      * @param PaymentInterface $payment
      * @return $this
      */
-    public function addPayment(PaymentInterface $payment)
+    protected function addPayment(PaymentInterface $payment)
     {
         $payment->setQuote($this);
         if (!$payment->getId()) {
@@ -2411,6 +2403,48 @@ class Quote extends AbstractExtensibleModel implements \Magento\Quote\Api\Data\C
             return self::CHECKOUT_METHOD_LOGIN_IN;
         }
         return $this->_getData(self::KEY_CHECKOUT_METHOD);
+    }
+
+    /**
+     * Get quote items assigned to different quote addresses populated per item qty.
+     * Based on result array we can display each item separately
+     *
+     * @return array
+     */
+    public function getShippingAddressesItems()
+    {
+        if ($this->shippingAddressesItems !== null) {
+            return $this->shippingAddressesItems;
+        }
+        $items = [];
+        $addresses = $this->getAllAddresses();
+        foreach ($addresses as $address) {
+            foreach ($address->getAllItems() as $item) {
+                if ($item->getParentItemId()) {
+                    continue;
+                }
+                if ($item->getProduct()->getIsVirtual()) {
+                    $items[] = $item;
+                    continue;
+                }
+                if ($item->getQty() > 1) {
+                    for ($itemIndex = 0, $itemQty = $item->getQty(); $itemIndex < $itemQty; $itemIndex++) {
+                        if ($itemIndex == 0) {
+                            $addressItem = $item;
+                        } else {
+                            $addressItem = clone $item;
+                        }
+                        $addressItem->setQty(1)->setCustomerAddressId($address->getCustomerAddressId())->save();
+                        $items[] = $addressItem;
+                    }
+                } else {
+                    $item->setCustomerAddressId($address->getCustomerAddressId());
+                    $items[] = $item;
+                }
+            }
+        }
+        $this->shippingAddressesItems = $items;
+        return $items;
     }
 
     /**

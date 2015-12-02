@@ -10,7 +10,7 @@ namespace Magento\CatalogSearch\Model\ResourceModel;
  *
  * @author      Magento Core Team <core@magentocommerce.com>
  */
-class Advanced extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
+class Advanced extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
      * Core event manager proxy
@@ -29,13 +29,13 @@ class Advanced extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
     /**
      * Construct
      *
-     * @param \Magento\Framework\Model\ModelResource\Db\Context $context
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\Event\ManagerInterface $eventManager
      * @param string $connectionName
      */
     public function __construct(
-        \Magento\Framework\Model\ModelResource\Db\Context $context,
+        \Magento\Framework\Model\ResourceModel\Db\Context $context,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\Event\ManagerInterface $eventManager,
         $connectionName = null
@@ -81,7 +81,7 @@ class Advanced extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
         } else {
             if (strlen($value) > 0) {
                 if (in_array($attribute->getBackendType(), ['varchar', 'text', 'static'])) {
-                    $condition = ['like' => '%' . $value . '%']; // text search
+                    $condition = ['like' => $value]; // text search
                 } else {
                     $condition = $value;
                 }

@@ -29,7 +29,7 @@ define([
             listens: {
                 '${ $.productsProvider }:data': '_showMessageAssociatedGrid _handleManualGridOpening',
                 '${ $.productsMassAction }:selected': '_handleManualGridSelect',
-                '${ $.configurableVariations }:productMatrix': '_showButtonAddManual'
+                '${ $.configurableVariations }:productMatrix': '_showButtonAddManual _switchProductType'
             }
         },
 
@@ -68,6 +68,12 @@ define([
             }.bind(this));
 
             this._initGrid = _.once(this._initGrid);
+            this._switchProductType = _.wrap(this._switchProductType.bind(this), function (func, params) {
+                if (!!params.length !== !!this.init) {
+                    this.init = !!params.length;
+                    func(params);
+                }
+            }.bind(this._switchProductType));
         },
 
         /**
@@ -115,9 +121,9 @@ define([
             this.callbackName = callbackName;
             this.productsMassAction(function (massActionComponent) {
                 this.productsColumns().elems().each(function (rowElement) {
-                    rowElement.disableAction(showMassActionColumn);
+                    rowElement.disableAction = showMassActionColumn;
                 });
-                massActionComponent.visible(showMassActionColumn);
+                massActionComponent.visible = showMassActionColumn;
             }.bind(this));
             this._setFilter(filterData);
             this._initGrid(filterData);
@@ -129,10 +135,10 @@ define([
          */
         close: function (rowIndex) {
             try {
-                if (this.productsMassAction().selected().length) {
+                if (this.productsMassAction().selected.getLength()) {
                     this.variationsComponent()[this.callbackName](this.productsMassAction()
                         .selected.map(this.getProductById.bind(this)));
-                    this.productsMassAction().selected([]);
+                    this.productsMassAction().deselectAll();
                 } else if (!_.isNull(rowIndex)) {
                     this.variationsComponent()[this.callbackName]([this.getProductByIndex(rowIndex)]);
                 }
@@ -192,6 +198,10 @@ define([
          */
         _showButtonAddManual: function (variations) {
             return this.button(variations.length);
+        },
+
+        _switchProductType: function (variations) {
+            $(document).trigger('changeConfigurableTypeProduct', variations.length);
         },
 
         /**
@@ -257,7 +267,7 @@ define([
         _handleManualGridOpening: function (data) {
             if (data.items.length && this.callbackName == 'appendProducts') {
                 this.productsColumns().elems().each(function (rowElement) {
-                    rowElement.disableAction(true);
+                    rowElement.disableAction = true;
                 });
 
                 this._disableRows(data.items);
@@ -314,12 +324,14 @@ define([
          */
         _getVariationKeyMap: function (items) {
             this._variationKeyMap = {};
+
             _.each(items, function (row) {
                 this._variationKeyMap[row['entity_id']] = _.values(
                     _.pick(row, this._getAttributesCodes())
                 ).sort().join('-');
 
-            }.bind(this));
+            }, this);
+
             return this._variationKeyMap;
         },
 

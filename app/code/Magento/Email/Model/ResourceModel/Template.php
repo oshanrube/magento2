@@ -12,24 +12,16 @@ use Magento\Framework\Model\AbstractModel;
  *
  * @author      Magento Core Team <core@magentocommerce.com>
  */
-class Template extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
+class Template extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
-     * @var \Magento\Framework\Stdlib\DateTime
-     */
-    protected $dateTime;
-
-    /**
-     * @param \Magento\Framework\Model\ModelResource\Db\Context $context
-     * @param \Magento\Framework\Stdlib\DateTime $dateTime
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
      * @param string $connectionName
      */
     public function __construct(
-        \Magento\Framework\Model\ModelResource\Db\Context $context,
-        \Magento\Framework\Stdlib\DateTime $dateTime,
+        \Magento\Framework\Model\ResourceModel\Db\Context $context,
         $connectionName = null
     ) {
-        $this->dateTime = $dateTime;
         parent::__construct($context, $connectionName);
     }
 
@@ -82,12 +74,7 @@ class Template extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
      */
     protected function _beforeSave(AbstractModel $object)
     {
-        if ($object->isObjectNew()) {
-            $object->setAddedAt($this->dateTime->formatDate(true));
-        }
-        $object->setModifiedAt($this->dateTime->formatDate(true));
         $object->setTemplateType((int)$object->getTemplateType());
-
         return parent::_beforeSave($object);
     }
 

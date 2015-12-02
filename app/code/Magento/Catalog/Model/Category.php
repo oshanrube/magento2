@@ -242,7 +242,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
      * @param UrlFinderInterface $urlFinder
      * @param \Magento\Framework\Indexer\IndexerRegistry $indexerRegistry
      * @param CategoryRepositoryInterface $categoryRepository
-     * @param \Magento\Framework\Model\ModelResource\AbstractResource $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -266,7 +266,7 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
         UrlFinderInterface $urlFinder,
         \Magento\Framework\Indexer\IndexerRegistry $indexerRegistry,
         CategoryRepositoryInterface $categoryRepository,
-        \Magento\Framework\Model\ModelResource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
@@ -1086,9 +1086,10 @@ class Category extends \Magento\Catalog\Model\AbstractModel implements
                 $flatIndexer->reindexRow($this->getId());
             }
         }
-        $affectedProductIds = $this->getAffectedProductIds();
         $productIndexer = $this->indexerRegistry->get(Indexer\Category\Product::INDEXER_ID);
-        if (!$productIndexer->isScheduled() && !empty($affectedProductIds)) {
+        if (!$productIndexer->isScheduled()
+            && (!empty($this->getAffectedProductIds()) || $this->dataHasChangedFor('is_anchor'))
+        ) {
             $productIndexer->reindexList($this->getPathIds());
         }
     }

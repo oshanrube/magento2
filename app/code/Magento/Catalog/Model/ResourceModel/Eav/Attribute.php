@@ -32,14 +32,8 @@ use Magento\Framework\Stdlib\DateTime\DateTimeFormatterInterface;
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class Attribute extends \Magento\Eav\Model\Entity\Attribute implements
-    \Magento\Catalog\Api\Data\ProductAttributeInterface
+    \Magento\Catalog\Api\Data\ProductAttributeInterface, \Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface
 {
-    const SCOPE_STORE = 0;
-
-    const SCOPE_GLOBAL = 1;
-
-    const SCOPE_WEBSITE = 2;
-
     const MODULE_NAME = 'Magento_Catalog';
 
     const ENTITY = 'catalog_eav_attribute';
@@ -108,7 +102,7 @@ class Attribute extends \Magento\Eav\Model\Entity\Attribute implements
      * @param \Magento\Catalog\Helper\Product\Flat\Indexer $productFlatIndexerHelper
      * @param LockValidatorInterface $lockValidator
      * @param DateTimeFormatterInterface $dateTimeFormatter
-     * @param \Magento\Framework\Model\ModelResource\AbstractResource $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -134,7 +128,7 @@ class Attribute extends \Magento\Eav\Model\Entity\Attribute implements
         \Magento\Catalog\Model\Indexer\Product\Eav\Processor $indexerEavProcessor,
         \Magento\Catalog\Helper\Product\Flat\Indexer $productFlatIndexerHelper,
         LockValidatorInterface $lockValidator,
-        \Magento\Framework\Model\ModelResource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {

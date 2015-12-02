@@ -12,9 +12,11 @@ define([
     'underscore',
     'Magento_Ui/js/lib/collapsible',
     'mage/template',
+    'Magento_Ui/js/modal/alert',
     'jquery/file-uploader',
-    'mage/translate'
-], function (Component, $, ko, _, Collapsible, mageTemplate) {
+    'mage/translate',
+    'Magento_ConfigurableProduct/js/variations/variations'
+], function (Component, $, ko, _, Collapsible, mageTemplate, alert) {
     'use strict';
 
     return Component.extend({
@@ -54,7 +56,7 @@ define([
                     type: ko.observable('none'),
                     value: ko.observable(),
                     attribute: ko.observable(),
-                    currencySymbol: this.currencySymbol
+                    currencySymbol: ''
                 },
                 quantity: {
                     label: 'quantity',
@@ -63,6 +65,11 @@ define([
                     attribute: ko.observable()
                 }
             });
+
+            this.variationsComponent(function (variationsComponent) {
+                this.sections().price.currencySymbol = variationsComponent.getCurrencySymbol()
+            }.bind(this));
+
             this.makeOptionSections = function () {
                 this.images = new self.makeImages(null);
                 this.price = self.price;
@@ -290,30 +297,7 @@ define([
 
                 if (!gallery.data('gallery-initialized')) {
                     gallery.mage('productGallery', {
-                        template: '[data-template=gallery-content]',
-                        types: {
-                            "image":{
-                                "code":"image",
-                                "value":null,
-                                "label":"Base Image",
-                                "scope":"<br\/>[STORE VIEW]",
-                                "name":"product[image]"
-                            },
-                            "small_image":{
-                                "code":"small_image",
-                                "value":null,
-                                "label":"Small Image",
-                                "scope":"<br\/>[STORE VIEW]",
-                                "name":"product[small_image]"
-                            },
-                            "thumbnail": {
-                                "code":"thumbnail",
-                                "value":null,
-                                "label":"Thumbnail",
-                                "scope":"<br\/>[STORE VIEW]",
-                                "name":"product[thumbnail]"
-                            }
-                        }
+                        template: '[data-template=gallery-content]'
                     });
 
                     uploadInput.fileupload({
@@ -365,7 +349,9 @@ define([
                                 $('#' + data.fileId)
                                     .delay(2000)
                                     .hide('highlight');
-                                alert($.mage.__('We don\'t recognize or support this file extension type.'));
+                                alert({
+                                    content: $.mage.__('We don\'t recognize or support this file extension type.')
+                                });
                             }
                             $('#' + data.fileId).remove();
                         },

@@ -15,7 +15,7 @@ use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Config\ConfigOptionsListConstants;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Exception\FileSystemException;
-use Magento\Framework\Model\ModelResource\Db\Context;
+use Magento\Framework\Model\ResourceModel\Db\Context;
 use Magento\Framework\Module\ModuleList\Loader as ModuleLoader;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\Shell;
@@ -956,8 +956,8 @@ class Installer
     {
         $this->log->log('Starting Magento uninstallation:');
 
-        $this->cleanupDb();
         $this->cleanCaches();
+        $this->cleanupDb();
 
         $this->log->log('File system cleanup:');
         $messages = $this->cleanupFiles->clearAllFiles();

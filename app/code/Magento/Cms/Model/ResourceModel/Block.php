@@ -8,13 +8,8 @@ namespace Magento\Cms\Model\ResourceModel;
 /**
  * CMS block model
  */
-class Block extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
+class Block extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
-    /**
-     * @var \Magento\Framework\Stdlib\DateTime\DateTime
-     */
-    protected $_date;
-
     /**
      * Store manager
      *
@@ -25,20 +20,17 @@ class Block extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
     /**
      * Construct
      *
-     * @param \Magento\Framework\Model\ModelResource\Db\Context $context
-     * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param string $connectionName
      */
     public function __construct(
-        \Magento\Framework\Model\ModelResource\Db\Context $context,
-        \Magento\Framework\Stdlib\DateTime\DateTime $date,
+        \Magento\Framework\Model\ResourceModel\Db\Context $context,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         $connectionName = null
     ) {
         parent::__construct($context, $connectionName);
         $this->_storeManager = $storeManager;
-        $this->_date = $date;
     }
 
     /**
@@ -80,11 +72,6 @@ class Block extends \Magento\Framework\Model\ModelResource\Db\AbstractDb
                 __('A block identifier with the same properties already exists in the selected store.')
             );
         }
-
-        if (!$object->getId()) {
-            $object->setCreationTime($this->_date->gmtDate());
-        }
-        $object->setUpdateTime($this->_date->gmtDate());
         return $this;
     }
 

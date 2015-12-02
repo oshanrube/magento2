@@ -13,25 +13,44 @@ use Magento\Framework\Data\Form\Element\Fieldset;
 class NewVideo extends \Magento\Backend\Block\Widget\Form\Generic
 {
     /**
+     * Anchor is product video
+     */
+    const PATH_ANCHOR_PRODUCT_VIDEO = 'catalog_product_video-link';
+
+    /**
+     * @var \Magento\ProductVideo\Helper\Media
+     */
+    protected $mediaHelper;
+
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
+    protected $urlBuilder;
+
+    /**
      * @var \Magento\Framework\Json\EncoderInterface
      */
     protected $jsonEncoder;
 
     /**
      * @param \Magento\Backend\Block\Template\Context $context
-     * @param \Magento\Framework\Json\EncoderInterface $jsonEncoder
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Data\FormFactory $formFactory
+     * @param \Magento\ProductVideo\Helper\Media $mediaHelper
+     * @param \Magento\Framework\Json\EncoderInterface $jsonEncoder
      * @param array $data
      */
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Data\FormFactory $formFactory,
+        \Magento\ProductVideo\Helper\Media $mediaHelper,
         \Magento\Framework\Json\EncoderInterface $jsonEncoder,
         array $data = []
     ) {
         parent::__construct($context, $registry, $formFactory, $data);
+        $this->mediaHelper = $mediaHelper;
+        $this->urlBuilder = $context->getUrlBuilder();
         $this->jsonEncoder = $jsonEncoder;
         $this->setUseContainer(true);
     }
@@ -96,7 +115,8 @@ class NewVideo extends \Magento\Backend\Block\Widget\Form\Generic
                 'title' => __('Url'),
                 'required' => true,
                 'name' => 'video_url',
-                'note' => 'Youtube or Vimeo supported',
+                'note' => $this->getNoteVideoUrl(),
+
             ]
         );
 
@@ -148,9 +168,9 @@ class NewVideo extends \Magento\Backend\Block\Widget\Form\Generic
             'button',
             [
                 'label' => '',
-                'title' => __('Get Video Information'),
+                'title' => 'Get Video Information',
                 'name' => 'new_video_get',
-                'value' => 'Get Video Information',
+                'value' => __('Get Video Information'),
                 'class' => 'action-default'
             ]
         );
@@ -171,6 +191,11 @@ class NewVideo extends \Magento\Backend\Block\Widget\Form\Generic
         $this->setForm($form);
     }
 
+    /**
+     * Get html id
+     *
+     * @return mixed
+     */
     public function getHtmlId()
     {
         if (null === $this->getData('id')) {
@@ -180,6 +205,8 @@ class NewVideo extends \Magento\Backend\Block\Widget\Form\Generic
     }
 
     /**
+     * Get widget options
+     *
      * @return string
      */
     public function getWidgetOptions()
@@ -189,6 +216,7 @@ class NewVideo extends \Magento\Backend\Block\Widget\Form\Generic
                 'saveVideoUrl' => $this->getUrl('catalog/product_gallery/upload'),
                 'saveRemoteVideoUrl' => $this->getUrl('product_video/product_gallery/retrieveImage'),
                 'htmlId' => $this->getHtmlId(),
+                'youTubeApiKey' => $this->mediaHelper->getYouTubeApiKey()
             ]
         );
     }
@@ -214,8 +242,9 @@ class NewVideo extends \Magento\Backend\Block\Widget\Form\Generic
      */
     protected function addMediaRoleAttributes(Fieldset $fieldset)
     {
+        $fieldset->addField('roleLabel', 'note', ['text' => __('Role')]);
         $mediaRoles = $this->getProduct()->getMediaAttributes();
-        asort($mediaRoles);
+        ksort($mediaRoles);
         foreach ($mediaRoles as $mediaRole) {
             $fieldset->addField(
                 'video_' . $mediaRole->getAttributeCode(),
@@ -230,5 +259,39 @@ class NewVideo extends \Magento\Backend\Block\Widget\Form\Generic
             );
         }
         return $this;
+    }
+
+    /**
+     * Get note for video url
+     *
+     * @return \Magento\Framework\Phrase
+     */
+    protected function getNoteVideoUrl()
+    {
+        $result = __('YouTube and Vimeo supported.');
+        if ($this->mediaHelper->getYouTubeApiKey() === null) {
+            $result = __(
+                'Vimeo supported.<br />'
+                . 'To add YouTube video, please <a href="%1">enter YouTube API Key</a> first.',
+                $this->getConfigApiKeyUrl()
+            );
+        }
+        return $result;
+    }
+
+    /**
+     * Get url for config params
+     *
+     * @return string
+     */
+    protected function getConfigApiKeyUrl()
+    {
+        return $this->urlBuilder->getUrl(
+            'adminhtml/system_config/edit',
+            [
+                'section' => 'catalog',
+                '_fragment' => self::PATH_ANCHOR_PRODUCT_VIDEO
+            ]
+        );
     }
 }

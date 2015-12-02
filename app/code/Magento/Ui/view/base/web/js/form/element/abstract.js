@@ -6,19 +6,19 @@
 define([
     'underscore',
     'mageUtils',
-    'uiComponent',
+    'uiElement',
     'Magento_Ui/js/lib/validation/validator'
-], function (_, utils, Component, validator) {
+], function (_, utils, Element, validator) {
     'use strict';
 
-    return Component.extend({
+    return Element.extend({
         defaults: {
             visible: true,
             preview: '',
             focused: false,
             required: false,
             disabled: false,
-            tmpPath: 'ui/form/element/',
+            elementTmpl: 'ui/form/element/input',
             tooltipTpl: 'ui/form/element/helper/tooltip',
             'input_type': 'input',
             placeholder: '',
@@ -78,15 +78,20 @@ define([
          *
          * @returns {Abstract} Chainable.
          */
-        initProperties: function () {
-            var uid = utils.uniqueid();
+        initConfig: function () {
+            var uid = utils.uniqueid(),
+                name,
+                scope;
 
             this._super();
 
+            scope   = this.dataScope,
+            name    = scope.split('.').slice(1);
+
             _.extend(this, {
-                'uid': uid,
-                'noticeId': 'notice-' + uid,
-                'inputName': utils.serializeName(this.dataScope)
+                uid: uid,
+                noticeId: 'notice-' + uid,
+                inputName: utils.serializeName(name.join('.'))
             });
 
             return this;
@@ -237,11 +242,12 @@ define([
          * @returns {Object} Validate information.
          */
         validate: function () {
-            var value = this.value(),
-                msg = validator(this.validation, value),
-                isValid = !this.visible() || !msg;
+            var value   = this.value(),
+                result  = validator(this.validation, value),
+                message = result.message,
+                isValid = !this.visible() || result.passed;
 
-            this.error(msg);
+            this.error(message);
 
             //TODO: Implement proper result propagation for form
             if (!isValid) {
