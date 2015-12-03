@@ -25,7 +25,7 @@ class Item extends \Magento\Quote\Model\Quote\Item implements \Onic\Quote\Api\Da
      * @param \Magento\Quote\Model\Quote\Item\OptionFactory           $itemOptionFactory
      * @param \Magento\Quote\Model\Quote\Item\Compare                 $quoteItemCompare
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface    $stockRegistry
-     * @param \Magento\Framework\Model\ModelResource\AbstractResource $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb           $resourceCollection
      * @param array                                                   $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -43,7 +43,7 @@ class Item extends \Magento\Quote\Model\Quote\Item implements \Onic\Quote\Api\Da
         \Magento\Quote\Model\Quote\Item\Compare $quoteItemCompare,
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         HelperFactory $helperFactory,
-        \Magento\Framework\Model\ModelResource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     )

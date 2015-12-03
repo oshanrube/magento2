@@ -319,6 +319,52 @@ class TypeProcessor
     }
 
     /**
+     * Identify getter return types by its reflection.
+     *
+     * @param \Zend\Code\Reflection\MethodReflection $methodReflection
+     * @return array <pre>array(
+     *     'types' => <array>$types,
+     *     'isRequired' => $isRequired,
+     *     'description' => $description
+     * )</pre>
+     * @throws \InvalidArgumentException
+     */
+    public function getGetterReturnTypes($methodReflection)
+    {
+        $methodDocBlock = $methodReflection->getDocBlock();
+        if (!$methodDocBlock) {
+            throw new \InvalidArgumentException(
+                "Each getter must have description with @return annotation. "
+                . "See {$methodReflection->getDeclaringClass()->getName()}::{$methodReflection->getName()}()"
+            );
+        }
+        $returnAnnotations = $methodDocBlock->getTags('return');
+        if (empty($returnAnnotations)) {
+            throw new \InvalidArgumentException(
+                "Getter return type must be specified using @return annotation. "
+                . "See {$methodReflection->getDeclaringClass()->getName()}::{$methodReflection->getName()}()"
+            );
+        }
+        /** @var \Zend\Code\Reflection\DocBlock\Tag\ReturnTag $returnAnnotation */
+        $returnAnnotation = current($returnAnnotations);
+        $returnTypes = $returnAnnotation->getTypes();
+        /*
+         * Adding this code as a workaround since \Zend\Code\Reflection\DocBlock\Tag\ReturnTag::initialize does not
+         * detect and return correct type for array of objects in annotation.
+         * eg @return \Magento\Webapi\Service\Entity\SimpleData[] is returned with type
+         * \Magento\Webapi\Service\Entity\SimpleData instead of \Magento\Webapi\Service\Entity\SimpleData[]
+         */
+        $isRequired= in_array('null', $returnTypes);
+
+        return [
+            'types' => $returnTypes,
+            'isRequired' => $isRequired,
+            'description' => $returnAnnotation->getDescription(),
+            'parameterCount' => $methodReflection->getNumberOfRequiredParameters()
+        ];
+    }
+
+    /**
      * Get possible method exceptions
      *
      * @param \Zend\Code\Reflection\MethodReflection $methodReflection

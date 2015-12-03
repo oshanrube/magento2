@@ -13,6 +13,4 @@
                 type="Onic\ThemeInterface\Model\StoreConfig" />
     <preference for="Magento\Store\Model\Data\StoreConfig"
                 type="Onic\ThemeInterface\Model\StoreConfig" />
-    <preference for="Magento\Catalog\Api\ProductRepositoryInterface"
-                type="Onic\ThemeInterface\Model\ProductRepository" />
 </config>

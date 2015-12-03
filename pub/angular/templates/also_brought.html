@@ -1,0 +1,19 @@
+<div class="row recommended">
+    <h1> Customers also brought </h1>
+
+    <div class="ProductSlider">
+        <div class="item" ng-repeat="product in products.getProductLinks(product, 'crosssell')" on-last-repeat>
+            <div class="product">
+                <a class="product-image">
+                    <img ng-src="{{ products.getProductImage(product, 'small') }}" alt="{{ product.name }}"/>
+                </a>
+
+                <div class="description">
+                    <h4><a href="san-remo-spaghetti">{{ product.name }}</a></h4>
+
+                    <div class="price"><span>{{ product.price | currency:products.getCartCurrency()}}</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

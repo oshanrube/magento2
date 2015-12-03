@@ -1,5 +1,5 @@
 <?php
-namespace Onic\ThemeInterface\Model;
+namespace Onic\Catalog\Model;
 
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Product\Gallery\MimeTypeExtensionMap;
@@ -45,6 +45,29 @@ class ProductRepository extends \Magento\Catalog\Model\ProductRepository
             $optionConverter, $fileSystem, $contentValidator, $contentFactory, $mimeTypeExtensionMap, $imageProcessor, $extensionAttributesJoinProcessor);
     }
 
+    public function get($sku, $editMode = false, $storeId = null, $forceReload = false)
+    {
+        $object = parent::get($sku, $editMode, $storeId, $forceReload);
+        $media_gallery = $object->getMediaGalleryEntries();
+        foreach ($media_gallery as &$media_entry)
+        {
+            $model = $this->_productImageFactory->create();
+            $model->setDestinationSubdir('image');
+            $images              = array();
+            $images['original']  = $model->setBaseFile($media_entry->getFile())->saveFile()->getUrl();
+            $images['large']     = $model->setSize('370x463')->setBaseFile($media_entry->getFile())->resize()->saveFile()->getUrl();
+            $images['medium']    = $model->setSize('370x463')->setBaseFile($media_entry->getFile())->resize()->saveFile()->getUrl();
+            $images['small']     = $model->setSize('180x240')->setBaseFile($media_entry->getFile())->resize()->saveFile()->getUrl();
+            $images['thumbnail'] = $model->setSize('50x67')->setBaseFile($media_entry->getFile())->resize()->saveFile()->getUrl();
+
+            $media_entry->setFile($images);
+
+        }
+        $object->setMediaGalleryEntries($media_gallery);
+
+        return $object;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -62,13 +85,11 @@ class ProductRepository extends \Magento\Catalog\Model\ProductRepository
             $model->setDestinationSubdir('image');
 
             $images              = array();
-            $images['original']  = $model->setBaseFile($item->getImage())->getUrl();
+            $images['original']  = $model->setBaseFile($item->getImage())->saveFile()->getUrl();
             $images['large']     = $model->setSize('370x463')->setBaseFile($item->getImage())->resize()->saveFile()->getUrl();
             $images['medium']    = $model->setSize('370x463')->setBaseFile($item->getImage())->resize()->saveFile()->getUrl();
             $images['small']     = $model->setSize('180x240')->setBaseFile($item->getImage())->resize()->saveFile()->getUrl();
             $images['thumbnail'] = $model->setSize('50x67')->setBaseFile($item->getImage())->resize()->saveFile()->getUrl();
-            $image               = $item->getCustomAttribute('image');
-            $image->setValue($images);
             $item->setImage($images);
 
             $media_gallery = $item->getMediaGalleryEntries();
@@ -77,14 +98,13 @@ class ProductRepository extends \Magento\Catalog\Model\ProductRepository
                 $model = $this->_productImageFactory->create();
                 $model->setDestinationSubdir('image');
                 $images              = array();
-                $images['original']  = $model->setBaseFile($media_entry->getFile())->getUrl();
+                $images['original']  = $model->setBaseFile($media_entry->getFile())->saveFile()->getUrl();
                 $images['large']     = $model->setSize('370x463')->setBaseFile($media_entry->getFile())->resize()->saveFile()->getUrl();
                 $images['medium']    = $model->setSize('370x463')->setBaseFile($media_entry->getFile())->resize()->saveFile()->getUrl();
                 $images['small']     = $model->setSize('180x240')->setBaseFile($media_entry->getFile())->resize()->saveFile()->getUrl();
                 $images['thumbnail'] = $model->setSize('50x67')->setBaseFile($media_entry->getFile())->resize()->saveFile()->getUrl();
 
                 $media_entry->setFile($images);
-
             }
             $item->setMediaGalleryEntries($media_gallery);
 

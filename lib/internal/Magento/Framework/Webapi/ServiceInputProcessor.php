@@ -138,7 +138,7 @@ class ServiceInputProcessor implements ServicePayloadConverterInterface
             $methodName = $this->typeProcessor->findGetterMethodName($class, $camelCaseProperty);
             $methodReflection = $class->getMethod($methodName);
             if ($methodReflection->isPublic()) {
-                $returnType = $this->typeProcessor->getGetterReturnType($methodReflection)['type'];
+                $returnTypes = $this->typeProcessor->getGetterReturnTypes($methodReflection)['types'];
                 try {
                     $setterName = $this->typeProcessor->findSetterMethodName($class, $camelCaseProperty);
                 } catch (\Exception $e) {
@@ -151,7 +151,22 @@ class ServiceInputProcessor implements ServicePayloadConverterInterface
                 if ($camelCaseProperty === 'CustomAttributes') {
                     $setterValue = $this->convertCustomAttributeValue($value, $className);
                 } else {
-                    $setterValue = $this->convertValue($value, $returnType);
+                    foreach ($returnTypes as $returnType)
+                    {
+                        try
+                        {
+                            $setterValue = $this->convertValue($value, $returnType);
+                            break;
+                        }
+                        catch (\Magento\Framework\Exception\SerializationException $exception)
+                        {
+                            //skip
+                        }
+                    }
+                    if (!isset($setterValue))
+                    {
+                        throw $exception;
+                    }
                 }
                 $object->{$setterName}($setterValue);
             }

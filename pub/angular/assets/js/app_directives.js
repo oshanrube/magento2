@@ -96,4 +96,19 @@ angular.module('app.directives', [])
             });
         }
     };
+}).directive('youMayAlsoLike', function () {
+    return {
+        restrict: 'E',
+        templateUrl: 'templates/you_may_also_like.html'
+    };
+}).directive('alsoBrought', function () {
+    return {
+        restrict: 'E',
+        templateUrl: 'templates/also_brought.html'
+    };
+}).directive('recomendedWith', function () {
+    return {
+        restrict: 'E',
+        templateUrl: 'templates/recomended_with.html'
+    };
 });

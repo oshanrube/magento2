@@ -10,7 +10,7 @@
             <a title="Quick View" class="btn btn-xs  btn-quickview" ng-click="products.openProductModal(product)"> Quick
                 View </a>
         </div>
-        <a ui-sref="product({id: product.id})">
+        <a ui-sref="product({sku: product.sku})">
             <img ng-src="{{ products.getProductImage(product, 'small') }}" alt="img"
                  class="img-responsive"></a>
 

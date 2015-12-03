@@ -15,9 +15,9 @@
                 <!--/.main-image-->
 
                 <div class="modal-product-thumb">
-                    <a class="thumbLink" ng-repeat="media_entry in product.media_gallery_entries">
-                        <img data-large="{{ media_entry.file[1] }}" alt="img" class="img-responsive"
-                             ng-src="{{ media_entry.file[4] }}"/>
+                    <a class="thumbLink" ng-repeat="image in products.getImages(product)">
+                        <img data-large="{{ products.getImageSize(image, 'original') }}" alt="img" class="img-responsive"
+                             ng-src="{{ products.getImageSize(image, 'thumbnail') }}"/>
                     </a>
                 </div>
             </div>

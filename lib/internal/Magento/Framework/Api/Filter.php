@@ -23,7 +23,6 @@ class Filter extends AbstractSimpleObject
 
     /**
      * Get field
-     *
      * @return string
      */
     public function getField()
@@ -33,7 +32,6 @@ class Filter extends AbstractSimpleObject
 
     /**
      * Set field
-     *
      * @param string $field
      * @return $this
      */
@@ -44,8 +42,7 @@ class Filter extends AbstractSimpleObject
 
     /**
      * Get value
-     *
-     * @return string
+     * @return string[]|string
      */
     public function getValue()
     {
@@ -54,8 +51,7 @@ class Filter extends AbstractSimpleObject
 
     /**
      * Set value
-     *
-     * @param string $value
+     * @param string[]|string $value
      * @return $this
      */
     public function setValue($value)
@@ -65,7 +61,6 @@ class Filter extends AbstractSimpleObject
 
     /**
      * Get condition type
-     *
      * @return string|null
      */
     public function getConditionType()
@@ -75,7 +70,6 @@ class Filter extends AbstractSimpleObject
 
     /**
      * Set condition type
-     *
      * @param string $conditionType
      * @return $this
      */

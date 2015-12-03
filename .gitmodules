@@ -1,3 +1,6 @@
 [submodule "pub/angular/assets/plugins/SpinKit"]
 	path = pub/angular/assets/plugins/SpinKit
 	url = https://github.com/tobiasahlin/SpinKit.git
+[submodule "pub/angular/assets/js/vendor/ForerunnerDB"]
+	path = pub/angular/assets/js/vendor/ForerunnerDB
+	url = https://github.com/Irrelon/ForerunnerDB.git

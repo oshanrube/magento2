@@ -49,10 +49,6 @@ function loadProductPage() {
             $(this).remove()
         })
     });
-    // YOU MAY ALSO LIKE  carousel
-    $("#SimilarProductSlider").owlCarousel({
-        navigation: true
-    });
     // customs select by minimalect
     $("select").minimalect();
 }

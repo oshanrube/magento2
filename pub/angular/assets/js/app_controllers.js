@@ -505,8 +505,10 @@ angular.module('app.controllers', [])
         if ($scope.getData('categories') === undefined) {
             API.getAPIRequest()
                 .execute('/categories', 'categories');
+        }else {
+            return $scope.getData('categories.children_data').slice(0, 6);
         }
-        return $scope.getData('categories.children_data').slice(0, 6);
+        return [];
     };
     this.showSignInModal = function () {
         Modal.loadTemplate('login');
@@ -556,7 +558,7 @@ angular.module('app.controllers', [])
                         Page.setGuestCartId($scope.getData('guest_cart_id'));
                     })
                     .execute('/guest-carts', 'guest_cart_id');
-            } else if ($scope.getData('guest_cart_totals.grand_total') === undefined) {
+            } else if ($scope.getData('guest_cart_totals.grand_total') === undefined && Page.getGuestCartId()) {
                 API.getAPIRequest()
                     .execute('/guest-carts/' + Page.getGuestCartId() + '/totals', 'guest_cart_totals');
             }
@@ -629,7 +631,7 @@ angular.module('app.controllers', [])
             })
             .execute('/newsletter/new', 'newsletter');
     }
-}).controller('ProductsController', function ($http, $scope, API, Page, Modal, $stateParams) {
+}).controller('ProductsController', function ($http, $scope, API, APIQuery, Page, Modal, $stateParams) {
     this.getNewArrivals = function () {
         $scope.$on('onRepeatLast', function (scope, element, attrs) {
             $("#productslider").owlCarousel({
@@ -717,17 +719,32 @@ angular.module('app.controllers', [])
         return ($scope.getData('featured_products.items') !== undefined && $scope.getData('featured_products.items').length >= $scope.visible_products)
     };
     this.getProductAttribute = function (product, code) {
-        for (var x = 0; x < product.custom_attributes.length; x++) {
-            if (product.custom_attributes[x].attribute_code == code) {
-                return product.custom_attributes[x].value;
+        if (product !== undefined) {
+            for (var x = 0; x < product.custom_attributes.length; x++) {
+                if (product.custom_attributes[x].attribute_code == code) {
+                    return product.custom_attributes[x].value;
+                }
             }
         }
     };
     this.getProductImage = function (product, size) {
         var images = this.getProductAttribute(product, 'image');
+
+        return this.getImageSize(images, size);
+    };
+    this.getImages = function (product) {
+        var images = [];
+        if ((product !== undefined) && product.media_gallery_entries !== undefined) {
+            for (var k in product.media_gallery_entries) {
+                images.push(product.media_gallery_entries[k].file);
+            }
+        }
+        return images;
+    };
+    this.getImageSize = function (images, size) {
         var sizes = {'original': 0, 'large': 1, 'medium': 2, 'small': 3, 'thumbnail': 4};
         return images[sizes[size]];
-    };
+    }
 
     this.getCartCurrency = function () {
         return $scope.getData('guest_cart_totals.base_currency_code')
@@ -772,15 +789,14 @@ angular.module('app.controllers', [])
 
     this.isLoading = function (product) {
         if (this.isUserLoggedIn()) {
-            return API.isLoading('carts-items-' + product.id);
+            return (product !== undefined) && API.isLoading('carts-items-' + product.id);
         } else {
-            return API.isLoading('guest-carts-items-' + product.id);
+            return (product !== undefined) && API.isLoading('guest-carts-items-' + product.id);
         }
     };
     this.isWishlistLoading = function (product) {
-        return API.isLoading('wishlist-' + product.id);
+        return (product !== undefined) && API.isLoading('wishlist-' + product.id);
     };
-
     this.openProductModal = function (product) {
         var onLoad = function () {
             loadProductDetails();
@@ -788,7 +804,26 @@ angular.module('app.controllers', [])
         Modal.loadTemplate('product', {product: product}, onLoad);
     }
     this.getProduct = function () {
-        return $scope.getData('new_arrivals.items')[0];
+        if ($scope.getData('product-' + $stateParams.sku) === undefined) {
+            API.getAPIRequest()
+                .execute('/products/' + $stateParams.sku, 'product-' + $stateParams.sku);
+        }
+        return $scope.getData('product-' + $stateParams.sku);
+    };
+    if ($stateParams.sku) {
+        $scope.product = this.getProduct();
+    }
+    this.getProductLinks = function (product, type) {
+        $scope.$on('onRepeatLast', function (scope, element, attrs) {
+            if ($scope.product_link_loaded === undefined) {
+                // YOU MAY ALSO LIKE  carousel
+                $(".ProductSlider").owlCarousel({
+                    navigation: true
+                });
+                $scope.product_link_loaded = true;
+            }
+        });
+        return APIQuery.getProductLinks(product, type);
     }
 }).controller('DialogController', function ($scope, $mdDialog, dataToPass, onLoad) {
     $scope.$evalAsync(function () {
