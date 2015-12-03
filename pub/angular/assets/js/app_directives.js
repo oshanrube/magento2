@@ -53,7 +53,7 @@ angular.module('app.directives', [])
 }).directive('appNewArrivals', function () {
     return {
         restrict: 'E',
-        templateUrl: 'templates/new_arrivals.html'
+        templateUrl: 'templates/homepage/new_arrivals.html'
     };
 }).directive('appFreeShipping', function () {
     return {
@@ -68,7 +68,7 @@ angular.module('app.directives', [])
 }).directive('appFeaturedProducts', function () {
     return {
         restrict: 'E',
-        templateUrl: 'templates/featured_products.html',
+        templateUrl: 'templates/homepage/featured_products.html',
         link: function ($scope, element, attrs) {
             // Wait for templates to render
             $scope.$evalAsync(function () {
@@ -99,16 +99,16 @@ angular.module('app.directives', [])
 }).directive('youMayAlsoLike', function () {
     return {
         restrict: 'E',
-        templateUrl: 'templates/you_may_also_like.html'
+        templateUrl: 'templates/product/you_may_also_like.html'
     };
 }).directive('alsoBrought', function () {
     return {
         restrict: 'E',
-        templateUrl: 'templates/also_brought.html'
+        templateUrl: 'templates/product/also_brought.html'
     };
 }).directive('recomendedWith', function () {
     return {
         restrict: 'E',
-        templateUrl: 'templates/recomended_with.html'
+        templateUrl: 'templates/product/recomended_with.html'
     };
 });

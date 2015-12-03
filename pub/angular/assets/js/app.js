@@ -1,6 +1,6 @@
 (function () {
 
-    var app = angular.module('store', ['app.controllers', 'app.services', 'app.api_query', 'app.directives', 'app.filters', 'ngAnimate', 'ngResource', 'ngRoute', 'ngStorage', "ui.router", 'ngMaterial', 'ngAria', 'ngMessages', 'ImgCache']).config(function ($httpProvider) {
+    var app = angular.module('store', ['app.controllers', 'app.services', 'app.api_query', 'app.directives', 'app.filters', 'ngAnimate', 'ngResource', 'ngRoute', 'ngStorage', "ui.router", 'ngMaterial', 'ngAria', 'ngMessages']).config(function ($httpProvider) {
             $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8';
             /**
              * The workhorse; converts an object to x-www-form-urlencoded serialization.
@@ -49,18 +49,28 @@
             $stateProvider
                 .state('home', {
                     url: '/home',
-                    templateUrl: 'pages/home.html'
+                    templateUrl: 'pages/home.html',
+                    resolve: {
+                        simpleObj: function ($q, $timeout) {
+                            $timeout(function () {
+                                initialize();
+                                initializeHome();
+                            }, 1);
+                        }
+                    }
                 }).state('product', {
                 url: '/product/:sku',
                 views: {
                     '': {
                         templateUrl: 'pages/product.html',
                         controller: 'ProductsController'
-                    },
+                    }
                 },
                 resolve: {
                     simpleObj: function ($q, $timeout) {
                         $timeout(function () {
+                            console.log('loadin product page');
+                            //TODO load the animation and product images
                             loadProductPage();
                         }, 1);
                     }
@@ -77,19 +87,6 @@
             // if none of the above states are matched, use this as the fallback
             $urlRouterProvider.otherwise('/home');
         })
-        .config(function (ImgCacheProvider) {
-
-            // or more options at once
-            ImgCacheProvider.setOptions({
-                debug: false,
-                usePersistentCache: true
-            });
-
-            // ImgCache library is initialized automatically,
-            // but set this option if you are using platform like Ionic -a
-            // in this case we need init imgcache.js manually after device is ready
-            //ImgCacheProvider.manualInit = true;
-        })
         .config(function ($mdThemingProvider) {
             $mdThemingProvider.theme('success')
                 .primaryPalette('green')
@@ -100,24 +97,19 @@
             //preloads
             $rootScope.data = $localStorage;
 
-            initialize();
-            initializeHome();
-            $rootScope.getData = function (variable) {
-                var variables = variable.split('.');
-
+            $rootScope.getData = function () {
                 var data = $rootScope.data;
-                for (var x = 0; x < variables.length; x++) {
-                    if (data[variables[x]] === undefined) {
+                for (var x = 0; x < arguments.length; x++) {
+                    if (data[arguments[x]] === undefined) {
                         return undefined;
                     } else {
-                        data = data[variables[x]];
+                        data = data[arguments[x]];
                     }
                 }
                 return data;
             };
-            $rootScope.resetData = function (variable) {
-                var variables = variable.split('.');
-                delete $rootScope.data[variables[0]];
+            $rootScope.resetData = function () {
+                delete $rootScope.data[arguments[0]];
             }
         })
 })();

@@ -1,30 +1,29 @@
-<div class="container main-container headerOffset" ng-controller="ProductsController as products">
+<div id="product" class="container main-container headerOffset" ng-controller="ProductsController as products">
     <div class="row">
         <div class="breadcrumbDiv col-lg-12">
             <ul class="breadcrumb">
                 <li><a ui-sref="home">Home</a></li>
-                <li class="active">{{ product.name }}</li>
+                <li class="active">{{ products.getProduct().name }}</li>
             </ul>
         </div>
     </div>
     <div class="row transitionfx">
-
-        <!-- left column -->
         <div class="col-lg-6 col-md-6 col-sm-6">
-            <!-- product Image and Zoom -->
             <div class="main-image sp-wrap col-lg-12 no-padding style2 style2look2">
-                <a ng-repeat="image in products.getImages(product)"
+                <div class="sk-wandering-cubes" ng-hide="products.getProduct()">
+                    <div class="sk-cube sk-cube1"></div>
+                    <div class="sk-cube sk-cube2"></div>
+                </div>
+                <a ng-repeat="image in products.getImages(products.getProduct())"
                    href="{{ products.getImageSize(image, 'original') }}">
-                    <img ng-src="{{ products.getImageSize(image, 'original') }}" class="img-responsive" alt="img">
+                    <img ng-src="{{ products.getImageSize(image, 'medium') }}" class="img-responsive" alt="img">
                 </a>
             </div>
         </div>
-        <!--/ left column end -->
-        <!-- right column -->
         <div class="col-lg-6 col-md-6 col-sm-5">
-            <h1 class="product-title">{{ product.name }}</h1>
+            <h1 class="product-title">{{ products.getProduct().name }}</h1>
 
-            <h3 class="product-code">Product Code: {{ product.sku }}</h3>
+            <h3 class="product-code">Product Code: {{ products.getProduct().sku }}</h3>
 
             <div class="rating">
                 <p>
@@ -38,13 +37,13 @@
                 </p>
             </div>
             <div class="product-price">
-                <span class="price-sales"> {{ product.price | currency:products.getCartCurrency()}}</span>
+                <span class="price-sales"> {{ products.getProduct().price | currency:products.getCartCurrency()}}</span>
                 <span class="price-standard"
-                      ng-show="products.getOffer(product)">{{ products.getOffer(product) }}% OFF</span>
+                      ng-show="products.getOffer(products.getProduct())">{{ products.getOffer(products.getProduct()) }}% OFF</span>
             </div>
 
             <div class="details-description">
-                <p>{{ product.description }}</p>
+                <p>{{ products.getProduct().description }}</p>
             </div>
 
             <div class="color-details">
@@ -86,15 +85,15 @@
 
             <div class="cart-actions">
                 <div class="addto">
-                    <button ng-click="products.addToCart(product)" ng-disabled="products.isLoading(product)"
+                    <button ng-click="products.addToCart(products.getProduct())" ng-disabled="products.isLoading(products.getProduct())"
                             class="button btn-cart cart first"
                             title="Add to Cart" type="button">
-                        <md-progress-linear ng-show="products.isLoading(product)"
+                        <md-progress-linear ng-show="products.isLoading(products.getProduct())"
                                             md-mode="indeterminate"></md-progress-linear>
                         Add to Cart
                     </button>
-                    <a class="link-wishlist wishlist" ng-click="products.addToWishlist(product)"
-                       ng-class="products.isWishlistLoading(product)?'loading':''">Add to Wishlist</a>
+                    <a class="link-wishlist wishlist" ng-click="products.addToWishlist(products.getProduct())"
+                       ng-class="products.isWishlistLoading(products.getProduct())?'loading':''">Add to Wishlist</a>
                 </div>
 
                 <div style="clear:both"></div>
@@ -105,21 +104,15 @@
 
                 <h3 class="incaps"><i class="glyphicon glyphicon-lock"></i> Secure online ordering</h3>
             </div>
-            <!--/.cart-actions-->
-
             <div class="clear"></div>
-
             <div class="product-tab w100 clearfix">
-
                 <ul class="nav nav-tabs">
                     <li class="active"><a href="#details" data-toggle="tab">Details</a></li>
                     <li><a href="#size" data-toggle="tab">Size</a></li>
                     <li><a href="#shipping" data-toggle="tab">Shipping</a></li>
                 </ul>
-
-                <!-- Tab panes -->
                 <div class="tab-content">
-                    <div class="tab-pane active" id="details">{{ product.description }}</div>
+                    <div class="tab-pane active" id="details">{{ products.getProduct().description }}</div>
                     <div class="tab-pane" id="size"> 16" waist<br>
                         34" inseam<br>
                         10.5" front rise<br>
@@ -130,7 +123,6 @@
                         Model wears size 31. Model is 6'2 <br>
                         <br>
                     </div>
-
                     <div class="tab-pane" id="shipping">
                         <table>
                             <colgroup>
@@ -162,15 +154,9 @@
                             </tfoot>
                         </table>
                     </div>
-
                 </div>
-                <!-- /.tab content -->
-
             </div>
-            <!--/.product-tab-->
-
             <div style="clear:both"></div>
-
             <div class="product-share clearfix">
                 <p> SHARE </p>
 
@@ -180,6 +166,7 @@
                     <a href="#"> <i class="fa fa-google-plus"></i></a>
                     <a href="#"> <i class="fa fa-pinterest"></i></a></div>
             </div>
+            <div class="clear"></div>
         </div>
     </div>
     <!--/.row-->

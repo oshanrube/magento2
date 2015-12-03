@@ -1,10 +1,10 @@
-<div class="row recommended">
+<div class="row recommended" ng-show="products.getProductLinks(products.getProduct(), 'upsell').length">
     <h1> Customers also brought </h1>
 
     <div class="ProductSlider">
-        <div class="item" ng-repeat="product in products.getProductLinks(product, 'crosssell')" on-last-repeat>
+        <div class="item" ng-repeat="product in products.getProductLinks(products.getProduct(), 'crosssell')" on-last-repeat>
             <div class="product">
-                <a class="product-image">
+                <a class="product-image" ui-sref="product({sku: product.sku})">
                     <img ng-src="{{ products.getProductImage(product, 'small') }}" alt="{{ product.name }}"/>
                 </a>
 
