@@ -2369,7 +2369,9 @@ var $$AnimateQueueProvider = ['$animateProvider', function($animateProvider) {
         var animationDetails = activeAnimationsLookup.get(child);
         switch (state) {
           case RUNNING_STATE:
-            animationDetails.runner.end();
+              if(animationDetails) {
+                animationDetails.runner.end();
+              }
             /* falls through */
           case PRE_DIGEST_STATE:
             if (animationDetails) {

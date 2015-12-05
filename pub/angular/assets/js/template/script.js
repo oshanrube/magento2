@@ -91,24 +91,7 @@ function initialize() {
         $(this).addClass("active"); // ADD TO WISH LIST BUTTON 
         $(this).attr('data-original-title', 'Added to Wishlist');// Change Tooltip text
     });
-    // List view and Grid view 
-    $(".change-view .list-view, .change-view-flat .list-view").click(function (e) { //use a class, since your ID gets mangled
-        e.preventDefault();
-        $('.item').addClass("list-view"); //add the class to the clicked element
-        $('.add-fav').attr("data-placement", $(this).attr("left"));
-        $('.categoryProduct > .item').detectGridColumns();
-    });
-    $(".change-view .grid-view, .change-view-flat .grid-view").click(function (e) { //use a class, since your ID gets mangled
-        e.preventDefault();
-        $('.item').removeClass("list-view"); //add the class to the clicked element
-        $('.categoryProduct > .item').detectGridColumns();
-        setTimeout(function () {
-                //  reload function after 0.5 second
-                $('.categoryProduct > .item').responsiveEqualHeightGrid();
-            }
-            , 500);
 
-    });
     if (/IEMobile/i.test(navigator.userAgent)) {
         // Detect windows phone//..
         $('.navbar-brand').addClass('windowsphone');

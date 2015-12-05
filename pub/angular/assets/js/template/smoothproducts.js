@@ -1,6 +1,10 @@
 function loadProductPage() {
-    $(".sp-wrap").append('<div class="sp-large"></div><div class="sp-thumbs sp-tb-active"></div>');
+    //add the frame to the page
+    $(".sp-wrap").append('<div class="sp-large"></div>' +
+        '<div class="sp-thumbs sp-tb-active"></div>');
+    //move the link to the thumbnail
     $(".sp-wrap a").appendTo(".sp-thumbs");
+    //make the 1st one to tbe current
     $(".sp-thumbs a:first")
         .addClass("sp-current").clone().removeClass("sp-current").appendTo(".sp-large");
     $(".sp-wrap").css("display", "inline-block");

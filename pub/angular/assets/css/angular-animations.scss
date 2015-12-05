@@ -1,0 +1,16 @@
+.categoryProduct {
+  .alert.ng-hide-remove {
+    clear: both;
+    animation: fadeIn 2s;
+  }
+
+  .item.ng-enter {
+    animation: fadeIn 2s;
+  }
+  .item.ng-leave {
+    animation: fadeOut 1s;
+  }
+  .item.ng-move {
+    animation: fadeOut 1s;
+  }
+}

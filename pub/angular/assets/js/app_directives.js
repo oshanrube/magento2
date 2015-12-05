@@ -111,4 +111,20 @@ angular.module('app.directives', [])
         restrict: 'E',
         templateUrl: 'templates/product/recomended_with.html'
     };
+}).directive('catalogFilters', function () {
+    return {
+        restrict: 'E',
+        templateUrl: 'templates/catalog/filters.html'
+    };
+}).directive('loading', function () {
+    return {
+        restrict: 'E',
+        template: '<div class="sk-wandering-cubes"><div class="sk-cube sk-cube1"></div><div class="sk-cube sk-cube2"></div></div>'
+    };
+}).directive('catalogFilter', function () {
+    return {
+        restrict: 'E',
+        templateUrl: 'templates/catalog/filter.html'
+    };
 });
+

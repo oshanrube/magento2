@@ -502,21 +502,17 @@ angular.module('app.controllers', [])
         Modal.loadTemplate('product', {product: product}, onLoad);
     };
     this.getProduct = function () {
-        if ($scope.getData('product-' + $stateParams.sku) === undefined) {
-            API.getAPIRequest()
-                .execute('/products/' + $stateParams.sku, 'product-' + $stateParams.sku);
-        }
-        return $scope.getData('product-' + $stateParams.sku);
+        return APIQuery.getProduct($stateParams.sku);
     };
     this.getProductLinks = function (product, type) {
         $scope.$on('onRepeatLast', function (scope, element, attrs) {
             if ($scope.product_link_loaded === undefined) {
-                console.log('YOU MAY ALSO LIKE');
                 // YOU MAY ALSO LIKE  carousel
                 $(".ProductSlider").owlCarousel({
                     navigation: true
                 });
                 $scope.product_link_loaded = true;
+                loadProductPage();
             }
         });
         return APIQuery.getProductLinks(product, type);

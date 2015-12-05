@@ -1,5 +1,5 @@
 angular.module('app.services', [])
-    .factory("Page", function ($localStorage, $timeout) {
+    .factory("Page", function ($localStorage, $timeout, $rootScope) {
         var loading = false;
         var message = null;
         var messageType = true;
@@ -43,49 +43,40 @@ angular.module('app.services', [])
                 this.startTimeout();
             },
             getToken: function () {
-                if ($localStorage.token === undefined) {
-                    $localStorage.token = null;
+                if ($rootScope.data['token'] === undefined) {
+                    $rootScope.data['token'] = null;
                 }
-                return $localStorage.token;
-            },
-            getCustomer: function () {
-                if ($localStorage.me === undefined) {
-                    $localStorage.me = null;
-                }
-                return $localStorage.me;
+                return $rootScope.data['token'];
             },
             setToken: function (newSessionToken) {
-                $localStorage.token = newSessionToken;
+                $rootScope.data['token'] = newSessionToken;
+            },
+            getCustomer: function () {
+                if ($rootScope.data['me'] === undefined) {
+                    $rootScope.data['me'] = null;
+                }
+                return $rootScope.data['me'];
             },
             isUserLoggedIn: function () {
                 return (this.getToken() !== null);
             },
             getCartId: function () {
-                if ($localStorage.cart_id === undefined) {
-                    $localStorage.cart_id = null;
+                if ($rootScope.data['cart_id'] === undefined) {
+                    $rootScope.data['cart_id'] = null;
                 }
-                return $localStorage.cart_id;
+                return $rootScope.data['cart_id'];
             },
             setCartId: function (cartId) {
-                $localStorage.cart_id = cartId;
+                $rootScope.data['cart_id'] = cartId;
             },
             getGuestCartId: function () {
-                if ($localStorage.guest_cart_id === undefined) {
-                    $localStorage.guest_cart_id = null;
+                if ($rootScope.data['guest_cart_id'] === undefined) {
+                    $rootScope.data['guest_cart_id'] = null;
                 }
-                return $localStorage.guest_cart_id;
+                return $rootScope.data['guest_cart_id'];
             },
             setGuestCartId: function (cartId) {
-                $localStorage.guest_cart_id = cartId;
-            },
-            getStorage: function () {
-                return $localStorage;
-            },
-            setBackUrl: function (url) {
-                back_url = url;
-            },
-            getBackUrl: function () {
-                return back_url;
+                $rootScope.data['guest_cart_id'] = cartId;
             }
         };
     }).factory("Modal", function ($mdDialog, $rootScope) {

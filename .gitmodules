@@ -4,3 +4,9 @@
 [submodule "pub/angular/assets/js/vendor/ForerunnerDB"]
 	path = pub/angular/assets/js/vendor/ForerunnerDB
 	url = https://github.com/Irrelon/ForerunnerDB.git
+[submodule "pub/angular/assets/plugins/Animate"]
+	path = pub/angular/assets/plugins/Animate
+	url = https://github.com/daneden/animate.css.git
+[submodule "pub/angular/assets/plugins/material"]
+	path = pub/angular/assets/plugins/material
+	url = https://github.com/angular/material.git

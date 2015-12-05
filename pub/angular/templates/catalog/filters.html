@@ -1,0 +1,13 @@
+<div class="panel-group" id="accordion">
+    <!--Category-->
+    <div class="panel panel-flat" ng-repeat="filter in catalog.getFilters()">
+        <div class="panel-heading">
+            <h4 class="panel-title"><a data-toggle="collapse" href="#collapse{{ filter.attribute_code }}" class="">
+                <span class="pull-right hasMinus"> <i class="i-minus"></i></span> {{ filter.default_frontend_label }} {{catalog.filter}}</a>
+            </h4>
+        </div>
+        <div id="collapse{{ filter.attribute_code }}" class="panel-collapse collapse in">
+            <catalog-filter></catalog-filter>
+        </div>
+    </div>
+</div>

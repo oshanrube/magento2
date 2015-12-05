@@ -102,7 +102,7 @@
                                     <p><strong> {{ subcat.name }} </strong></p>
                                 </li>
                                 <li ng-repeat="subsubcat in subcat.children_data">
-                                    <a href="#"> {{ subsubcat.name }} </a>
+                                    <a ui-sref="catalog({id: subsubcat.id})"> {{ subsubcat.name }} </a>
                                 </li>
                             </ul>
                         </li>

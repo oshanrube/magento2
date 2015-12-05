@@ -1,6 +1,6 @@
 (function () {
 
-    var app = angular.module('store', ['app.controllers', 'app.services', 'app.api_query', 'app.directives', 'app.filters', 'ngAnimate', 'ngResource', 'ngRoute', 'ngStorage', "ui.router", 'ngMaterial', 'ngAria', 'ngMessages']).config(function ($httpProvider) {
+    var app = angular.module('store', ['app.controllers', 'app.controllers.catalog', 'app.services', 'app.api_query', 'app.directives', 'app.filters', 'ngAnimate', 'ngResource', 'ngRoute', 'ngStorage', "ui.router", 'ngMaterial', 'ngAria', 'ngMessages']).config(function ($httpProvider) {
             $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8';
             /**
              * The workhorse; converts an object to x-www-form-urlencoded serialization.
@@ -60,25 +60,28 @@
                     }
                 }).state('product', {
                 url: '/product/:sku',
-                views: {
-                    '': {
-                        templateUrl: 'pages/product.html',
-                        controller: 'ProductsController'
-                    }
-                },
+                templateUrl: 'pages/product.html',
                 resolve: {
                     simpleObj: function ($q, $timeout) {
                         $timeout(function () {
-                            console.log('loadin product page');
+                            console.log('loading product page');
                             //TODO load the animation and product images
-                            loadProductPage();
+                            //loadProductPage();
                         }, 1);
                     }
                 }
             }).
             state('catalog', {
                 url: '/catalog/:id',
-                templateUrl: 'pages/home.html'
+                templateUrl: 'pages/catalog.html',
+                resolve: {
+                    simpleObj: function ($q, $timeout) {
+                        $timeout(function () {
+                            console.log('loading catalog page');
+                            loadCatalog();
+                        }, 1);
+                    }
+                }
             }).state('cart', {
                 url: '/product/:id',
                 templateUrl: 'pages/home.html'

@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AACE,sCAAsB;EACpB,KAAK,EAAE,IAAI;EACX,SAAS,EAAE,SAAS;AAGtB,+BAAe;EACb,SAAS,EAAE,SAAS;AAEtB,+BAAe;EACb,SAAS,EAAE,UAAU;AAEvB,8BAAc;EACZ,SAAS,EAAE,UAAU",
+"sources": ["angular-animations.scss"],
+"names": [],
+"file": "angular-animations.css"
+}

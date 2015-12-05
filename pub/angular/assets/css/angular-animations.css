@@ -1,0 +1,11 @@
+.categoryProduct .alert.ng-hide-remove {
+  clear: both;
+  animation: fadeIn 2s; }
+.categoryProduct .item.ng-enter {
+  animation: fadeIn 2s; }
+.categoryProduct .item.ng-leave {
+  animation: fadeOut 1s; }
+.categoryProduct .item.ng-move {
+  animation: fadeOut 1s; }
+
+/*# sourceMappingURL=angular-animations.css.map */

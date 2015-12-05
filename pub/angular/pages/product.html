@@ -10,12 +10,9 @@
     <div class="row transitionfx">
         <div class="col-lg-6 col-md-6 col-sm-6">
             <div class="main-image sp-wrap col-lg-12 no-padding style2 style2look2">
-                <div class="sk-wandering-cubes" ng-hide="products.getProduct()">
-                    <div class="sk-cube sk-cube1"></div>
-                    <div class="sk-cube sk-cube2"></div>
-                </div>
+                <loading ng-hide="products.getProduct()"></loading>
                 <a ng-repeat="image in products.getImages(products.getProduct())"
-                   href="{{ products.getImageSize(image, 'original') }}">
+                   href="{{ products.getImageSize(image, 'original') }}" on-last-repeat>
                     <img ng-src="{{ products.getImageSize(image, 'medium') }}" class="img-responsive" alt="img">
                 </a>
             </div>

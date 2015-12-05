@@ -49,7 +49,7 @@ angular.module('app.api_query', [])
                         oncomplete = $oncomplete;
                         return this;
                     },
-                    execute: function (url, key, append) {
+                    execute: function (url, key, exclude) {
                         if (loadingdata[key] === undefined) {
                             loadingdata[key] = true;
                             $http({
@@ -65,24 +65,11 @@ angular.module('app.api_query', [])
                             }).success(function (response) {
                                 if (response.errors == undefined && response !== "") {
                                     //save the data to the key
-                                    if (response.items !== undefined && append) {
-                                        //want to append but theres no data
-                                        if ($rootScope.data[key] !== undefined && append) {
-                                            for (var k in response.items) {
-                                                for (var k1 in $rootScope.data[key]) {
-                                                    if ($rootScope.data[key][k1] !== response.items[k]) {
-                                                        $rootScope.data[key].push(response.items[k]);
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            $rootScope.data[key] = response.items;
-                                        }
-                                    } else {
+                                    if (!exclude) {
                                         $rootScope.data[key] = response;
                                     }
                                     if (onsuccess !== null) {
-                                        onsuccess();
+                                        onsuccess(response);
                                     }
                                 } else {
                                     //show the error
@@ -132,16 +119,16 @@ angular.module('app.api_query', [])
                 return product_links;
             }, getProducts: function (skus) {
                 var products = [];
-                var db_products = $rootScope.getData('products');
-                for (var k in skus) {
-                    for (var k_1 in db_products) {
-                        if (db_products[k_1].sku == skus[k]) {
-                            products.push(db_products[k_1]);
-                            skus.splice(k, 1);
-                        }
+                var sku_search = [];
+                for (var k = 0; k < skus.length; k++) {
+                    if ($('#products #' + skus[k]).length) {
+                        products.push($('#products #' + skus[k]).data());
+                    } else {
+                        sku_search.push(skus[k]);
                     }
                 }
-                if (skus.length > 0) {
+
+                if (sku_search.length > 0) {
                     var searchObject = {
                         searchCriteria: {
                             filterGroups: [
@@ -149,7 +136,7 @@ angular.module('app.api_query', [])
                                     filters: [
                                         {
                                             field: 'sku',
-                                            value: skus,
+                                            value: sku_search,
                                             conditionType: 'in'
                                         }
                                     ]
@@ -158,9 +145,38 @@ angular.module('app.api_query', [])
                         }
                     };
                     API.getAPIRequest()
+                        .setOnSuccess(function (response) {
+                            //want to append but theres no data
+                            for (var k in response.items) {
+                                if (!$('#products #' + response.items[k].sku).length) {
+                                    //create
+                                    $('#products').append($('<div id="' + response.items[k].sku + '"></div>').data(response.items[k]));
+                                }
+                            }
+                        })
                         .execute('/products?' + $.param(searchObject), 'products', true);
                 }
-                return products;
+                return (products.length == 0 && sku_search.length > 0 ? undefined : products);
+            }, getProduct: function (sku) {
+                //lazy load
+
+
+                if ($('#products #' + sku).length) {
+                    return $('#products #' + sku).data();
+                } else {
+                    console.log('lazy load' + sku);
+                    API.getAPIRequest()
+                        .setOnSuccess(function (response) {
+                            //want to append but theres no data
+                            if (!$('#products #' + response.sku).length) {
+                                //create
+                                $('#products').append($('<div id="' + response.sku + '"></div>').data(response));
+                            } else {
+                                $('#products #' + response.sku).data(response);
+                            }
+                        })
+                        .execute('/products/' + sku, 'product-' + sku);
+                }
             }
         }
     });
