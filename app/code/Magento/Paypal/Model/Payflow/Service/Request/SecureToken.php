@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Paypal\Model\Payflow\Service\Request;
 
 use Magento\Framework\Math\Random;
-use Magento\Framework\Object;
+use Magento\Framework\DataObject;
 use Magento\Framework\UrlInterface;
 use Magento\Paypal\Model\Payflow\Transparent;
 use Magento\Paypal\Model\Payflowpro;
@@ -54,7 +54,8 @@ class SecureToken
      *
      * @param Quote $quote
      *
-     * @return Object
+     * @return DataObject
+     * @throws \Exception
      */
     public function requestToken(Quote $quote)
     {

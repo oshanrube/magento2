@@ -1,17 +1,21 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Email\Block\Adminhtml\Template;
+
+use Magento\Backend\Block\Widget;
+use Magento\Backend\Block\Widget\ContainerInterface;
 
 /**
  * Adminhtml system template edit block
  *
  * @author      Magento Core Team <core@magentocommerce.com>
  * @method array getTemplateOptions()
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class Edit extends \Magento\Backend\Block\Widget implements \Magento\Backend\Block\Widget\ContainerInterface
+class Edit extends Widget implements ContainerInterface
 {
     /**
      * @var \Magento\Framework\Registry
@@ -98,7 +102,7 @@ class Edit extends \Magento\Backend\Block\Widget implements \Magento\Backend\Blo
     }
 
     /**
-     *{@inheritdoc}
+     * {@inheritdoc}
      */
     public function updateButton($buttonId, $key, $data)
     {
@@ -107,7 +111,7 @@ class Edit extends \Magento\Backend\Block\Widget implements \Magento\Backend\Blo
     }
 
     /**
-     *{@inheritdoc}
+     * {@inheritdoc}
      */
     public function canRender(\Magento\Backend\Block\Widget\Button\Item $item)
     {
@@ -115,7 +119,7 @@ class Edit extends \Magento\Backend\Block\Widget implements \Magento\Backend\Blo
     }
 
     /**
-     *{@inheritdoc}
+     * {@inheritdoc}
      */
     public function removeButton($buttonId)
     {
@@ -213,12 +217,12 @@ class Edit extends \Magento\Backend\Block\Widget implements \Magento\Backend\Blo
             null
         );
         $this->toolbar->pushButtons($this, $this->buttonList);
-        $this->addChild('form', 'Magento\Email\Block\Adminhtml\Template\Edit\Form');
+        $this->addChild('form', \Magento\Email\Block\Adminhtml\Template\Edit\Form::class);
         return parent::_prepareLayout();
     }
 
     /**
-     *{@inheritdoc}
+     * {@inheritdoc}
      */
     public function addButton($buttonId, $data, $level = 0, $sortOrder = 0, $region = 'toolbar')
     {
@@ -334,6 +338,16 @@ class Edit extends \Magento\Backend\Block\Widget implements \Magento\Backend\Blo
     public function isTextType()
     {
         return $this->getEmailTemplate()->isPlain();
+    }
+
+    /**
+     * Return template type from template object
+     *
+     * @return int
+     */
+    public function getTemplateType()
+    {
+        return $this->getEmailTemplate()->getType();
     }
 
     /**

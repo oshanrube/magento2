@@ -1,10 +1,11 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\Oauth;
 
+use Magento\Framework\Encryption\Helper\Security;
 use Magento\Framework\Phrase;
 
 class Oauth implements OauthInterface
@@ -196,7 +197,7 @@ class Oauth implements OauthInterface
             $requestUrl
         );
 
-        if ($calculatedSign != $params['oauth_signature']) {
+        if (!Security::compareStrings($calculatedSign, $params['oauth_signature'])) {
             throw new Exception(new Phrase('Invalid signature'));
         }
     }
@@ -283,7 +284,7 @@ class Oauth implements OauthInterface
         $exception = new OauthInputException();
         foreach ($requiredParams as $param) {
             if (!isset($protocolParams[$param])) {
-                $exception->addError(new Phrase(OauthInputException::REQUIRED_FIELD, ['fieldName' => $param]));
+                $exception->addError(new Phrase('%fieldName is a required field.', ['fieldName' => $param]));
             }
         }
         if ($exception->wasErrorAdded()) {

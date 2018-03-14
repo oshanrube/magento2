@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -27,7 +27,7 @@ class Price extends \Magento\Catalog\Test\Block\AbstractPriceBlock
             'selector' => '.special-price .price',
         ],
         'old_price' => [
-            'selector' => '.old-price .price-wrapper',
+            'selector' => '.old-price .price-wrapper ',
         ],
         'price_from' => [
             'selector' => '.price-from .price',
@@ -108,6 +108,18 @@ class Price extends \Magento\Catalog\Test\Block\AbstractPriceBlock
     public function getPriceTo($currency = '$')
     {
         return $this->getTypePrice('price_to', $currency);
+    }
+
+    /**
+     * Get currency symbol from price block on the product page.
+     *
+     * @return string
+     */
+    public function getCurrencySymbol()
+    {
+        $price = $this->getPrice('');
+        preg_match('`(.*?)\d`', $price, $matches);
+        return $matches[1];
     }
 
     /**

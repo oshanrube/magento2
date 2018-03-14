@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -30,7 +30,7 @@ class Curl extends AbstractCurl implements StoreGroupInterface
         $data = $this->prepareData($fixture);
         $url = $_ENV['app_backend_url'] . 'admin/system_store/save';
         $curl = new BackendDecorator(new CurlTransport(), $this->_configuration);
-        $curl->write(CurlInterface::POST, $url, '1.1', [], $data);
+        $curl->write($url, $data);
         $response = $curl->read();
         $curl->close();
         if (!strpos($response, 'data-ui-id="messages-message-success"')) {
@@ -53,7 +53,7 @@ class Curl extends AbstractCurl implements StoreGroupInterface
         $url = $_ENV['app_backend_url'] . 'admin/system_store/index/sort/group_title/dir/asc/limit/2000';
         $curl = new BackendDecorator(new CurlTransport(), $this->_configuration);
         $curl->addOption(CURLOPT_HEADER, 1);
-        $curl->write(CurlInterface::POST, $url, '1.0');
+        $curl->write($url, [], CurlInterface::GET);
         $response = $curl->read();
 
         $expectedUrl = '/admin/system_store/editGroup/group_id/';
@@ -84,6 +84,7 @@ class Curl extends AbstractCurl implements StoreGroupInterface
                 'root_category_id' => $categoryId,
                 'website_id' => $websiteId,
                 'group_id' => $fixture->hasData('group_id') ? $fixture->getGroupId() : '',
+                'code' => $fixture->hasData('code') ? $fixture->getCode() : '',
             ],
             'store_action' => 'add',
             'store_type' => 'group',

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -11,8 +11,13 @@
  */
 namespace Magento\MediaStorage\Controller\Adminhtml\System\Config\System;
 
-class Storage extends \Magento\Backend\App\Action
+abstract class Storage extends \Magento\Backend\App\Action
 {
+    /**
+     * Authorization level of a basic admin session
+     */
+    const ADMIN_RESOURCE = 'Magento_Backend::system';
+
     /**
      * Return file storage singleton
      *
@@ -20,7 +25,7 @@ class Storage extends \Magento\Backend\App\Action
      */
     protected function _getSyncSingleton()
     {
-        return $this->_objectManager->get('Magento\MediaStorage\Model\File\Storage');
+        return $this->_objectManager->get(\Magento\MediaStorage\Model\File\Storage::class);
     }
 
     /**

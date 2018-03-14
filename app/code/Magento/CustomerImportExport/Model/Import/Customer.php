@@ -1,19 +1,28 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\CustomerImportExport\Model\Import;
 
+use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\ImportExport\Model\Import;
+use Magento\ImportExport\Model\Import\ErrorProcessing\ProcessingErrorAggregatorInterface;
+
 /**
+ * Customer entity import
+ *
+ * @api
+ *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @since 100.0.2
  */
 class Customer extends AbstractCustomer
 {
     /**
      * Attribute collection name
      */
-    const ATTRIBUTE_COLLECTION_NAME = 'Magento\Customer\Model\Resource\Attribute\Collection';
+    const ATTRIBUTE_COLLECTION_NAME = \Magento\Customer\Model\ResourceModel\Attribute\Collection::class;
 
     /**#@+
      * Permanent column names
@@ -24,6 +33,8 @@ class Customer extends AbstractCustomer
     const COLUMN_EMAIL = 'email';
 
     const COLUMN_STORE = '_store';
+
+    const COLUMN_PASSWORD = 'password';
 
     /**#@-*/
 
@@ -103,12 +114,12 @@ class Customer extends AbstractCustomer
     /**
      * Address attributes collection
      *
-     * @var \Magento\Customer\Model\Resource\Attribute\Collection
+     * @var \Magento\Customer\Model\ResourceModel\Attribute\Collection
      */
     protected $_attributeCollection;
 
     /**
-     * @var \Magento\ImportExport\Model\Resource\Helper
+     * @var \Magento\ImportExport\Model\ResourceModel\Helper
      */
     protected $_resourceHelper;
 
@@ -118,31 +129,70 @@ class Customer extends AbstractCustomer
     protected $masterAttributeCode = 'email';
 
     /**
-     * @param \Magento\Framework\Stdlib\String $string
+     * Valid column names
+     *
+     * @array
+     */
+    protected $validColumnNames = [
+        self::COLUMN_DEFAULT_BILLING,
+        self::COLUMN_DEFAULT_SHIPPING,
+        self::COLUMN_PASSWORD,
+    ];
+
+    /**
+     * Customer fields in file
+     */
+    protected $customerFields = [
+        CustomerInterface::GROUP_ID,
+        CustomerInterface::STORE_ID,
+        CustomerInterface::UPDATED_AT,
+        CustomerInterface::CREATED_AT,
+        CustomerInterface::CREATED_IN,
+        CustomerInterface::PREFIX,
+        CustomerInterface::FIRSTNAME,
+        CustomerInterface::MIDDLENAME,
+        CustomerInterface::LASTNAME,
+        CustomerInterface::SUFFIX,
+        CustomerInterface::DOB,
+        'password_hash',
+        CustomerInterface::TAXVAT,
+        CustomerInterface::CONFIRMATION,
+        CustomerInterface::GENDER,
+        'rp_token',
+        'rp_token_created_at',
+        'failures_num',
+        'first_failure',
+        'lock_expires',
+    ];
+
+    /**
+     * @param \Magento\Framework\Stdlib\StringUtils $string
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\ImportExport\Model\ImportFactory $importFactory
-     * @param \Magento\ImportExport\Model\Resource\Helper $resourceHelper
-     * @param \Magento\Framework\App\Resource $resource
+     * @param \Magento\ImportExport\Model\ResourceModel\Helper $resourceHelper
+     * @param \Magento\Framework\App\ResourceConnection $resource
+     * @param ProcessingErrorAggregatorInterface $errorAggregator
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\ImportExport\Model\Export\Factory $collectionFactory
      * @param \Magento\Eav\Model\Config $eavConfig
-     * @param \Magento\CustomerImportExport\Model\Resource\Import\Customer\StorageFactory $storageFactory
-     * @param \Magento\Customer\Model\Resource\Attribute\CollectionFactory $attrCollectionFactory
+     * @param \Magento\CustomerImportExport\Model\ResourceModel\Import\Customer\StorageFactory $storageFactory
+     * @param \Magento\Customer\Model\ResourceModel\Attribute\CollectionFactory $attrCollectionFactory
      * @param \Magento\Customer\Model\CustomerFactory $customerFactory
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
-        \Magento\Framework\Stdlib\String $string,
+        \Magento\Framework\Stdlib\StringUtils $string,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\ImportExport\Model\ImportFactory $importFactory,
-        \Magento\ImportExport\Model\Resource\Helper $resourceHelper,
-        \Magento\Framework\App\Resource $resource,
+        \Magento\ImportExport\Model\ResourceModel\Helper $resourceHelper,
+        \Magento\Framework\App\ResourceConnection $resource,
+        ProcessingErrorAggregatorInterface $errorAggregator,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\ImportExport\Model\Export\Factory $collectionFactory,
         \Magento\Eav\Model\Config $eavConfig,
-        \Magento\CustomerImportExport\Model\Resource\Import\Customer\StorageFactory $storageFactory,
-        \Magento\Customer\Model\Resource\Attribute\CollectionFactory $attrCollectionFactory,
+        \Magento\CustomerImportExport\Model\ResourceModel\Import\Customer\StorageFactory $storageFactory,
+        \Magento\Customer\Model\ResourceModel\Attribute\CollectionFactory $attrCollectionFactory,
         \Magento\Customer\Model\CustomerFactory $customerFactory,
         array $data = []
     ) {
@@ -163,6 +213,7 @@ class Customer extends AbstractCustomer
             $importFactory,
             $resourceHelper,
             $resource,
+            $errorAggregator,
             $storeManager,
             $collectionFactory,
             $eavConfig,
@@ -197,7 +248,7 @@ class Customer extends AbstractCustomer
         $this->_initStores(true)->_initAttributes();
 
         $this->_customerModel = $customerFactory->create();
-        /** @var $customerResource \Magento\Customer\Model\Resource\Customer */
+        /** @var $customerResource \Magento\Customer\Model\ResourceModel\Customer */
         $customerResource = $this->_customerModel->getResource();
         $this->_entityTable = $customerResource->getEntityTable();
     }
@@ -215,34 +266,31 @@ class Customer extends AbstractCustomer
             $this->_connection->insertMultiple($this->_entityTable, $entitiesToCreate);
         }
 
-        $customerFields = [
-            'group_id',
-            'store_id',
-            'updated_at',
-            'created_at',
-            'created_in',
-            'prefix',
-            'firstname',
-            'middlename',
-            'lastname',
-            'suffix',
-            'dob',
-            'password_hash',
-            'taxvat',
-            'confirmation',
-            'gender',
-            'rp_token',
-            'rp_token_created_at',
-        ];
         if ($entitiesToUpdate) {
             $this->_connection->insertOnDuplicate(
                 $this->_entityTable,
                 $entitiesToUpdate,
-                $customerFields
+                $this->getCustomerEntityFieldsToUpdate($entitiesToUpdate)
             );
         }
 
         return $this;
+    }
+
+    /**
+     * Filter the entity that are being updated so we only change fields found in the importer file
+     *
+     * @param array $entitiesToUpdate
+     * @return array
+     */
+    private function getCustomerEntityFieldsToUpdate(array $entitiesToUpdate): array
+    {
+        $firstCustomer = reset($entitiesToUpdate);
+        $columnsToUpdate = array_keys($firstCustomer);
+        $customerFieldsToUpdate = array_filter($this->customerFields, function ($field) use ($columnsToUpdate) {
+            return in_array($field, $columnsToUpdate);
+        });
+        return $customerFieldsToUpdate;
     }
 
     /**
@@ -307,6 +355,7 @@ class Customer extends AbstractCustomer
      */
     protected function _prepareDataForUpdate(array $rowData)
     {
+        $multiSeparator = $this->getMultipleValueSeparator();
         $entitiesToCreate = [];
         $entitiesToUpdate = [];
         $attributesToSave = [];
@@ -339,26 +388,32 @@ class Customer extends AbstractCustomer
 
         // password change/set
         if (isset($rowData['password']) && strlen($rowData['password'])) {
-            $entityRow['password_hash'] = $this->_customerModel->hashPassword($rowData['password']);
+            $rowData['password_hash'] = $this->_customerModel->hashPassword($rowData['password']);
         }
 
         // attribute values
         foreach (array_intersect_key($rowData, $this->_attributes) as $attributeCode => $value) {
-            if ($newCustomer && !strlen($value)) {
-                continue;
+            $attributeParameters = $this->_attributes[$attributeCode];
+            if (in_array($attributeParameters['type'], ['select', 'boolean'])) {
+                $value = $this->getSelectAttrIdByValue($attributeParameters, $value);
+            } elseif ('multiselect' == $attributeParameters['type']) {
+                $ids = [];
+                foreach (explode($multiSeparator, mb_strtolower($value)) as $subValue) {
+                    $ids[] = $this->getSelectAttrIdByValue($attributeParameters, $subValue);
+                }
+                $value = implode(',', $ids);
+            } elseif ('datetime' == $attributeParameters['type'] && !empty($value)) {
+                $value = (new \DateTime())->setTimestamp(strtotime($value));
+                $value = $value->format(\Magento\Framework\Stdlib\DateTime::DATETIME_PHP_FORMAT);
             }
+
             if (!$this->_attributes[$attributeCode]['is_static']) {
                 /** @var $attribute \Magento\Customer\Model\Attribute */
                 $attribute = $this->_customerModel->getAttribute($attributeCode);
                 $backendModel = $attribute->getBackendModel();
-                $attributeParameters = $this->_attributes[$attributeCode];
-
-                if ('select' == $attributeParameters['type']) {
-                    $value = $attributeParameters['options'][strtolower($value)];
-                } elseif ('datetime' == $attributeParameters['type']) {
-                    $value = (new \DateTime())->setTimestamp(strtotime($value));
-                    $value = $value->format(\Magento\Framework\Stdlib\DateTime::DATETIME_PHP_FORMAT);
-                } elseif ($backendModel) {
+                if ($backendModel
+                    && $attribute->getFrontendInput() != 'select'
+                    && $attribute->getFrontendInput() != 'datetime') {
                     $attribute->getBackend()->beforeSave($this->_customerModel->setData($attributeCode, $value));
                     $value = $this->_customerModel->getData($attributeCode);
                 }
@@ -395,6 +450,7 @@ class Customer extends AbstractCustomer
      *
      * @return bool
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     protected function _importData()
     {
@@ -406,6 +462,10 @@ class Customer extends AbstractCustomer
 
             foreach ($bunch as $rowNumber => $rowData) {
                 if (!$this->validateRow($rowData, $rowNumber)) {
+                    continue;
+                }
+                if ($this->getErrorAggregator()->hasToBeTerminated()) {
+                    $this->getErrorAggregator()->addRowToSkip($rowNumber);
                     continue;
                 }
 
@@ -429,6 +489,7 @@ class Customer extends AbstractCustomer
                     }
                 }
             }
+            $this->updateItemsCounterStats($entitiesToCreate, $entitiesToUpdate, $entitiesToDelete);
             /**
              * Save prepared data
              */
@@ -496,7 +557,15 @@ class Customer extends AbstractCustomer
                     continue;
                 }
                 if (isset($rowData[$attributeCode]) && strlen($rowData[$attributeCode])) {
-                    $this->isAttributeValid($attributeCode, $attributeParams, $rowData, $rowNumber);
+                    $this->isAttributeValid(
+                        $attributeCode,
+                        $attributeParams,
+                        $rowData,
+                        $rowNumber,
+                        isset($this->_parameters[Import::FIELD_FIELD_MULTIPLE_VALUE_SEPARATOR])
+                            ? $this->_parameters[Import::FIELD_FIELD_MULTIPLE_VALUE_SEPARATOR]
+                            : Import::DEFAULT_GLOBAL_MULTI_VALUE_SEPARATOR
+                    );
                 } elseif ($attributeParams['is_required'] && !$this->_getCustomerId($email, $website)) {
                     $this->addRowError(self::ERROR_VALUE_IS_REQUIRED, $rowNumber, $attributeCode);
                 }
@@ -528,5 +597,18 @@ class Customer extends AbstractCustomer
     public function getEntityTable()
     {
         return $this->_entityTable;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getValidColumnNames()
+    {
+        return array_unique(
+            array_merge(
+                $this->validColumnNames,
+                $this->customerFields
+            )
+        );
     }
 }

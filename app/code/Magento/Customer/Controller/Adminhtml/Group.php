@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Customer\Controller\Adminhtml;
@@ -11,8 +11,15 @@ use Magento\Customer\Api\GroupRepositoryInterface;
 /**
  * Customer groups controller
  */
-class Group extends \Magento\Backend\App\Action
+abstract class Group extends \Magento\Backend\App\Action
 {
+    /**
+     * Authorization level of a basic admin session
+     *
+     * @see \Magento\Backend\App\Action\_isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Magento_Customer::group';
+
     /**
      * Core registry
      *
@@ -64,15 +71,5 @@ class Group extends \Magento\Backend\App\Action
         parent::__construct($context);
         $this->resultForwardFactory = $resultForwardFactory;
         $this->resultPageFactory = $resultPageFactory;
-    }
-
-    /**
-     * Determine if authorized to perform group actions.
-     *
-     * @return bool
-     */
-    protected function _isAllowed()
-    {
-        return $this->_authorization->isAllowed('Magento_Customer::group');
     }
 }

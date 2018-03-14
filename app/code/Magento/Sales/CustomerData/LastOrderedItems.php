@@ -1,12 +1,17 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Sales\CustomerData;
 
 use Magento\Customer\CustomerData\SectionSourceInterface;
 
+/**
+ * Returns information for "Recently Ordered" widget.
+ * It contains list of 5 salable products from the last placed order.
+ * Qty of products to display is limited by LastOrderedItems::SIDEBAR_ORDER_LIMIT constant.
+ */
 class LastOrderedItems implements SectionSourceInterface
 {
     /**
@@ -15,7 +20,7 @@ class LastOrderedItems implements SectionSourceInterface
     const SIDEBAR_ORDER_LIMIT = 5;
 
     /**
-     * @var \Magento\Sales\Model\Resource\Order\CollectionFactory
+     * @var \Magento\Sales\Model\ResourceModel\Order\CollectionFactory
      */
     protected $_orderCollectionFactory;
 
@@ -35,7 +40,7 @@ class LastOrderedItems implements SectionSourceInterface
     protected $httpContext;
 
     /**
-     * @var \Magento\Sales\Model\Resource\Order\Collection
+     * @var \Magento\Sales\Model\ResourceModel\Order\Collection
      */
     protected $orders;
 
@@ -45,14 +50,19 @@ class LastOrderedItems implements SectionSourceInterface
     protected $stockRegistry;
 
     /**
-     * @param \Magento\Sales\Model\Resource\Order\CollectionFactory $orderCollectionFactory
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    private $_storeManager;
+
+    /**
+     * @param \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory
      * @param \Magento\Sales\Model\Order\Config $orderConfig
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
-        \Magento\Sales\Model\Resource\Order\CollectionFactory $orderCollectionFactory,
+        \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory,
         \Magento\Sales\Model\Order\Config $orderConfig,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
@@ -66,7 +76,7 @@ class LastOrderedItems implements SectionSourceInterface
     }
 
     /**
-     * Init customer order for display on front
+     * Init last placed customer order for display on front
      *
      * @return void
      */
@@ -96,8 +106,9 @@ class LastOrderedItems implements SectionSourceInterface
 
         if ($order) {
             $website = $this->_storeManager->getStore()->getWebsiteId();
+            /** @var \Magento\Sales\Model\Order\Item $item */
             foreach ($order->getParentItemsRandomCollection($limit) as $item) {
-                if ($item->getProduct() && in_array($website, $item->getProduct()->getWebsiteIds())) {
+                if ($item->hasData('product') && in_array($website, $item->getProduct()->getWebsiteIds())) {
                     $items[] = [
                         'id' => $item->getId(),
                         'name' => $item->getName(),

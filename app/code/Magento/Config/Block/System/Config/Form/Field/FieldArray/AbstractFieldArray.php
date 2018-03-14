@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -12,6 +12,8 @@ namespace Magento\Config\Block\System\Config\Form\Field\FieldArray;
  * Backend system config array field renderer
  *
  * @author     Magento Core Team <core@magentocommerce.com>
+ * @api
+ * @since 100.0.2
  */
 abstract class AbstractFieldArray extends \Magento\Config\Block\System\Config\Form\Field
 {
@@ -120,11 +122,11 @@ abstract class AbstractFieldArray extends \Magento\Config\Block\System\Config\Fo
     /**
      * Prepare existing row data object
      *
-     * @param \Magento\Framework\Object $row
+     * @param \Magento\Framework\DataObject $row
      * @return void
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    protected function _prepareArrayRow(\Magento\Framework\Object $row)
+    protected function _prepareArrayRow(\Magento\Framework\DataObject $row)
     {
         // override in descendants
     }
@@ -132,7 +134,7 @@ abstract class AbstractFieldArray extends \Magento\Config\Block\System\Config\Fo
     /**
      * Obtain existing data from form element
      *
-     * Each row will be instance of \Magento\Framework\Object
+     * Each row will be instance of \Magento\Framework\DataObject
      *
      * @return array
      */
@@ -148,12 +150,12 @@ abstract class AbstractFieldArray extends \Magento\Config\Block\System\Config\Fo
             foreach ($element->getValue() as $rowId => $row) {
                 $rowColumnValues = [];
                 foreach ($row as $key => $value) {
-                    $row[$key] = $this->escapeHtml($value);
+                    $row[$key] = $value;
                     $rowColumnValues[$this->_getCellInputElementId($rowId, $key)] = $row[$key];
                 }
                 $row['_id'] = $rowId;
                 $row['column_values'] = $rowColumnValues;
-                $result[$rowId] = new \Magento\Framework\Object($row);
+                $result[$rowId] = new \Magento\Framework\DataObject($row);
                 $this->_prepareArrayRow($result[$rowId]);
             }
         }
@@ -278,5 +280,14 @@ abstract class AbstractFieldArray extends \Magento\Config\Block\System\Config\Fo
     public function getColumns()
     {
         return $this->_columns;
+    }
+
+    /**
+     * @return string
+     * @since 100.2.0
+     */
+    public function getAddButtonLabel()
+    {
+        return $this->_addButtonLabel;
     }
 }

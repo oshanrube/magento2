@@ -1,22 +1,26 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Helper;
 
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Tax\Api\Data\TaxClassKeyInterface;
-use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Tax\Model\Config;
 
 /**
  * Catalog data helper
+ *
+ * @api
+ *
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @since 100.0.2
  */
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
@@ -46,7 +50,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Breadcrumb Path cache
      *
-     * @var string
+     * @var array
      */
     protected $_categoryPath;
 
@@ -79,7 +83,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     protected $_catalogCategory;
 
     /**
-     * @var \Magento\Framework\Stdlib\String
+     * @var \Magento\Framework\Stdlib\StringUtils
      */
     protected $string;
 
@@ -185,7 +189,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Catalog\Model\Session $catalogSession
-     * @param \Magento\Framework\Stdlib\String $string
+     * @param \Magento\Framework\Stdlib\StringUtils $string
      * @param Category $catalogCategory
      * @param Product $catalogProduct
      * @param \Magento\Framework\Registry $coreRegistry
@@ -209,7 +213,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Model\Session $catalogSession,
-        \Magento\Framework\Stdlib\String $string,
+        \Magento\Framework\Stdlib\StringUtils $string,
         Category $catalogCategory,
         Product $catalogProduct,
         \Magento\Framework\Registry $coreRegistry,
@@ -267,12 +271,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * Return current category path or get it from current category
      * and creating array of categories|product paths for breadcrumbs
      *
-     * @return string
+     * @return array
      */
     public function getBreadcrumbPath()
     {
         if (!$this->_categoryPath) {
-
             $path = [];
             $category = $this->getCategory();
             if ($category) {

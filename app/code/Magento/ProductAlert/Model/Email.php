@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\ProductAlert\Model;
@@ -10,6 +10,9 @@ namespace Magento\ProductAlert\Model;
  *
  * @author     Magento Core Team <core@magentocommerce.com>
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ *
+ * @api
+ * @since 100.0.2
  */
 class Email extends \Magento\Framework\Model\AbstractModel
 {
@@ -117,7 +120,7 @@ class Email extends \Magento\Framework\Model\AbstractModel
      * @param \Magento\Customer\Helper\View $customerHelper
      * @param \Magento\Store\Model\App\Emulation $appEmulation
      * @param \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -132,7 +135,7 @@ class Email extends \Magento\Framework\Model\AbstractModel
         \Magento\Customer\Helper\View $customerHelper,
         \Magento\Store\Model\App\Emulation $appEmulation,
         \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
@@ -261,7 +264,7 @@ class Email extends \Magento\Framework\Model\AbstractModel
     protected function _getPriceBlock()
     {
         if ($this->_priceBlock === null) {
-            $this->_priceBlock = $this->_productAlertData->createBlock('Magento\ProductAlert\Block\Email\Price');
+            $this->_priceBlock = $this->_productAlertData->createBlock(\Magento\ProductAlert\Block\Email\Price::class);
         }
         return $this->_priceBlock;
     }
@@ -274,7 +277,7 @@ class Email extends \Magento\Framework\Model\AbstractModel
     protected function _getStockBlock()
     {
         if ($this->_stockBlock === null) {
-            $this->_stockBlock = $this->_productAlertData->createBlock('Magento\ProductAlert\Block\Email\Stock');
+            $this->_stockBlock = $this->_productAlertData->createBlock(\Magento\ProductAlert\Block\Email\Stock::class);
         }
         return $this->_stockBlock;
     }

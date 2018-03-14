@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -24,7 +24,7 @@ class AssertProductCompareItemsLink extends AbstractConstraint
     public function processAssert(array $products, CmsIndex $cmsIndex)
     {
         $productQty = count($products);
-        $qtyOnPage = $cmsIndex->getLinksBlock()->getQtyInCompareList();
+        $qtyOnPage = $cmsIndex->getCompareLinkBlock()->getQtyInCompareList();
 
         \PHPUnit_Framework_Assert::assertEquals(
             $productQty,

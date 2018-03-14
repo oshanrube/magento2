@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -23,45 +23,6 @@ class PriceModifier
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
     ) {
         $this->productRepository = $productRepository;
-    }
-
-    /**
-     * @param \Magento\Catalog\Model\Product $product
-     * @param int $customerGroupId
-     * @param int $websiteId
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     * @throws \Magento\Framework\Exception\CouldNotSaveException
-     * @return void
-     */
-    public function removeGroupPrice(\Magento\Catalog\Model\Product $product, $customerGroupId, $websiteId)
-    {
-        $prices = $product->getData('group_price');
-        if ($prices === null) {
-            throw new NoSuchEntityException(__('This product doesn\'t have group price'));
-        }
-        $groupPriceQty = count($prices);
-
-        foreach ($prices as $key => $groupPrice) {
-            if ($groupPrice['cust_group'] == $customerGroupId
-                && intval($groupPrice['website_id']) === intval($websiteId)
-            ) {
-                unset($prices[$key]);
-            }
-        }
-        if ($groupPriceQty == count($prices)) {
-            throw new NoSuchEntityException(
-                __(
-                    'Product hasn\'t group price with such data: customerGroupId = \'%1\', website = %2.',
-                    [$customerGroupId, $websiteId]
-                )
-            );
-        }
-        $product->setData('group_price', $prices);
-        try {
-            $this->productRepository->save($product);
-        } catch (\Exception $exception) {
-            throw new CouldNotSaveException(__('Invalid data provided for group price'));
-        }
     }
 
     /**

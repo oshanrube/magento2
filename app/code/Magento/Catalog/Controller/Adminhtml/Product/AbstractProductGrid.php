@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Controller\Adminhtml\Product;
@@ -10,7 +10,7 @@ use Magento\Backend\App\Action;
 use Magento\Catalog\Controller\Adminhtml\Product;
 use Magento\Framework\Controller\Result;
 
-class AbstractProductGrid extends Product
+abstract class AbstractProductGrid extends Product
 {
     /**
      * @var \Magento\Framework\View\Result\LayoutFactory

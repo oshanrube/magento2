@@ -1,12 +1,26 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Backend\Block\Cache;
 
+/**
+ * @api
+ * @since 100.0.2
+ */
 class Additional extends \Magento\Backend\Block\Template
 {
+    /**
+     * Check if application is in production mode
+     *
+     * @return bool
+     */
+    public function isInProductionMode()
+    {
+        return $this->_appState->getMode() === \Magento\Framework\App\State::MODE_PRODUCTION;
+    }
+
     /**
      * @return string
      */
@@ -21,5 +35,13 @@ class Additional extends \Magento\Backend\Block\Template
     public function getCleanMediaUrl()
     {
         return $this->getUrl('*/*/cleanMedia');
+    }
+
+    /**
+     * @return string
+     */
+    public function getCleanStaticFilesUrl()
+    {
+        return $this->getUrl('*/*/cleanStaticFiles');
     }
 }

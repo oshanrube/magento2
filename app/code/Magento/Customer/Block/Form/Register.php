@@ -1,12 +1,18 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Customer\Block\Form;
 
+use Magento\Customer\Model\AccountManagement;
+
 /**
  * Customer register form block
+ *
+ * @api
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @since 100.0.2
  */
 class Register extends \Magento\Directory\Block\Data
 {
@@ -26,12 +32,14 @@ class Register extends \Magento\Directory\Block\Data
     protected $_customerUrl;
 
     /**
+     * Constructor
+     *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Directory\Helper\Data $directoryHelper
      * @param \Magento\Framework\Json\EncoderInterface $jsonEncoder
      * @param \Magento\Framework\App\Cache\Type\Config $configCacheType
-     * @param \Magento\Directory\Model\Resource\Region\CollectionFactory $regionCollectionFactory
-     * @param \Magento\Directory\Model\Resource\Country\CollectionFactory $countryCollectionFactory
+     * @param \Magento\Directory\Model\ResourceModel\Region\CollectionFactory $regionCollectionFactory
+     * @param \Magento\Directory\Model\ResourceModel\Country\CollectionFactory $countryCollectionFactory
      * @param \Magento\Framework\Module\Manager $moduleManager
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Customer\Model\Url $customerUrl
@@ -44,8 +52,8 @@ class Register extends \Magento\Directory\Block\Data
         \Magento\Directory\Helper\Data $directoryHelper,
         \Magento\Framework\Json\EncoderInterface $jsonEncoder,
         \Magento\Framework\App\Cache\Type\Config $configCacheType,
-        \Magento\Directory\Model\Resource\Region\CollectionFactory $regionCollectionFactory,
-        \Magento\Directory\Model\Resource\Country\CollectionFactory $countryCollectionFactory,
+        \Magento\Directory\Model\ResourceModel\Region\CollectionFactory $regionCollectionFactory,
+        \Magento\Directory\Model\ResourceModel\Country\CollectionFactory $countryCollectionFactory,
         \Magento\Framework\Module\Manager $moduleManager,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Customer\Model\Url $customerUrl,
@@ -63,7 +71,7 @@ class Register extends \Magento\Directory\Block\Data
             $countryCollectionFactory,
             $data
         );
-        $this->_isScopePrivate = true;
+        $this->_isScopePrivate = false;
     }
 
     /**
@@ -120,7 +128,7 @@ class Register extends \Magento\Directory\Block\Data
         $data = $this->getData('form_data');
         if ($data === null) {
             $formData = $this->_customerSession->getCustomerFormData(true);
-            $data = new \Magento\Framework\Object();
+            $data = new \Magento\Framework\DataObject();
             if ($formData) {
                 $data->addData($formData);
                 $data->setCustomerData(1);
@@ -189,5 +197,27 @@ class Register extends \Magento\Directory\Block\Data
         }
 
         return $this;
+    }
+
+    /**
+     * Get minimum password length
+     *
+     * @return string
+     * @since 100.1.0
+     */
+    public function getMinimumPasswordLength()
+    {
+        return $this->_scopeConfig->getValue(AccountManagement::XML_PATH_MINIMUM_PASSWORD_LENGTH);
+    }
+
+    /**
+     * Get number of password required character classes
+     *
+     * @return string
+     * @since 100.1.0
+     */
+    public function getRequiredCharacterClassesNumber()
+    {
+        return $this->_scopeConfig->getValue(AccountManagement::XML_PATH_REQUIRED_CHARACTER_CLASSES_NUMBER);
     }
 }

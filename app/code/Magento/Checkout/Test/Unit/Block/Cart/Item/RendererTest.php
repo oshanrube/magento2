@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Checkout\Test\Unit\Block\Cart\Item;
@@ -8,13 +8,11 @@ namespace Magento\Checkout\Test\Unit\Block\Cart\Item;
 use Magento\Checkout\Block\Cart\Item\Renderer;
 use Magento\Quote\Model\Quote\Item;
 
-class RendererTest extends \PHPUnit_Framework_TestCase
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
+class RendererTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
-     */
-    protected $_imageHelper;
-
     /**
      * @var Renderer
      */
@@ -25,25 +23,33 @@ class RendererTest extends \PHPUnit_Framework_TestCase
      */
     protected $layout;
 
+    /**
+     * @var \Magento\Catalog\Block\Product\ImageBuilder|\PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $imageBuilder;
+
     protected function setUp()
     {
         $objectManagerHelper = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
 
-        $this->_imageHelper = $this->getMock('Magento\Catalog\Helper\Image', [], [], '', false);
-        $this->layout = $this->getMock('Magento\Framework\View\LayoutInterface');
+        $this->layout = $this->createMock(\Magento\Framework\View\LayoutInterface::class);
 
-        $context = $this->getMockBuilder('Magento\Framework\View\Element\Template\Context')
+        $context = $this->getMockBuilder(\Magento\Framework\View\Element\Template\Context::class)
             ->disableOriginalConstructor()
             ->getMock();
         $context->expects($this->once())
             ->method('getLayout')
             ->will($this->returnValue($this->layout));
 
+        $this->imageBuilder = $this->getMockBuilder(\Magento\Catalog\Block\Product\ImageBuilder::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $this->_renderer = $objectManagerHelper->getObject(
-            'Magento\Checkout\Block\Cart\Item\Renderer',
+            \Magento\Checkout\Block\Cart\Item\Renderer::class,
             [
-                'imageHelper' => $this->_imageHelper,
                 'context' => $context,
+                'imageBuilder' => $this->imageBuilder,
             ]
         );
     }
@@ -55,24 +61,6 @@ class RendererTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($product->getName(), $productForThumbnail->getName(), 'Invalid product was returned.');
     }
 
-    public function testGetProductThumbnail()
-    {
-        $productForThumbnail = $this->_initProduct();
-        /** Ensure that image helper was initialized with correct arguments */
-        $this->_imageHelper->expects(
-            $this->once()
-        )->method(
-            'init'
-        )->with(
-            $productForThumbnail,
-            'thumbnail'
-        )->will(
-            $this->returnSelf()
-        );
-        $productThumbnail = $this->_renderer->getProductThumbnail();
-        $this->assertSame($this->_imageHelper, $productThumbnail, 'Invalid product thumbnail is returned.');
-    }
-
     /**
      * Initialize product.
      *
@@ -81,17 +69,14 @@ class RendererTest extends \PHPUnit_Framework_TestCase
     protected function _initProduct()
     {
         /** @var \Magento\Catalog\Model\Product|\PHPUnit_Framework_MockObject_MockObject $product */
-        $product = $this->getMock(
-            'Magento\Catalog\Model\Product',
-            ['getName', '__wakeup', 'getIdentities'],
-            [],
-            '',
-            false
+        $product = $this->createPartialMock(
+            \Magento\Catalog\Model\Product::class,
+            ['getName', '__wakeup', 'getIdentities']
         );
         $product->expects($this->any())->method('getName')->will($this->returnValue('Parent Product'));
 
         /** @var Item|\PHPUnit_Framework_MockObject_MockObject $item */
-        $item = $this->getMock('Magento\Quote\Model\Quote\Item', [], [], '', false);
+        $item = $this->createMock(\Magento\Quote\Model\Quote\Item::class);
         $item->expects($this->any())->method('getProduct')->will($this->returnValue($product));
 
         $this->_renderer->setItem($item);
@@ -121,11 +106,11 @@ class RendererTest extends \PHPUnit_Framework_TestCase
     public function testGetProductPriceHtml()
     {
         $priceHtml = 'some price html';
-        $product = $this->getMockBuilder('Magento\Catalog\Model\Product')
+        $product = $this->getMockBuilder(\Magento\Catalog\Model\Product::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $priceRender = $this->getMockBuilder('Magento\Framework\Pricing\Render')
+        $priceRender = $this->getMockBuilder(\Magento\Framework\Pricing\Render::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -157,7 +142,7 @@ class RendererTest extends \PHPUnit_Framework_TestCase
         /**
          * @var \Magento\Checkout\Block\Cart\Item\Renderer\Actions|\PHPUnit_Framework_MockObject_MockObject $blockMock
          */
-        $blockMock = $this->getMockBuilder('Magento\Checkout\Block\Cart\Item\Renderer\Actions')
+        $blockMock = $this->getMockBuilder(\Magento\Checkout\Block\Cart\Item\Renderer\Actions::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -173,7 +158,7 @@ class RendererTest extends \PHPUnit_Framework_TestCase
         /**
          * @var Item|\PHPUnit_Framework_MockObject_MockObject $itemMock
          */
-        $itemMock = $this->getMockBuilder('Magento\Quote\Model\Quote\Item')
+        $itemMock = $this->getMockBuilder(\Magento\Quote\Model\Quote\Item::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -197,10 +182,45 @@ class RendererTest extends \PHPUnit_Framework_TestCase
         /**
          * @var Item|\PHPUnit_Framework_MockObject_MockObject $itemMock
          */
-        $itemMock = $this->getMockBuilder('Magento\Quote\Model\Quote\Item')
+        $itemMock = $this->getMockBuilder(\Magento\Quote\Model\Quote\Item::class)
             ->disableOriginalConstructor()
             ->getMock();
 
         $this->assertEquals('', $this->_renderer->getActions($itemMock));
+    }
+
+    public function testGetImage()
+    {
+        $imageId = 'test_image_id';
+        $attributes = [];
+
+        $productMock = $this->getMockBuilder(\Magento\Catalog\Model\Product::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $imageMock = $this->getMockBuilder(\Magento\Catalog\Block\Product\Image::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->imageBuilder->expects($this->once())
+            ->method('setProduct')
+            ->with($productMock)
+            ->willReturnSelf();
+        $this->imageBuilder->expects($this->once())
+            ->method('setImageId')
+            ->with($imageId)
+            ->willReturnSelf();
+        $this->imageBuilder->expects($this->once())
+            ->method('setAttributes')
+            ->with($attributes)
+            ->willReturnSelf();
+        $this->imageBuilder->expects($this->once())
+            ->method('create')
+            ->willReturn($imageMock);
+
+        $this->assertInstanceOf(
+            \Magento\Catalog\Block\Product\Image::class,
+            $this->_renderer->getImage($productMock, $imageId, $attributes)
+        );
     }
 }

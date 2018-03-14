@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Webapi\Controller;
@@ -10,6 +10,9 @@ use Magento\Framework\Exception\NoSuchEntityException;
 
 class PathProcessor
 {
+    /**  Store code alias to indicate that all stores should be affected by action */
+    const ALL_STORE_CODE = 'all';
+
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
@@ -52,8 +55,10 @@ class PathProcessor
         if (isset($stores[$storeCode])) {
             $this->storeManager->setCurrentStore($storeCode);
             $path = '/' . (isset($pathParts[1]) ? $pathParts[1] : '');
+        } elseif ($storeCode === self::ALL_STORE_CODE) {
+            $this->storeManager->setCurrentStore(\Magento\Store\Model\Store::ADMIN_CODE);
+            $path = '/' . (isset($pathParts[1]) ? $pathParts[1] : '');
         } else {
-            $this->storeManager->setCurrentStore(\Magento\Store\Model\Store::DEFAULT_CODE);
             $path = '/' . implode('/', $pathParts);
         }
         return $path;

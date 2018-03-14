@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Quote\Model\Quote\Item;
 
 use Magento\Catalog\Model\ProductFactory;
 use Magento\Framework\Locale\FormatInterface;
-use Magento\Framework\Object\Factory as ObjectFactory;
+use Magento\Framework\DataObject\Factory as ObjectFactory;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Item;
 use Zend\Code\Exception\InvalidArgumentException;
@@ -33,18 +33,29 @@ class Updater
     protected $objectFactory;
 
     /**
+     * Serializer interface instance.
+     *
+     * @var \Magento\Framework\Serialize\Serializer\Json
+     */
+    private $serializer;
+
+    /**
      * @param ProductFactory $productFactory
      * @param FormatInterface $localeFormat
      * @param ObjectFactory $objectFactory
+     * @param \Magento\Framework\Serialize\Serializer\Json|null $serializer
      */
     public function __construct(
         ProductFactory $productFactory,
         FormatInterface $localeFormat,
-        ObjectFactory $objectFactory
+        ObjectFactory $objectFactory,
+        \Magento\Framework\Serialize\Serializer\Json $serializer = null
     ) {
         $this->productFactory = $productFactory;
         $this->localeFormat = $localeFormat;
         $this->objectFactory = $objectFactory;
+        $this->serializer = $serializer ?: \Magento\Framework\App\ObjectManager::getInstance()
+            ->get(\Magento\Framework\Serialize\Serializer\Json::class);
     }
 
     /**
@@ -94,17 +105,17 @@ class Updater
      *
      * @param array $info
      * @param Item $item
-     * @return array
+     * @return void
      */
     protected function setCustomPrice(array $info, Item $item)
     {
         $itemPrice = $this->parseCustomPrice($info['custom_price']);
-        /** @var \Magento\Framework\Object $infoBuyRequest */
+        /** @var \Magento\Framework\DataObject $infoBuyRequest */
         $infoBuyRequest = $item->getBuyRequest();
         if ($infoBuyRequest) {
             $infoBuyRequest->setCustomPrice($itemPrice);
 
-            $infoBuyRequest->setValue(serialize($infoBuyRequest->getData()));
+            $infoBuyRequest->setValue($this->serializer->serialize($infoBuyRequest->getData()));
             $infoBuyRequest->setCode('info_buyRequest');
             $infoBuyRequest->setProduct($item->getProduct());
 
@@ -123,12 +134,12 @@ class Updater
      */
     protected function unsetCustomPrice(Item $item)
     {
-        /** @var \Magento\Framework\Object $infoBuyRequest */
+        /** @var \Magento\Framework\DataObject $infoBuyRequest */
         $infoBuyRequest = $item->getBuyRequest();
         if ($infoBuyRequest->hasData('custom_price')) {
             $infoBuyRequest->unsetData('custom_price');
 
-            $infoBuyRequest->setValue(serialize($infoBuyRequest->getData()));
+            $infoBuyRequest->setValue($this->serializer->serialize($infoBuyRequest->getData()));
             $infoBuyRequest->setCode('info_buyRequest');
             $infoBuyRequest->setProduct($item->getProduct());
             $item->addOption($infoBuyRequest);

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Multishipping\Controller\Checkout;
@@ -12,6 +12,8 @@ use Magento\Framework\Exception\PaymentException;
 
 /**
  * Class OverviewPost
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class OverviewPost extends \Magento\Multishipping\Controller\Checkout
 {
@@ -26,12 +28,18 @@ class OverviewPost extends \Magento\Multishipping\Controller\Checkout
     protected $logger;
 
     /**
+     * @var \Magento\Checkout\Api\AgreementsValidatorInterface
+     */
+    protected $agreementsValidator;
+
+    /**
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Customer\Model\Session $customerSession
      * @param CustomerRepositoryInterface $customerRepository
      * @param AccountManagementInterface $accountManagement
      * @param \Magento\Framework\Data\Form\FormKey\Validator $formKeyValidator
      * @param \Psr\Log\LoggerInterface $logger
+     * @param \Magento\Checkout\Api\AgreementsValidatorInterface $agreementValidator
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -39,10 +47,12 @@ class OverviewPost extends \Magento\Multishipping\Controller\Checkout
         CustomerRepositoryInterface $customerRepository,
         AccountManagementInterface $accountManagement,
         \Magento\Framework\Data\Form\FormKey\Validator $formKeyValidator,
-        \Psr\Log\LoggerInterface $logger
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Checkout\Api\AgreementsValidatorInterface $agreementValidator
     ) {
         $this->formKeyValidator = $formKeyValidator;
         $this->logger = $logger;
+        $this->agreementsValidator = $agreementValidator;
         parent::__construct(
             $context,
             $customerSession,
@@ -68,8 +78,7 @@ class OverviewPost extends \Magento\Multishipping\Controller\Checkout
         }
 
         try {
-            $agreementsValidator = $this->_objectManager->get('Magento\Checkout\Model\Agreements\AgreementsValidator');
-            if (!$agreementsValidator->isValid(array_keys($this->getRequest()->getPost('agreement', [])))) {
+            if (!$this->agreementsValidator->isValid(array_keys($this->getRequest()->getPost('agreement', [])))) {
                 $this->messageManager->addError(
                     __('Please agree to all Terms and Conditions before placing the order.')
                 );
@@ -99,7 +108,7 @@ class OverviewPost extends \Magento\Multishipping\Controller\Checkout
             $this->_redirect('*/*/billing');
         } catch (\Magento\Checkout\Exception $e) {
             $this->_objectManager->get(
-                'Magento\Checkout\Helper\Data'
+                \Magento\Checkout\Helper\Data::class
             )->sendPaymentFailedEmail(
                 $this->_getCheckout()->getQuote(),
                 $e->getMessage(),
@@ -110,7 +119,7 @@ class OverviewPost extends \Magento\Multishipping\Controller\Checkout
             $this->_redirect('*/cart');
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
             $this->_objectManager->get(
-                'Magento\Checkout\Helper\Data'
+                \Magento\Checkout\Helper\Data::class
             )->sendPaymentFailedEmail(
                 $this->_getCheckout()->getQuote(),
                 $e->getMessage(),
@@ -122,7 +131,7 @@ class OverviewPost extends \Magento\Multishipping\Controller\Checkout
             $this->logger->critical($e);
             try {
                 $this->_objectManager->get(
-                    'Magento\Checkout\Helper\Data'
+                    \Magento\Checkout\Helper\Data::class
                 )->sendPaymentFailedEmail(
                     $this->_getCheckout()->getQuote(),
                     $e->getMessage(),

@@ -1,71 +1,120 @@
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-/*browser:true jquery:true*/
-/*global define*/
-define(
-    [
-        'jquery',
-        'uiComponent',
-        'Magento_Captcha/js/model/captcha',
-        'Magento_Captcha/js/model/captchaList'
-    ],
-    function ($, Component, Captcha, captchaList) {
-        'use strict';
-        var captchaConfig;
 
-        return Component.extend({
-            defaults: {
-                template: 'Magento_Captcha/checkout/captcha'
-            },
-            dataScope: 'global',
-            currentCaptcha: null,
-            captchaValue: function() {
-                return this.currentCaptcha.getCaptchaValue();
-            },
-            initialize: function() {
-                this._super();
-                captchaConfig = window[this.configSource]['captcha'];
+define([
+    'jquery',
+    'uiComponent',
+    'Magento_Captcha/js/model/captcha',
+    'Magento_Captcha/js/model/captchaList'
+], function ($, Component, Captcha, captchaList) {
+    'use strict';
 
-                $.each(captchaConfig, function(formId, captchaData) {
+    var captchaConfig;
+
+    return Component.extend({
+        defaults: {
+            template: 'Magento_Captcha/checkout/captcha'
+        },
+        dataScope: 'global',
+        currentCaptcha: null,
+
+        /**
+         * @return {*}
+         */
+        captchaValue: function () {
+            return this.currentCaptcha.getCaptchaValue();
+        },
+
+        /** @inheritdoc */
+        initialize: function () {
+            this._super();
+
+            if (window[this.configSource] && window[this.configSource].captcha) {
+                captchaConfig = window[this.configSource].captcha;
+                $.each(captchaConfig, function (formId, captchaData) {
                     captchaData.formId = formId;
                     captchaList.add(Captcha(captchaData));
                 });
-            },
-            getIsLoading: function() {
-                return this.currentCaptcha.isLoading
-            },
-            getCurrentCaptcha: function() {
-                return this.currentCaptcha;
-            },
-            setCurrentCaptcha: function(captcha) {
-                this.currentCaptcha = captcha;
-            },
-            getFormId: function() {
-                return this.currentCaptcha.getFormId();
-            },
-            getIsVisible: function() {
-                return this.currentCaptcha.getIsVisible();
-            },
-            setIsVisible: function(flag) {
-                this.currentCaptcha.setIsVisible(flag);
-            },
-            isRequired: function() {
-                return this.currentCaptcha.getIsRequired();
-            },
-            isCaseSensitive: function() {
-                return this.currentCaptcha.getIsCaseSensitive();
-            },
-            imageHeight: function() {
-                return this.currentCaptcha.getImageHeight();
-            },
-            getImageSource: function () {
-                return this.currentCaptcha.getImageSource();
-            },
-            refresh: function() {
-                this.currentCaptcha.refresh();
             }
-        });
-    }
-);
+        },
+
+        /**
+         * @return {Boolean}
+         */
+        getIsLoading: function () {
+            return this.currentCaptcha !== null ? this.currentCaptcha.isLoading : false;
+        },
+
+        /**
+         * @return {null|Object}
+         */
+        getCurrentCaptcha: function () {
+            return this.currentCaptcha;
+        },
+
+        /**
+         * @param {Object} captcha
+         */
+        setCurrentCaptcha: function (captcha) {
+            this.currentCaptcha = captcha;
+        },
+
+        /**
+         * @return {String|null}
+         */
+        getFormId: function () {
+            return this.currentCaptcha !== null ? this.currentCaptcha.getFormId() : null;
+        },
+
+        /**
+         * @return {Boolean}
+         */
+        getIsVisible: function () {
+            return this.currentCaptcha !== null ? this.currentCaptcha.getIsVisible() : false;
+        },
+
+        /**
+         * @param {Boolean} flag
+         */
+        setIsVisible: function (flag) {
+            this.currentCaptcha.setIsVisible(flag);
+        },
+
+        /**
+         * @return {Boolean}
+         */
+        isRequired: function () {
+            return this.currentCaptcha !== null ? this.currentCaptcha.getIsRequired() : false;
+        },
+
+        /**
+         * @return {Boolean}
+         */
+        isCaseSensitive: function () {
+            return this.currentCaptcha !== null ? this.currentCaptcha.getIsCaseSensitive() : false;
+        },
+
+        /**
+         * @return {String|Number|null}
+         */
+        imageHeight: function () {
+            return this.currentCaptcha !== null ? this.currentCaptcha.getImageHeight() : null;
+        },
+
+        /**
+         * @return {String|null}
+         */
+        getImageSource: function () {
+            return this.currentCaptcha !== null ? this.currentCaptcha.getImageSource() : null;
+        },
+
+        /**
+         * Refresh captcha.
+         */
+        refresh: function () {
+            this.currentCaptcha.refresh();
+        }
+    });
+});

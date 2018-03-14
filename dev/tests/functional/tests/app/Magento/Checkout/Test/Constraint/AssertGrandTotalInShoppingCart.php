@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -21,11 +21,15 @@ class AssertGrandTotalInShoppingCart extends AbstractConstraint
      *
      * @param CheckoutCart $checkoutCart
      * @param Cart $cart
+     * @param boolean $requireReload
      * @return void
      */
-    public function processAssert(CheckoutCart $checkoutCart, Cart $cart)
+    public function processAssert(CheckoutCart $checkoutCart, Cart $cart, $requireReload = true)
     {
-        $checkoutCart->open();
+        if ($requireReload) {
+            $checkoutCart->open();
+            $checkoutCart->getTotalsBlock()->waitForUpdatedTotals();
+        }
 
         $fixtureGrandTotal = number_format($cart->getGrandTotal(), 2);
         $pageGrandTotal = $checkoutCart->getTotalsBlock()->getGrandTotal();

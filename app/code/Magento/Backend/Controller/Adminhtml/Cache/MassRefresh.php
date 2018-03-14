@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Backend\Controller\Adminhtml\Cache;
@@ -11,6 +11,13 @@ use Magento\Framework\Controller\ResultFactory;
 
 class MassRefresh extends \Magento\Backend\Controller\Adminhtml\Cache
 {
+    /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Magento_Backend::refresh_cache_type';
+
     /**
      * Mass action for cache refresh
      *
@@ -27,7 +34,6 @@ class MassRefresh extends \Magento\Backend\Controller\Adminhtml\Cache
             $this->_validateTypes($types);
             foreach ($types as $type) {
                 $this->_cacheTypeList->cleanType($type);
-                $this->_eventManager->dispatch('adminhtml_cache_refresh_type', ['type' => $type]);
                 $updatedTypes++;
             }
             if ($updatedTypes > 0) {

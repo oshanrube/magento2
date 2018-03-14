@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -9,8 +9,13 @@
  */
 namespace Magento\Persistent\Helper;
 
+use Magento\Framework\Module\Dir;
 use Magento\Store\Model\ScopeInterface;
 
+/**
+ * @api
+ * @since 100.0.2
+ */
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
     const XML_PATH_ENABLED = 'persistent/options/enabled';
@@ -64,6 +69,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @param int|string|\Magento\Store\Model\Store $store
      * @return bool
+     * @codeCoverageIgnore
      */
     public function isEnabled($store = null)
     {
@@ -79,6 +85,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @param int|string|\Magento\Store\Model\Store $store
      * @return bool
+     * @codeCoverageIgnore
      */
     public function isRememberMeEnabled($store = null)
     {
@@ -94,6 +101,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @param int|string|\Magento\Store\Model\Store $store
      * @return bool
+     * @codeCoverageIgnore
      */
     public function isRememberMeCheckedDefault($store = null)
     {
@@ -109,6 +117,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @param int|string|\Magento\Store\Model\Store $store
      * @return bool
+     * @codeCoverageIgnore
      */
     public function isShoppingCartPersist($store = null)
     {
@@ -142,6 +151,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      *
      * @return bool
      * @SuppressWarnings(PHPMD.BooleanGetMethodName)
+     * @codeCoverageIgnore
      */
     public function getClearOnLogout()
     {
@@ -155,6 +165,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * Retrieve url for unset long-term cookie
      *
      * @return string
+     * @codeCoverageIgnore
      */
     public function getUnsetCookieUrl()
     {
@@ -168,7 +179,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getPersistentConfigFilePath()
     {
-        return $this->_modulesReader->getModuleDir('etc', $this->_getModuleName()) . '/' . $this->_configFileName;
+        return $this->_modulesReader->getModuleDir(Dir::MODULE_ETC_DIR, $this->_getModuleName())
+        . '/' . $this->_configFileName;
     }
 
     /**
@@ -177,6 +189,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param \Magento\Framework\Event\Observer $observer
      * @return bool
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @codeCoverageIgnore
      */
     public function canProcess($observer)
     {

@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\Integration\Model;
 
-use Magento\Authorization\Model\Resource\Role\CollectionFactory as RoleCollectionFactory;
-use Magento\Authorization\Model\Resource\Rules\CollectionFactory as RulesCollectionFactory;
+use Magento\Authorization\Model\ResourceModel\Role\CollectionFactory as RoleCollectionFactory;
+use Magento\Authorization\Model\ResourceModel\Rules\CollectionFactory as RulesCollectionFactory;
 use Magento\Authorization\Model\Role;
 use Magento\Authorization\Model\RoleFactory;
 use Magento\Authorization\Model\RulesFactory;

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Model\Indexer\Category\Flat\Action;
@@ -16,15 +16,15 @@ class Rows extends \Magento\Catalog\Model\Indexer\Category\Flat\AbstractAction
     protected $categoryRepository;
 
     /**
-     * @param \Magento\Framework\App\Resource $resource
+     * @param \Magento\Framework\App\ResourceConnection $resource
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Catalog\Model\Resource\Helper $resourceHelper
+     * @param \Magento\Catalog\Model\ResourceModel\Helper $resourceHelper
      * @param CategoryRepositoryInterface $categoryRepository
      */
     public function __construct(
-        \Magento\Framework\App\Resource $resource,
+        \Magento\Framework\App\ResourceConnection $resource,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Catalog\Model\Resource\Helper $resourceHelper,
+        \Magento\Catalog\Model\ResourceModel\Helper $resourceHelper,
         CategoryRepositoryInterface $categoryRepository
     ) {
         $this->categoryRepository = $categoryRepository;
@@ -59,7 +59,7 @@ class Rows extends \Magento\Catalog\Model\Indexer\Category\Flat\AbstractAction
         foreach ($stores as $store) {
             $tableName = $this->getTableNameByStore($store, $useTempTable);
 
-            if (!$this->getWriteAdapter()->isTableExists($tableName)) {
+            if (!$this->connection->isTableExists($tableName)) {
                 continue;
             }
 
@@ -95,7 +95,7 @@ class Rows extends \Magento\Catalog\Model\Indexer\Category\Flat\AbstractAction
                     foreach (array_keys($row) as $key) {
                         $updateFields[$key] = $key;
                     }
-                    $this->getWriteAdapter()->insertOnDuplicate($tableName, $row, $updateFields);
+                    $this->connection->insertOnDuplicate($tableName, $row, $updateFields);
                 }
             }
             $this->deleteNonStoreCategories($store, $useTempTable);
@@ -115,25 +115,27 @@ class Rows extends \Magento\Catalog\Model\Indexer\Category\Flat\AbstractAction
     {
         $rootId = \Magento\Catalog\Model\Category::TREE_ROOT_ID;
 
-        $rootIdExpr = $this->getWriteAdapter()->quote((string)$rootId);
-        $rootCatIdExpr = $this->getWriteAdapter()->quote("{$rootId}/{$store->getRootCategoryId()}");
-        $catIdExpr = $this->getWriteAdapter()->quote("{$rootId}/{$store->getRootCategoryId()}/%");
+        $rootIdExpr = $this->connection->quote((string)$rootId);
+        $rootCatIdExpr = $this->connection->quote("{$rootId}/{$store->getRootCategoryId()}");
+        $catIdExpr = $this->connection->quote("{$rootId}/{$store->getRootCategoryId()}/%");
 
         /** @var \Magento\Framework\DB\Select $select */
-        $select = $this->getWriteAdapter()->select()->from(
+        $select = $this->connection->select()->from(
             ['cf' => $this->getTableNameByStore($store, $useTempTable)]
-        )->joinLeft(
-            ['ce' => $this->getTableName('catalog_category_entity')],
-            'cf.path = ce.path',
-            []
         )->where(
             "cf.path = {$rootIdExpr} OR cf.path = {$rootCatIdExpr} OR cf.path like {$catIdExpr}"
         )->where(
-            'ce.entity_id IS NULL'
+            'cf.entity_id NOT IN (?)',
+            new \Zend_Db_Expr(
+                $this->connection->select()->from(
+                    ['ce' => $this->getTableName('catalog_category_entity')],
+                    ['entity_id']
+                )
+            )
         );
 
         $sql = $select->deleteFromSelect('cf');
-        $this->getWriteAdapter()->query($sql);
+        $this->connection->query($sql);
     }
 
     /**
@@ -147,22 +149,22 @@ class Rows extends \Magento\Catalog\Model\Indexer\Category\Flat\AbstractAction
     {
         $rootId = \Magento\Catalog\Model\Category::TREE_ROOT_ID;
 
-        $rootIdExpr = $this->getReadAdapter()->quote((string)$rootId);
-        $rootCatIdExpr = $this->getReadAdapter()->quote("{$rootId}/{$store->getRootCategoryId()}");
-        $catIdExpr = $this->getReadAdapter()->quote("{$rootId}/{$store->getRootCategoryId()}/%");
+        $rootIdExpr = $this->connection->quote((string)$rootId);
+        $rootCatIdExpr = $this->connection->quote("{$rootId}/{$store->getRootCategoryId()}");
+        $catIdExpr = $this->connection->quote("{$rootId}/{$store->getRootCategoryId()}/%");
 
-        $select = $this->getReadAdapter()->select()->from(
+        $select = $this->connection->select()->from(
             $this->getTableName('catalog_category_entity'),
             ['entity_id']
         )->where(
             "path = {$rootIdExpr} OR path = {$rootCatIdExpr} OR path like {$catIdExpr}"
         )->where(
-            'entity_id IN (?)',
+            "entity_id IN (?)",
             $ids
         );
 
         $resultIds = [];
-        foreach ($this->getReadAdapter()->fetchAll($select) as $category) {
+        foreach ($this->connection->fetchAll($select) as $category) {
             $resultIds[] = $category['entity_id'];
         }
         return $resultIds;

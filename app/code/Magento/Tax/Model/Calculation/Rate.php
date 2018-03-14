@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -16,8 +16,6 @@ use Magento\Tax\Api\Data\TaxRateInterface;
 /**
  * Tax Rate Model
  *
- * @method \Magento\Tax\Model\Resource\Calculation\Rate _getResource()
- * @method \Magento\Tax\Model\Resource\Calculation\Rate getResource()
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Rate extends \Magento\Framework\Model\AbstractExtensibleModel implements TaxRateInterface
@@ -38,11 +36,7 @@ class Rate extends \Magento\Framework\Model\AbstractExtensibleModel implements T
     const KEY_TITLES          = 'titles';
     /**#@-*/
 
-    /**
-     * List of tax titles
-     *
-     * @var array
-     */
+    /**#@-*/
     protected $_titles = null;
 
     /**
@@ -72,7 +66,7 @@ class Rate extends \Magento\Framework\Model\AbstractExtensibleModel implements T
      * @param \Magento\Directory\Model\RegionFactory $regionFactory
      * @param Rate\TitleFactory $taxTitleFactory
      * @param Region $directoryRegion
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -85,7 +79,7 @@ class Rate extends \Magento\Framework\Model\AbstractExtensibleModel implements T
         \Magento\Directory\Model\RegionFactory $regionFactory,
         \Magento\Tax\Model\Calculation\Rate\TitleFactory $taxTitleFactory,
         Region $directoryRegion,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
@@ -110,7 +104,7 @@ class Rate extends \Magento\Framework\Model\AbstractExtensibleModel implements T
      */
     protected function _construct()
     {
-        $this->_init('Magento\Tax\Model\Resource\Calculation\Rate');
+        $this->_init(\Magento\Tax\Model\ResourceModel\Calculation\Rate::class);
     }
 
     /**
@@ -400,6 +394,7 @@ class Rate extends \Magento\Framework\Model\AbstractExtensibleModel implements T
     {
         return $this->getData(self::KEY_ZIP_IS_RANGE);
     }
+
     /**
      * Set country id
      *
@@ -509,6 +504,7 @@ class Rate extends \Magento\Framework\Model\AbstractExtensibleModel implements T
     {
         return $this->setData(self::KEY_TITLES, $titles);
     }
+
     // @codeCoverageIgnoreEnd
 
     /**

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -8,17 +8,24 @@
 
 namespace Magento\Payment\Model\Method;
 
+use Magento\Framework\DataObject;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Payment\Model\MethodInterface;
-use Magento\Sales\Model\Order\Invoice;
-use Magento\Sales\Model\Order\Payment;
+use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Magento\Quote\Api\Data\PaymentMethodInterface;
+use Magento\Sales\Model\Order\Payment;
 
 /**
  * Payment method abstract model
+ *
+ * @api
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @deprecated 100.0.6
+ * @see \Magento\Payment\Model\Method\Adapter
+ * @see http://devdocs.magento.com/guides/v2.1/payments-integrations/payment-gateway/payment-gateway-intro.html
+ * @since 100.0.2
  */
 abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibleModel implements
     MethodInterface,
@@ -57,6 +64,8 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
 
     const CHECK_ZERO_TOTAL = 'zero_total';
 
+    const GROUP_OFFLINE = 'offline';
+
     /**
      * @var string
      */
@@ -65,12 +74,12 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
     /**
      * @var string
      */
-    protected $_formBlockType = 'Magento\Payment\Block\Form';
+    protected $_formBlockType = \Magento\Payment\Block\Form::class;
 
     /**
      * @var string
      */
-    protected $_infoBlockType = 'Magento\Payment\Block\Info';
+    protected $_infoBlockType = \Magento\Payment\Block\Info::class;
 
     /**
      * Payment Method feature
@@ -218,7 +227,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * @param \Magento\Payment\Helper\Data $paymentData
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param Logger $logger
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -231,7 +240,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
         \Magento\Payment\Helper\Data $paymentData,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Payment\Model\Method\Logger $logger,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
@@ -265,6 +274,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
 
     /**
      * {inheritdoc}
+     * @deprecated 100.2.0
      */
     public function setStore($storeId)
     {
@@ -273,6 +283,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
 
     /**
      * {inheritdoc}
+     * @deprecated 100.2.0
      */
     public function getStore()
     {
@@ -284,6 +295,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return bool
      * @api
+     * @deprecated 100.2.0
      */
     public function canOrder()
     {
@@ -295,6 +307,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return bool
      * @api
+     * @deprecated 100.2.0
      */
     public function canAuthorize()
     {
@@ -306,6 +319,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return bool
      * @api
+     * @deprecated 100.2.0
      */
     public function canCapture()
     {
@@ -317,6 +331,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return bool
      * @api
+     * @deprecated 100.2.0
      */
     public function canCapturePartial()
     {
@@ -328,6 +343,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return bool
      * @api
+     * @deprecated 100.2.0
      */
     public function canCaptureOnce()
     {
@@ -339,6 +355,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return bool
      * @api
+     * @deprecated 100.2.0
      */
     public function canRefund()
     {
@@ -350,6 +367,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return bool
      * @api
+     * @deprecated 100.2.0
      */
     public function canRefundPartialPerInvoice()
     {
@@ -359,8 +377,9 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
     /**
      * Check void availability
      * @return bool
-     * @internal param \Magento\Framework\Object $payment
+     * @internal param \Magento\Framework\DataObject $payment
      * @api
+     * @deprecated 100.2.0
      */
     public function canVoid()
     {
@@ -372,6 +391,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * Can be used in admin
      *
      * @return bool
+     * @deprecated 100.2.0
      */
     public function canUseInternal()
     {
@@ -382,6 +402,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * Can be used in regular checkout
      *
      * @return bool
+     * @deprecated 100.2.0
      */
     public function canUseCheckout()
     {
@@ -393,6 +414,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return bool
      * @api
+     * @deprecated 100.2.0
      */
     public function canEdit()
     {
@@ -404,6 +426,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return bool
      * @api
+     * @deprecated 100.2.0
      */
     public function canFetchTransactionInfo()
     {
@@ -418,6 +441,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * @return array
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      * @api
+     * @deprecated 100.2.0
      */
     public function fetchTransactionInfo(InfoInterface $payment, $transactionId)
     {
@@ -429,6 +453,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return bool
      * @api
+     * @deprecated 100.2.0
      */
     public function isGateway()
     {
@@ -440,6 +465,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return bool
      * @api
+     * @deprecated 100.2.0
      */
     public function isOffline()
     {
@@ -451,6 +477,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return bool
      * @api
+     * @deprecated 100.2.0
      */
     public function isInitializeNeeded()
     {
@@ -462,6 +489,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @param string $country
      * @return bool
+     * @deprecated 100.2.0
      */
     public function canUseForCountry($country)
     {
@@ -483,6 +511,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * @param string $currencyCode
      * @return bool
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @deprecated 100.2.0
      */
     public function canUseForCurrency($currencyCode)
     {
@@ -494,6 +523,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return string
      * @throws \Magento\Framework\Exception\LocalizedException
+     * @deprecated 100.2.0
      */
     public function getCode()
     {
@@ -507,6 +537,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * Retrieve block type for method form generation
      *
      * @return string
+     * @deprecated 100.2.0
      */
     public function getFormBlockType()
     {
@@ -518,6 +549,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return string
      * @api
+     * @deprecated 100.2.0
      */
     public function getInfoBlockType()
     {
@@ -530,6 +562,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * @return InfoInterface
      * @throws \Magento\Framework\Exception\LocalizedException
      * @api
+     * @deprecated 100.2.0
      */
     public function getInfoInstance()
     {
@@ -546,6 +579,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * @param InfoInterface $info
      * @return void
      * @api
+     * @deprecated 100.2.0
      */
     public function setInfoInstance(InfoInterface $info)
     {
@@ -558,6 +592,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      * @api
+     * @deprecated 100.2.0
      */
     public function validate()
     {
@@ -581,12 +616,13 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
     /**
      * Order payment abstract method
      *
-     * @param \Magento\Framework\Object|InfoInterface $payment
+     * @param \Magento\Framework\DataObject|InfoInterface $payment
      * @param float $amount
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      * @api
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @deprecated 100.2.0
      */
     public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -599,12 +635,13 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
     /**
      * Authorize payment abstract method
      *
-     * @param \Magento\Framework\Object|InfoInterface $payment
+     * @param \Magento\Framework\DataObject|InfoInterface $payment
      * @param float $amount
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      * @api
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @deprecated 100.2.0
      */
     public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -617,12 +654,13 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
     /**
      * Capture payment abstract method
      *
-     * @param \Magento\Framework\Object|InfoInterface $payment
+     * @param \Magento\Framework\DataObject|InfoInterface $payment
      * @param float $amount
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      * @api
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @deprecated 100.2.0
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -636,12 +674,13 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
     /**
      * Refund specified amount for payment
      *
-     * @param \Magento\Framework\Object|InfoInterface $payment
+     * @param \Magento\Framework\DataObject|InfoInterface $payment
      * @param float $amount
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      * @api
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @deprecated 100.2.0
      */
     public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -654,10 +693,11 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
     /**
      * Cancel payment abstract method
      *
-     * @param \Magento\Framework\Object|InfoInterface $payment
+     * @param \Magento\Framework\DataObject|InfoInterface $payment
      * @return $this
      * @api
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @deprecated 100.2.0
      */
     public function cancel(\Magento\Payment\Model\InfoInterface $payment)
     {
@@ -667,11 +707,12 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
     /**
      * Void payment abstract method
      *
-     * @param \Magento\Framework\Object|InfoInterface $payment
+     * @param \Magento\Framework\DataObject|InfoInterface $payment
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      * @api
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @deprecated 100.2.0
      */
     public function void(\Magento\Payment\Model\InfoInterface $payment)
     {
@@ -685,6 +726,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * Whether this method can accept or deny payment
      * @return bool
      * @api
+     * @deprecated 100.2.0
      */
     public function canReviewPayment()
     {
@@ -699,6 +741,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * @throws \Magento\Framework\Exception\LocalizedException
      * @api
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @deprecated 100.2.0
      */
     public function acceptPayment(InfoInterface $payment)
     {
@@ -716,6 +759,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * @throws \Magento\Framework\Exception\LocalizedException
      * @api
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @deprecated 100.2.0
      */
     public function denyPayment(InfoInterface $payment)
     {
@@ -729,6 +773,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * Retrieve payment method title
      *
      * @return string
+     * @deprecated 100.2.0
      */
     public function getTitle()
     {
@@ -742,6 +787,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * @param int|string|null|\Magento\Store\Model\Store $storeId
      *
      * @return mixed
+     * @deprecated 100.2.0
      */
     public function getConfigData($field, $storeId = null)
     {
@@ -758,17 +804,32 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
     /**
      * Assign data to info model instance
      *
-     * @param array|\Magento\Framework\Object $data
+     * @param array|\Magento\Framework\DataObject $data
      * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
      * @api
+     * @deprecated 100.2.0
      */
-    public function assignData($data)
+    public function assignData(\Magento\Framework\DataObject $data)
     {
-        if (is_array($data)) {
-            $this->getInfoInstance()->addData($data);
-        } elseif ($data instanceof \Magento\Framework\Object) {
-            $this->getInfoInstance()->addData($data->getData());
-        }
+        $this->_eventManager->dispatch(
+            'payment_method_assign_data_' . $this->getCode(),
+            [
+                AbstractDataAssignObserver::METHOD_CODE => $this,
+                AbstractDataAssignObserver::MODEL_CODE => $this->getInfoInstance(),
+                AbstractDataAssignObserver::DATA_CODE => $data
+            ]
+        );
+
+        $this->_eventManager->dispatch(
+            'payment_method_assign_data',
+            [
+                AbstractDataAssignObserver::METHOD_CODE => $this,
+                AbstractDataAssignObserver::MODEL_CODE => $this->getInfoInstance(),
+                AbstractDataAssignObserver::DATA_CODE => $data
+            ]
+        );
+
         return $this;
     }
 
@@ -777,13 +838,17 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @param \Magento\Quote\Api\Data\CartInterface|null $quote
      * @return bool
+     * @deprecated 100.2.0
      */
-    public function isAvailable($quote = null)
+    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
-        $checkResult = new \StdClass();
-        $isActive = $this->isActive($quote ? $quote->getStoreId() : null);
-        $checkResult->isAvailable = $isActive;
-        $checkResult->isDeniedInConfig = !$isActive;
+        if (!$this->isActive($quote ? $quote->getStoreId() : null)) {
+            return false;
+        }
+
+        $checkResult = new DataObject();
+        $checkResult->setData('is_available', true);
+
         // for future use in observers
         $this->_eventManager->dispatch(
             'payment_method_is_active',
@@ -794,7 +859,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
             ]
         );
 
-        return $checkResult->isAvailable;
+        return $checkResult->getData('is_available');
     }
 
     /**
@@ -802,6 +867,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @param int|null $storeId
      * @return bool
+     * @deprecated 100.2.0
      */
     public function isActive($storeId = null)
     {
@@ -818,6 +884,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * @return $this
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      * @api
+     * @deprecated 100.2.0
      */
     public function initialize($paymentAction, $stateObject)
     {
@@ -830,6 +897,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @return string
      * @api
+     * @deprecated 100.2.0
      */
     public function getConfigPaymentAction()
     {
@@ -841,6 +909,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      *
      * @param array $debugData
      * @return void
+     * @deprecated 100.2.0
      */
     protected function _debug($debugData)
     {
@@ -857,6 +926,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * @return bool
      * @SuppressWarnings(PHPMD.BooleanGetMethodName)
      * @api
+     * @deprecated 100.2.0
      */
     public function getDebugFlag()
     {
@@ -869,6 +939,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * @param mixed $debugData
      * @return void
      * @api
+     * @deprecated 100.2.0
      */
     public function debugData($debugData)
     {
@@ -879,6 +950,7 @@ abstract class AbstractMethod extends \Magento\Framework\Model\AbstractExtensibl
      * Return replace keys for debug data
      *
      * @return array
+     * @deprecated 100.2.0
      */
     public function getDebugReplacePrivateDataKeys()
     {

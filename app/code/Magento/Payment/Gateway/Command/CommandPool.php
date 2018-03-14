@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Payment\Gateway\Command;
@@ -10,6 +10,11 @@ use Magento\Payment\Gateway\CommandInterface;
 use Magento\Framework\Exception\NotFoundException;
 use Magento\Framework\ObjectManager\TMapFactory;
 
+/**
+ * Class CommandPool
+ * @api
+ * @since 100.0.2
+ */
 class CommandPool implements CommandPoolInterface
 {
     /**
@@ -18,17 +23,17 @@ class CommandPool implements CommandPoolInterface
     private $commands;
 
     /**
-     * @param array $commands
      * @param TMapFactory $tmapFactory
+     * @param array $commands
      */
     public function __construct(
-        array $commands,
-        TMapFactory $tmapFactory
+        TMapFactory $tmapFactory,
+        array $commands = []
     ) {
         $this->commands = $tmapFactory->create(
             [
                 'array' => $commands,
-                'type' => 'Magento\Payment\Gateway\CommandInterface'
+                'type' => CommandInterface::class
             ]
         );
     }

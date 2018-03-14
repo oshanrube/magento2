@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -8,11 +8,12 @@ namespace Magento\Indexer\Setup;
 
 use Magento\Framework\Encryption\Encryptor;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Indexer\StateInterface;
 use Magento\Framework\Json\EncoderInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
-use Magento\Indexer\Model\ConfigInterface;
-use Magento\Indexer\Model\Resource\Indexer\State\CollectionFactory;
+use Magento\Framework\Indexer\ConfigInterface;
+use Magento\Indexer\Model\ResourceModel\Indexer\State\CollectionFactory;
 use Magento\Indexer\Model\Indexer\State;
 use Magento\Indexer\Model\Indexer\StateFactory;
 use Magento\Framework\Setup\InstallDataInterface;
@@ -100,7 +101,7 @@ class InstallData implements InstallDataInterface
                 $state = $this->stateFactory->create();
                 $state->loadByIndexer($indexerId);
                 $state->setHashConfig($hash);
-                $state->setStatus(State::STATUS_INVALID);
+                $state->setStatus(StateInterface::STATUS_INVALID);
                 $state->save();
             }
         }

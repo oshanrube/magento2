@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -121,6 +121,8 @@ class GroupManagement implements \Magento\Customer\Api\GroupManagementInterface
                 $storeId
             );
         } catch (\Magento\Framework\Exception\State\InitException $e) {
+            throw NoSuchEntityException::singleField('storeId', $storeId);
+        } catch (NoSuchEntityException $e) {
             throw NoSuchEntityException::singleField('storeId', $storeId);
         }
         try {

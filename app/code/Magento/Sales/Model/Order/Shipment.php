@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Sales\Model\Order;
@@ -13,8 +13,7 @@ use Magento\Sales\Model\EntityInterface;
 /**
  * Sales order shipment model
  *
- * @method \Magento\Sales\Model\Resource\Order\Shipment _getResource()
- * @method \Magento\Sales\Model\Resource\Order\Shipment getResource()
+ * @api
  * @method \Magento\Sales\Model\Order\Invoice setSendEmail(bool $value)
  * @method \Magento\Sales\Model\Order\Invoice setCustomerNote(string $value)
  * @method string getCustomerNote()
@@ -22,6 +21,7 @@ use Magento\Sales\Model\EntityInterface;
  * @method bool getCustomerNoteNotify()
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  * @SuppressWarnings(PHPMD.ExcessivePublicCount)
+ * @since 100.0.2
  */
 class Shipment extends AbstractModel implements EntityInterface, ShipmentInterface
 {
@@ -69,17 +69,12 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
     protected $_eventObject = 'shipment';
 
     /**
-     * @var \Magento\Sales\Model\OrderFactory
-     */
-    protected $_orderFactory;
-
-    /**
-     * @var \Magento\Sales\Model\Resource\Order\Shipment\Item\CollectionFactory
+     * @var \Magento\Sales\Model\ResourceModel\Order\Shipment\Item\CollectionFactory
      */
     protected $_shipmentItemCollectionFactory;
 
     /**
-     * @var \Magento\Sales\Model\Resource\Order\Shipment\Track\CollectionFactory
+     * @var \Magento\Sales\Model\ResourceModel\Order\Shipment\Track\CollectionFactory
      */
     protected $_trackCollectionFactory;
 
@@ -89,21 +84,31 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
     protected $_commentFactory;
 
     /**
-     * @var \Magento\Sales\Model\Resource\Order\Shipment\Comment\CollectionFactory
+     * @var \Magento\Sales\Model\ResourceModel\Order\Shipment\Comment\CollectionFactory
      */
     protected $_commentCollectionFactory;
+
+    /**
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     */
+    protected $orderRepository;
+
+    /**
+     * @var \Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection|null
+     */
+    private $tracksCollection = null;
 
     /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
      * @param AttributeValueFactory $customAttributeFactory
-     * @param \Magento\Sales\Model\OrderFactory $orderFactory
-     * @param \Magento\Sales\Model\Resource\Order\Shipment\Item\CollectionFactory $shipmentItemCollectionFactory
-     * @param \Magento\Sales\Model\Resource\Order\Shipment\Track\CollectionFactory $trackCollectionFactory
+     * @param \Magento\Sales\Model\ResourceModel\Order\Shipment\Item\CollectionFactory $shipmentItemCollectionFactory
+     * @param \Magento\Sales\Model\ResourceModel\Order\Shipment\Track\CollectionFactory $trackCollectionFactory
      * @param Shipment\CommentFactory $commentFactory
-     * @param \Magento\Sales\Model\Resource\Order\Shipment\Comment\CollectionFactory $commentCollectionFactory
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
+     * @param \Magento\Sales\Model\ResourceModel\Order\Shipment\Comment\CollectionFactory $commentCollectionFactory
+     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -113,20 +118,20 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
         AttributeValueFactory $customAttributeFactory,
-        \Magento\Sales\Model\OrderFactory $orderFactory,
-        \Magento\Sales\Model\Resource\Order\Shipment\Item\CollectionFactory $shipmentItemCollectionFactory,
-        \Magento\Sales\Model\Resource\Order\Shipment\Track\CollectionFactory $trackCollectionFactory,
+        \Magento\Sales\Model\ResourceModel\Order\Shipment\Item\CollectionFactory $shipmentItemCollectionFactory,
+        \Magento\Sales\Model\ResourceModel\Order\Shipment\Track\CollectionFactory $trackCollectionFactory,
         \Magento\Sales\Model\Order\Shipment\CommentFactory $commentFactory,
-        \Magento\Sales\Model\Resource\Order\Shipment\Comment\CollectionFactory $commentCollectionFactory,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
+        \Magento\Sales\Model\ResourceModel\Order\Shipment\Comment\CollectionFactory $commentCollectionFactory,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
-        $this->_orderFactory = $orderFactory;
         $this->_shipmentItemCollectionFactory = $shipmentItemCollectionFactory;
         $this->_trackCollectionFactory = $trackCollectionFactory;
         $this->_commentFactory = $commentFactory;
         $this->_commentCollectionFactory = $commentCollectionFactory;
+        $this->orderRepository = $orderRepository;
         parent::__construct(
             $context,
             $registry,
@@ -145,7 +150,7 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
      */
     protected function _construct()
     {
-        $this->_init('Magento\Sales\Model\Resource\Order\Shipment');
+        $this->_init(\Magento\Sales\Model\ResourceModel\Order\Shipment::class);
     }
 
     /**
@@ -196,7 +201,7 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
     public function getOrder()
     {
         if (!$this->_order instanceof \Magento\Sales\Model\Order) {
-            $this->_order = $this->_orderFactory->create()->load($this->getOrderId());
+            $this->_order = $this->orderRepository->get($this->getOrderId());
         }
         return $this->_order->setHistoryEntityName($this->entityType);
     }
@@ -234,9 +239,7 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
     }
 
     /**
-     * Register shipment
-     *
-     * Apply to order, order items etc.
+     * Registers shipment.
      *
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -244,20 +247,24 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
     public function register()
     {
         if ($this->getId()) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('We cannot register an existing shipment'));
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('We cannot register an existing shipment')
+            );
         }
 
         $totalQty = 0;
+
+        /** @var \Magento\Sales\Model\Order\Shipment\Item $item */
         foreach ($this->getAllItems() as $item) {
             if ($item->getQty() > 0) {
                 $item->register();
+
                 if (!$item->getOrderItem()->isDummy(true)) {
                     $totalQty += $item->getQty();
                 }
-            } else {
-                $item->isDeleted(true);
             }
         }
+
         $this->setTotalQty($totalQty);
 
         return $this;
@@ -325,20 +332,15 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
     /**
      * Retrieve tracks collection.
      *
-     * @return \Magento\Sales\Model\Resource\Order\Shipment\Track\Collection
+     * @return \Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection
      */
     public function getTracksCollection()
     {
-        if (!$this->hasData(ShipmentInterface::TRACKS)) {
-            $this->setTracks($this->_trackCollectionFactory->create()->setShipmentFilter($this->getId()));
-
-            if ($this->getId()) {
-                foreach ($this->getTracks() as $track) {
-                    $track->setShipment($this);
-                }
-            }
+        if ($this->tracksCollection === null) {
+            $this->tracksCollection = $this->_trackCollectionFactory->create()->setShipmentFilter($this->getId());
         }
-        return $this->getTracks();
+
+        return $this->tracksCollection;
     }
 
     /**
@@ -401,7 +403,7 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
      * Adds comment to shipment with additional possibility to send it to customer via email
      * and show it in customer account
      *
-     * @param \Magento\Sales\Model\Order\Shipment\Comment $comment
+     * @param \Magento\Sales\Model\Order\Shipment\Comment|string $comment
      * @param bool $notify
      * @param bool $visibleOnFront
      * @return $this
@@ -429,20 +431,15 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
      * Retrieve comments collection.
      *
      * @param bool $reload
-     * @return \Magento\Sales\Model\Resource\Order\Shipment\Comment\Collection
+     * @return \Magento\Sales\Model\ResourceModel\Order\Shipment\Comment\Collection
      */
     public function getCommentsCollection($reload = false)
     {
         if (!$this->hasData(ShipmentInterface::COMMENTS) || $reload) {
-            $comments = $this->_commentCollectionFactory->create()->setShipmentFilter($this->getId())
+            $comments = $this->_commentCollectionFactory->create()
+                ->setShipmentFilter($this->getId())
                 ->setCreatedAtOrder();
             $this->setComments($comments);
-
-            /**
-             * When shipment created with adding comment,
-             * comments collection must be loaded before we added this comment.
-             */
-            $this->getComments()->load();
 
             if ($this->getId()) {
                 foreach ($this->getComments() as $comment) {
@@ -451,36 +448,6 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
             }
         }
         return $this->getComments();
-    }
-
-    /**
-     * Before object save
-     *
-     * @return $this
-     */
-    protected function _beforeSave()
-    {
-        return parent::_beforeSave();
-    }
-
-    /**
-     * Before object delete
-     *
-     * @return $this
-     */
-    protected function _beforeDelete()
-    {
-        return parent::_beforeDelete();
-    }
-
-    /**
-     * After object save manipulations
-     *
-     * @return $this
-     */
-    protected function _afterSave()
-    {
-        return parent::_afterSave();
     }
 
     /**
@@ -514,7 +481,7 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
     {
         $label = $this->getData('shipping_label');
         if ($label) {
-            return $this->getResource()->getReadConnection()->decodeVarbinary($label);
+            return $this->getResource()->getConnection()->decodeVarbinary($label);
         }
         return $label;
     }
@@ -604,6 +571,7 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
     }
 
     //@codeCoverageIgnoreStart
+
     /**
      * Returns tracks
      *
@@ -740,6 +708,19 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
      */
     public function getComments()
     {
+        if (!$this->getId()) {
+            return $this->getData(ShipmentInterface::COMMENTS);
+        }
+
+        if ($this->getData(ShipmentInterface::COMMENTS) == null) {
+            $collection = $this->_commentCollectionFactory->create()
+                ->setShipmentFilter($this->getId());
+
+            foreach ($collection as $item) {
+                $item->setShipment($this);
+            }
+            $this->setData(ShipmentInterface::COMMENTS, $collection->getItems());
+        }
         return $this->getData(ShipmentInterface::COMMENTS);
     }
 
@@ -862,5 +843,6 @@ class Shipment extends AbstractModel implements EntityInterface, ShipmentInterfa
     {
         return $this->_setExtensionAttributes($extensionAttributes);
     }
+
     //@codeCoverageIgnoreEnd
 }

@@ -1,24 +1,22 @@
 <?php
 /**
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Contact\Controller\Index;
+
+use Magento\Framework\Controller\ResultFactory;
 
 class Index extends \Magento\Contact\Controller\Index
 {
     /**
      * Show Contact Us page
      *
-     * @return void
+     * @return \Magento\Framework\Controller\ResultInterface
      */
     public function execute()
     {
-        $this->_view->loadLayout();
-        $this->_view->getLayout()
-            ->getBlock('contactForm')
-            ->setFormAction($this->_url->getUrl('*/*/post', ['_secure' => true]));
-        $this->_view->renderLayout();
+        return $this->resultFactory->create(ResultFactory::TYPE_PAGE);
     }
 }

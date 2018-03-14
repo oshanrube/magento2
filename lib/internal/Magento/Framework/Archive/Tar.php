@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -12,6 +12,7 @@
 namespace Magento\Framework\Archive;
 
 use Magento\Framework\Archive\Helper\File;
+use Magento\Framework\Filesystem\DriverInterface;
 
 class Tar extends \Magento\Framework\Archive\AbstractArchive implements \Magento\Framework\Archive\ArchiveInterface
 {
@@ -83,7 +84,7 @@ class Tar extends \Magento\Framework\Archive\AbstractArchive implements \Magento
      *
      * @return string
      */
-    final protected static function _getFormatParseHeader()
+    protected static function _getFormatParseHeader()
     {
         return 'a100name/a8mode/a8uid/a8gid/a12size/a12mtime/a8checksum/a1type/a100symlink/a6magic/a2version/' .
             'a32uname/a32gname/a8devmajor/a8devminor/a155prefix/a12closer';
@@ -378,7 +379,7 @@ class Tar extends \Magento\Framework\Archive\AbstractArchive implements \Magento
 
     /**
      * Read TAR string from file, and unpacked it.
-     * Create files and directories information about discribed
+     * Create files and directories information about described
      * in the string.
      *
      * @param string $destination path to file is unpacked

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -12,7 +12,9 @@ use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\View\Asset\File\FallbackContext;
 
 /**
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * Bundle model
+ * @deprecated 100.2.0
+ * @see \Magento\Deploy\Package\Bundle
  */
 class Bundle
 {
@@ -21,7 +23,14 @@ class Bundle
      */
     protected $assets = [];
 
-    /** @var  Bundle\Config */
+    /**
+     * @var array
+     */
+    protected $assetsContent = [];
+
+    /**
+     * @var \Magento\Framework\View\Asset\Bundle\ConfigInterface
+     */
     protected $bundleConfig;
 
     /**
@@ -38,15 +47,23 @@ class Bundle
     protected $content = [];
 
     /**
+     * @var Minification
+     */
+    protected $minification;
+
+    /**
      * @param Filesystem $filesystem
      * @param Bundle\ConfigInterface $bundleConfig
+     * @param Minification $minification
      */
     public function __construct(
         Filesystem $filesystem,
-        Bundle\ConfigInterface $bundleConfig
+        Bundle\ConfigInterface $bundleConfig,
+        Minification $minification
     ) {
         $this->filesystem = $filesystem;
         $this->bundleConfig = $bundleConfig;
+        $this->minification = $minification;
     }
 
     /**
@@ -71,10 +88,8 @@ class Bundle
         $parts = &$this->assets[$this->getContextCode($asset)][$asset->getContentType()];
         if (!isset($parts[$partIndex])) {
             $parts[$partIndex]['assets'] = [];
-            $parts[$partIndex]['space'] = $this->getMaxPartSize($asset);
         }
         $parts[$partIndex]['assets'][$this->getAssetKey($asset)] = $asset;
-        $parts[$partIndex]['space'] -= $this->getAssetSize($asset);
     }
 
     /**
@@ -111,12 +126,11 @@ class Bundle
         $parts = $this->assets[$this->getContextCode($asset)][$asset->getContentType()];
 
         $maxPartSize = $this->getMaxPartSize($asset);
-        $assetSize = $this->getAssetSize($asset);
-        $minSpace = $maxPartSize + 1;
+        $minSpace = $maxPartSize;
         $minIndex = -1;
         if ($maxPartSize && count($parts)) {
             foreach ($parts as $partIndex => $part) {
-                $space = $part['space'] - $assetSize;
+                $space = $maxPartSize - $this->getSizePartWithNewAsset($asset, $part['assets']);
                 if ($space >= 0 && $space < $minSpace) {
                     $minSpace = $space;
                     $minIndex = $partIndex;
@@ -137,12 +151,16 @@ class Bundle
     }
 
     /**
+     * Get part size after adding new asset
+     *
      * @param LocalInterface $asset
-     * @return int
+     * @param LocalInterface[] $assets
+     * @return float
      */
-    protected function getAssetSize(LocalInterface $asset)
+    protected function getSizePartWithNewAsset(LocalInterface $asset, $assets = [])
     {
-        return mb_strlen(utf8_encode($asset->getContent()), 'utf-8') / 1024;
+        $assets[$this->getAssetKey($asset)] = $asset;
+        return mb_strlen($this->getPartContent($assets), 'utf-8') / 1024;
     }
 
     /**
@@ -153,7 +171,9 @@ class Bundle
      */
     protected function getAssetKey(LocalInterface $asset)
     {
-        return ($asset->getModule() == '') ? $asset->getFilePath() : $asset->getModule() . '/' . $asset->getFilePath();
+        $result = (($asset->getModule() == '') ? '' : $asset->getModule() . '/') . $asset->getFilePath();
+        $result = $this->minification->addMinifiedSign($result);
+        return $result;
     }
 
     /**
@@ -166,7 +186,7 @@ class Bundle
     {
         $contents = [];
         foreach ($assets as $key => $asset) {
-            $contents[$key] = utf8_encode($asset->getContent());
+            $contents[$key] = $this->getAssetContent($asset);
         }
 
         $partType = reset($assets)->getContentType();
@@ -178,6 +198,28 @@ class Bundle
             "});\n";
 
         return $content;
+    }
+
+    /**
+     * Get content of asset
+     *
+     * @param LocalInterface $asset
+     * @return string
+     */
+    protected function getAssetContent(LocalInterface $asset)
+    {
+        $assetContextCode = $this->getContextCode($asset);
+        $assetContentType = $asset->getContentType();
+        $assetKey = $this->getAssetKey($asset);
+        if (!isset($this->assetsContent[$assetContextCode][$assetContentType][$assetKey])) {
+            $content = $asset->getContent();
+            if (mb_detect_encoding($content) !== "UTF-8") {
+                $content = mb_convert_encoding($content, "UTF-8");
+            }
+            $this->assetsContent[$assetContextCode][$assetContentType][$assetKey] = $content;
+        }
+
+        return $this->assetsContent[$assetContextCode][$assetContentType][$assetKey];
     }
 
     /**
@@ -210,6 +252,7 @@ class Bundle
         }
         $this->assets = [];
         $this->content = [];
+        $this->assetsContent = [];
     }
 
     /**
@@ -223,21 +266,18 @@ class Bundle
         $bundlePath = '';
         foreach ($types as $parts) {
             /** @var FallbackContext $context */
-            $context = reset(reset($parts)['assets'])->getContext();
+            $assetsParts = reset($parts);
+            $context = reset($assetsParts['assets'])->getContext();
             $bundlePath = empty($bundlePath) ? $context->getPath() . Manager::BUNDLE_PATH : $bundlePath;
+            $dir->delete($context->getPath() . DIRECTORY_SEPARATOR . Manager::BUNDLE_JS_DIR);
             $this->fillContent($parts, $context);
         }
 
-        $this->content[count($this->content) > 0 ? count($this->content) - 1 : 0] .= $this->getInitJs();
+        $this->content[max(0, count($this->content) - 1)] .= $this->getInitJs();
 
-        if (count($this->content) > 1) {
-            foreach ($this->content as $partIndex => $content) {
-                $dir->writeFile($bundlePath . "$partIndex.js", $content);
-            }
-            return;
+        foreach ($this->content as $partIndex => $content) {
+            $dir->writeFile($this->minification->addMinifiedSign($bundlePath . $partIndex . '.js'), $content);
         }
-
-        $dir->writeFile($bundlePath . '0.js', $this->content[0]);
     }
 
     /**

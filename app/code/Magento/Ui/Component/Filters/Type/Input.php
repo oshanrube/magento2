@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Ui\Component\Filters\Type;
@@ -8,7 +8,8 @@ namespace Magento\Ui\Component\Filters\Type;
 use Magento\Ui\Component\Form\Element\Input as ElementInput;
 
 /**
- * Class Input
+ * @api
+ * @since 100.0.2
  */
 class Input extends AbstractFilter
 {
@@ -22,16 +23,6 @@ class Input extends AbstractFilter
      * @var ElementInput
      */
     protected $wrappedComponent;
-
-    /**
-     * Get component name
-     *
-     * @return string
-     */
-    public function getComponentName()
-    {
-        return static::NAME;
-    }
 
     /**
      * Prepare component configuration
@@ -73,25 +64,17 @@ class Input extends AbstractFilter
      */
     protected function applyFilter()
     {
-        $condition = $this->getCondition();
-        if ($condition !== null) {
-            $this->getContext()->getDataProvider()->addFilter($condition, $this->getName());
-        }
-    }
+        if (isset($this->filterData[$this->getName()])) {
+            $value = $this->filterData[$this->getName()];
 
-    /**
-     * Get condition by data type
-     *
-     * @return array|null
-     */
-    public function getCondition()
-    {
-        $value = isset($this->filterData[$this->getName()]) ? $this->filterData[$this->getName()] : null;
-        $condition = null;
-        if (!empty($value) || is_numeric($value)) {
-            $condition = ['like' => sprintf('%%%s%%', $value)];
-        }
+            if (!empty($value)) {
+                $filter = $this->filterBuilder->setConditionType('like')
+                    ->setField($this->getName())
+                    ->setValue(sprintf('%%%s%%', $value))
+                    ->create();
 
-        return $condition;
+                $this->getContext()->getDataProvider()->addFilter($filter);
+            }
+        }
     }
 }

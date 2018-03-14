@@ -1,17 +1,16 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Newsletter\Model;
 
 use Magento\Framework\App\TemplateTypesInterface;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 
 /**
  * Newsletter queue model.
  *
- * @method \Magento\Newsletter\Model\Resource\Queue _getResource()
- * @method \Magento\Newsletter\Model\Resource\Queue getResource()
  * @method int getTemplateId()
  * @method \Magento\Newsletter\Model\Queue setTemplateId(int $value)
  * @method int getNewsletterType()
@@ -34,6 +33,9 @@ use Magento\Framework\App\TemplateTypesInterface;
  * @method \Magento\Newsletter\Model\Queue setQueueFinishAt(string $value)
  * @SuppressWarnings(PHPMD.LongVariable)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ *
+ * @api
+ * @since 100.0.2
  */
 class Queue extends \Magento\Framework\Model\AbstractModel implements TemplateTypesInterface
 {
@@ -47,7 +49,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel implements TemplateTy
     /**
      * Subscribers collection
      *
-     * @var \Magento\Newsletter\Model\Resource\Subscriber\Collection
+     * @var \Magento\Newsletter\Model\ResourceModel\Subscriber\Collection
      */
     protected $_subscribersCollection;
 
@@ -109,17 +111,25 @@ class Queue extends \Magento\Framework\Model\AbstractModel implements TemplateTy
     protected $_transportBuilder;
 
     /**
+     * Timezone library.
+     *
+     * @var TimezoneInterface
+     */
+    private $timezone;
+
+    /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Newsletter\Model\Template\Filter $templateFilter
      * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
      * @param \Magento\Newsletter\Model\TemplateFactory $templateFactory
      * @param \Magento\Newsletter\Model\ProblemFactory $problemFactory
-     * @param \Magento\Newsletter\Model\Resource\Subscriber\CollectionFactory $subscriberCollectionFactory
+     * @param \Magento\Newsletter\Model\ResourceModel\Subscriber\CollectionFactory $subscriberCollectionFactory
      * @param \Magento\Newsletter\Model\Queue\TransportBuilder $transportBuilder
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
+     * @param TimezoneInterface $timezone
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -129,11 +139,12 @@ class Queue extends \Magento\Framework\Model\AbstractModel implements TemplateTy
         \Magento\Framework\Stdlib\DateTime\DateTime $date,
         \Magento\Newsletter\Model\TemplateFactory $templateFactory,
         \Magento\Newsletter\Model\ProblemFactory $problemFactory,
-        \Magento\Newsletter\Model\Resource\Subscriber\CollectionFactory $subscriberCollectionFactory,
+        \Magento\Newsletter\Model\ResourceModel\Subscriber\CollectionFactory $subscriberCollectionFactory,
         \Magento\Newsletter\Model\Queue\TransportBuilder $transportBuilder,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
-        array $data = []
+        array $data = [],
+        TimezoneInterface $timezone = null
     ) {
         parent::__construct(
             $context,
@@ -148,6 +159,9 @@ class Queue extends \Magento\Framework\Model\AbstractModel implements TemplateTy
         $this->_problemFactory = $problemFactory;
         $this->_subscribersCollection = $subscriberCollectionFactory->create();
         $this->_transportBuilder = $transportBuilder;
+        $this->timezone = $timezone ?: \Magento\Framework\App\ObjectManager::getInstance()->get(
+            TimezoneInterface::class
+        );
     }
 
     /**
@@ -158,7 +172,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel implements TemplateTy
     protected function _construct()
     {
         parent::_construct();
-        $this->_init('Magento\Newsletter\Model\Resource\Queue');
+        $this->_init(\Magento\Newsletter\Model\ResourceModel\Queue::class);
     }
 
     /**
@@ -182,8 +196,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel implements TemplateTy
         if ($startAt === null || $startAt == '') {
             $this->setQueueStartAt(null);
         } else {
-            $time = (new \DateTime($startAt))->getTimestamp();
-            $this->setQueueStartAt($this->_date->gmtDate(null, $time));
+            $this->setQueueStartAt($this->timezone->convertConfigTimeToUtc($startAt));
         }
         return $this;
     }
@@ -236,7 +249,7 @@ class Queue extends \Magento\Framework\Model\AbstractModel implements TemplateTy
             )->setTemplateVars(
                 ['subscriber' => $item]
             )->setFrom(
-                ['name' => $this->getNewsletterSenderEmail(), 'email' => $this->getNewsletterSenderName()]
+                ['name' => $this->getNewsletterSenderName(), 'email' => $this->getNewsletterSenderEmail()]
             )->addTo(
                 $item->getSubscriberEmail(),
                 $item->getSubscriberFullName()

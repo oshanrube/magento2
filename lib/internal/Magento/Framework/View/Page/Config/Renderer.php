@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\View\Page\Config;
@@ -26,11 +26,6 @@ class Renderer implements RendererInterface
     protected $pageConfig;
 
     /**
-     * @var \Magento\Framework\View\Asset\MinifyService
-     */
-    protected $assetMinifyService;
-
-    /**
      * @var \Magento\Framework\View\Asset\MergeService
      */
     protected $assetMergeService;
@@ -41,7 +36,7 @@ class Renderer implements RendererInterface
     protected $escaper;
 
     /**
-     * @var \Magento\Framework\Stdlib\String
+     * @var \Magento\Framework\Stdlib\StringUtils
      */
     protected $string;
 
@@ -57,24 +52,21 @@ class Renderer implements RendererInterface
 
     /**
      * @param \Magento\Framework\View\Page\Config $pageConfig
-     * @param \Magento\Framework\View\Asset\MinifyService $assetMinifyService
      * @param \Magento\Framework\View\Asset\MergeService $assetMergeService
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Magento\Framework\Escaper $escaper
-     * @param \Magento\Framework\Stdlib\String $string
+     * @param \Magento\Framework\Stdlib\StringUtils $string
      * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(
         Config $pageConfig,
-        \Magento\Framework\View\Asset\MinifyService $assetMinifyService,
         \Magento\Framework\View\Asset\MergeService $assetMergeService,
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Framework\Escaper $escaper,
-        \Magento\Framework\Stdlib\String $string,
+        \Magento\Framework\Stdlib\StringUtils $string,
         \Psr\Log\LoggerInterface $logger
     ) {
         $this->pageConfig = $pageConfig;
-        $this->assetMinifyService = $assetMinifyService;
         $this->assetMergeService = $assetMergeService;
         $this->urlBuilder = $urlBuilder;
         $this->escaper = $escaper;
@@ -114,7 +106,7 @@ class Renderer implements RendererInterface
      */
     public function renderTitle()
     {
-        return '<title>' . $this->pageConfig->getTitle()->get() . '</title>' . "\n";
+        return '<title>' . $this->escaper->escapeHtml($this->pageConfig->getTitle()->get()) . '</title>' . "\n";
     }
 
     /**
@@ -156,6 +148,10 @@ class Renderer implements RendererInterface
      */
     protected function getMetadataTemplate($name)
     {
+        if (strpos($name, 'og:') === 0) {
+            return '<meta property="' . $name . '" content="%content"/>' . "\n";
+        }
+
         switch ($name) {
             case 'charset':
                 $metadataTemplate = '<meta charset="%content"/>' . "\n";
@@ -240,20 +236,7 @@ class Renderer implements RendererInterface
      */
     protected function renderAssetGroup(\Magento\Framework\View\Asset\PropertyGroup $group)
     {
-        $groupAssets = $this->assetMinifyService->getAssets($group->getAll());
-        $groupAssets = $this->processMerge($groupAssets, $group);
-
-        $attributes = $this->getGroupAttributes($group);
-        $attributes = $this->addDefaultAttributes(
-            $group->getProperty(GroupedCollection::PROPERTY_CONTENT_TYPE),
-            $attributes
-        );
-
-        $groupTemplate = $this->getAssetTemplate(
-            $group->getProperty(GroupedCollection::PROPERTY_CONTENT_TYPE),
-            $attributes
-        );
-        $groupHtml = $this->renderAssetHtml($groupTemplate, $groupAssets);
+        $groupHtml = $this->renderAssetHtml($group);
         $groupHtml = $this->processIeCondition($groupHtml, $group);
         return $groupHtml;
     }
@@ -351,16 +334,22 @@ class Renderer implements RendererInterface
     /**
      * Render HTML tags referencing corresponding URLs
      *
-     * @param string $template
-     * @param array $assets
+     * @param \Magento\Framework\View\Asset\PropertyGroup $group
      * @return string
      */
-    protected function renderAssetHtml($template, $assets)
+    protected function renderAssetHtml(\Magento\Framework\View\Asset\PropertyGroup $group)
     {
+        $assets = $this->processMerge($group->getAll(), $group);
+        $attributes = $this->getGroupAttributes($group);
+
         $result = '';
         try {
             /** @var $asset \Magento\Framework\View\Asset\AssetInterface */
             foreach ($assets as $asset) {
+                $template = $this->getAssetTemplate(
+                    $group->getProperty(GroupedCollection::PROPERTY_CONTENT_TYPE),
+                    $this->addDefaultAttributes($this->getAssetContentType($asset), $attributes)
+                );
                 $result .= sprintf($template, $asset->getUrl());
             }
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
@@ -368,6 +357,17 @@ class Renderer implements RendererInterface
             $result .= sprintf($template, $this->urlBuilder->getUrl('', ['_direct' => 'core/index/notFound']));
         }
         return $result;
+    }
+
+    /**
+     * Get asset content type
+     *
+     * @param \Magento\Framework\View\Asset\AssetInterface $asset
+     * @return string
+     */
+    protected function getAssetContentType(\Magento\Framework\View\Asset\AssetInterface $asset)
+    {
+        return $asset->getContentType();
     }
 
     /**

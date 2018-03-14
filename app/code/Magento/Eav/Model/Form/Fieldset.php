@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Eav\Model\Form;
@@ -8,15 +8,14 @@ namespace Magento\Eav\Model\Form;
 /**
  * Eav Form Fieldset Model
  *
- * @method \Magento\Eav\Model\Resource\Form\Fieldset getResource()
+ * @api
  * @method int getTypeId()
  * @method \Magento\Eav\Model\Form\Fieldset setTypeId(int $value)
  * @method string getCode()
  * @method \Magento\Eav\Model\Form\Fieldset setCode(string $value)
  * @method int getSortOrder()
  * @method \Magento\Eav\Model\Form\Fieldset setSortOrder(int $value)
- *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @since 100.0.2
  */
 class Fieldset extends \Magento\Framework\Model\AbstractModel
 {
@@ -36,15 +35,16 @@ class Fieldset extends \Magento\Framework\Model\AbstractModel
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
+     * @codeCoverageIgnore
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
@@ -56,30 +56,11 @@ class Fieldset extends \Magento\Framework\Model\AbstractModel
      * Initialize resource model
      *
      * @return void
+     * @codeCoverageIgnore
      */
     protected function _construct()
     {
-        $this->_init('Magento\Eav\Model\Resource\Form\Fieldset');
-    }
-
-    /**
-     * Retrieve resource instance wrapper
-     *
-     * @return \Magento\Eav\Model\Resource\Form\Fieldset
-     */
-    protected function _getResource()
-    {
-        return parent::_getResource();
-    }
-
-    /**
-     * Retrieve resource collection instance wrapper
-     *
-     * @return \Magento\Eav\Model\Resource\Form\Fieldset\Collection
-     */
-    public function getCollection()
-    {
-        return parent::getCollection();
+        $this->_init(\Magento\Eav\Model\ResourceModel\Form\Fieldset::class);
     }
 
     /**
@@ -119,6 +100,7 @@ class Fieldset extends \Magento\Framework\Model\AbstractModel
      *
      * @param array $labels
      * @return $this
+     * @codeCoverageIgnore
      */
     public function setLabels(array $labels)
     {

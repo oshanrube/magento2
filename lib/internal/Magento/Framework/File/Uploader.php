@@ -1,9 +1,11 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\File;
+
+use Magento\Framework\Filesystem\DriverInterface;
 
 /**
  * File upload class
@@ -11,7 +13,7 @@ namespace Magento\Framework\File;
  * ATTENTION! This class must be used like abstract class and must added
  * validation by protected file extension list to extended class
  *
- * @author     Magento Core Team <core@magentocommerce.com>
+ * @api
  */
 class Uploader
 {
@@ -190,17 +192,9 @@ class Uploader
     public function save($destinationFolder, $newFileName = null)
     {
         $this->_validateFile();
-
-        if ($this->_allowCreateFolders) {
-            $this->_createDestinationFolder($destinationFolder);
-        }
-
-        if (!is_writable($destinationFolder)) {
-            throw new \Exception('Destination folder is not writable or does not exists.');
-        }
+        $this->validateDestination($destinationFolder);
 
         $this->_result = false;
-
         $destinationFile = $destinationFolder;
         $fileName = isset($newFileName) ? $newFileName : $this->_file['name'];
         $fileName = self::getCorrectFileName($fileName);
@@ -218,10 +212,18 @@ class Uploader
 
         $destinationFile = self::_addDirSeparator($destinationFile) . $fileName;
 
-        $this->_result = $this->_moveFile($this->_file['tmp_name'], $destinationFile);
+        try {
+            $this->_result = $this->_moveFile($this->_file['tmp_name'], $destinationFile);
+        } catch (\Exception $e) {
+            // if the file exists and we had an exception continue anyway
+            if (file_exists($destinationFile)) {
+                $this->_result = true;
+            } else {
+                throw $e;
+            }
+        }
 
         if ($this->_result) {
-            chmod($destinationFile, 0777);
             if ($this->_enableFilesDispersion) {
                 $fileName = str_replace('\\', '/', self::_addDirSeparator($this->_dispretionPath)) . $fileName;
             }
@@ -235,6 +237,35 @@ class Uploader
         }
 
         return $this->_result;
+    }
+
+    /**
+     * Validates destination directory to be writable
+     *
+     * @param string $destinationFolder
+     * @return void
+     * @throws \Exception
+     */
+    private function validateDestination($destinationFolder)
+    {
+        if ($this->_allowCreateFolders) {
+            $this->_createDestinationFolder($destinationFolder);
+        }
+
+        if (!is_writable($destinationFolder)) {
+            throw new \Exception('Destination folder is not writable or does not exists.');
+        }
+    }
+
+    /**
+     * @param string $file
+     * @return void
+     *
+     * @deprecated 100.0.8
+     */
+    protected function chmod($file)
+    {
+        chmod($file, 0777);
     }
 
     /**
@@ -542,7 +573,9 @@ class Uploader
             $destinationFolder = substr($destinationFolder, 0, -1);
         }
 
-        if (!(@is_dir($destinationFolder) || @mkdir($destinationFolder, 0777, true))) {
+        if (!(@is_dir($destinationFolder)
+            || @mkdir($destinationFolder, 0777, true)
+        )) {
             throw new \Exception("Unable to create directory '{$destinationFolder}'.");
         }
         return $this;

@@ -1,23 +1,26 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Store\App\Request;
+
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Store\Model\Store;
 
 class PathInfoProcessor implements \Magento\Framework\App\Request\PathInfoProcessorInterface
 {
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
-    private $_storeManager;
+    private $storeManager;
 
     /**
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(\Magento\Store\Model\StoreManagerInterface $storeManager)
     {
-        $this->_storeManager = $storeManager;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -32,10 +35,16 @@ class PathInfoProcessor implements \Magento\Framework\App\Request\PathInfoProces
         $pathParts = explode('/', ltrim($pathInfo, '/'), 2);
         $storeCode = $pathParts[0];
 
-        $stores = $this->_storeManager->getStores(false, true);
-        if (isset($stores[$storeCode]) && $stores[$storeCode]->isUseStoreInUrl()) {
-            if (!$request->isDirectAccessFrontendName($storeCode)) {
-                $this->_storeManager->setCurrentStore($storeCode);
+        try {
+            /** @var \Magento\Store\Api\Data\StoreInterface $store */
+            $store = $this->storeManager->getStore($storeCode);
+        } catch (NoSuchEntityException $e) {
+            return $pathInfo;
+        }
+
+        if ($store->isUseStoreInUrl()) {
+            if (!$request->isDirectAccessFrontendName($storeCode) && $storeCode != Store::ADMIN_CODE) {
+                $this->storeManager->setCurrentStore($storeCode);
                 $pathInfo = '/' . (isset($pathParts[1]) ? $pathParts[1] : '');
                 return $pathInfo;
             } elseif (!empty($storeCode)) {

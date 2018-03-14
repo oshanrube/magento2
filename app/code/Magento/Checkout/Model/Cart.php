@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Checkout\Model;
@@ -8,14 +8,16 @@ namespace Magento\Checkout\Model;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
 use Magento\Checkout\Model\Cart\CartInterface;
+use Magento\Framework\DataObject;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Object;
 
 /**
  * Shopping cart model
+ * @api
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @deprecated 100.1.0
  */
-class Cart extends Object implements CartInterface
+class Cart extends DataObject implements CartInterface
 {
     /**
      * Shopping cart items summary quantity(s)
@@ -51,7 +53,7 @@ class Cart extends Object implements CartInterface
     protected $_storeManager;
 
     /**
-     * @var \Magento\Checkout\Model\Resource\Cart
+     * @var \Magento\Checkout\Model\ResourceModel\Cart
      */
     protected $_resourceCart;
 
@@ -81,7 +83,7 @@ class Cart extends Object implements CartInterface
     protected $stockState;
 
     /**
-     * @var \Magento\Quote\Model\QuoteRepository
+     * @var \Magento\Quote\Api\CartRepositoryInterface
      */
     protected $quoteRepository;
 
@@ -91,31 +93,37 @@ class Cart extends Object implements CartInterface
     protected $productRepository;
 
     /**
+     * @var \Magento\Checkout\Model\Cart\RequestInfoFilterInterface
+     */
+    private $requestInfoFilter;
+
+    /**
      * @param \Magento\Framework\Event\ManagerInterface $eventManager
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param Resource\Cart $resourceCart
+     * @param \Magento\Checkout\Model\ResourceModel\Cart $resourceCart
      * @param Session $checkoutSession
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Framework\Message\ManagerInterface $messageManager
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry
      * @param \Magento\CatalogInventory\Api\StockStateInterface $stockState
-     * @param \Magento\Quote\Model\QuoteRepository $quoteRepository
+     * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      * @param ProductRepositoryInterface $productRepository
      * @param array $data
+     * @codeCoverageIgnore
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         \Magento\Framework\Event\ManagerInterface $eventManager,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Checkout\Model\Resource\Cart $resourceCart,
+        \Magento\Checkout\Model\ResourceModel\Cart $resourceCart,
         Session $checkoutSession,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \Magento\CatalogInventory\Api\StockStateInterface $stockState,
-        \Magento\Quote\Model\QuoteRepository $quoteRepository,
+        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         ProductRepositoryInterface $productRepository,
         array $data = []
     ) {
@@ -136,7 +144,8 @@ class Cart extends Object implements CartInterface
     /**
      * Get shopping cart resource model
      *
-     * @return \Magento\Checkout\Model\Resource\Cart
+     * @return \Magento\Checkout\Model\ResourceModel\Cart
+     * @codeCoverageIgnore
      */
     protected function _getResource()
     {
@@ -147,6 +156,7 @@ class Cart extends Object implements CartInterface
      * Retrieve checkout session model
      *
      * @return Session
+     * @codeCoverageIgnore
      */
     public function getCheckoutSession()
     {
@@ -157,6 +167,7 @@ class Cart extends Object implements CartInterface
      * Retrieve customer session model
      *
      * @return \Magento\Customer\Model\Session
+     * @codeCoverageIgnore
      */
     public function getCustomerSession()
     {
@@ -212,6 +223,7 @@ class Cart extends Object implements CartInterface
      *
      * @param \Magento\Quote\Model\Quote $quote
      * @return $this
+     * @codeCoverageIgnore
      */
     public function setQuote(\Magento\Quote\Model\Quote $quote)
     {
@@ -251,12 +263,16 @@ class Cart extends Object implements CartInterface
         if ($orderItem->getParentItem() === null) {
             $storeId = $this->_storeManager->getStore()->getId();
             try {
-                $product = $this->productRepository->getById($orderItem->getProductId(), false, $storeId);
+                /**
+                 * We need to reload product in this place, because products
+                 * with the same id may have different sets of order attributes.
+                 */
+                $product = $this->productRepository->getById($orderItem->getProductId(), false, $storeId, true);
             } catch (NoSuchEntityException $e) {
                 return $this;
             }
             $info = $orderItem->getProductOptionByCode('info_buyRequest');
-            $info = new \Magento\Framework\Object($info);
+            $info = new \Magento\Framework\DataObject($info);
             if ($qtyFlag === null) {
                 $info->setQty($orderItem->getQtyOrdered());
             } else {
@@ -303,22 +319,24 @@ class Cart extends Object implements CartInterface
     /**
      * Get request for product add to cart procedure
      *
-     * @param   \Magento\Framework\Object|int|array $requestInfo
-     * @return  \Magento\Framework\Object
+     * @param   \Magento\Framework\DataObject|int|array $requestInfo
+     * @return  \Magento\Framework\DataObject
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function _getProductRequest($requestInfo)
     {
-        if ($requestInfo instanceof \Magento\Framework\Object) {
+        if ($requestInfo instanceof \Magento\Framework\DataObject) {
             $request = $requestInfo;
         } elseif (is_numeric($requestInfo)) {
-            $request = new \Magento\Framework\Object(['qty' => $requestInfo]);
+            $request = new \Magento\Framework\DataObject(['qty' => $requestInfo]);
+        } elseif (is_array($requestInfo)) {
+            $request = new \Magento\Framework\DataObject($requestInfo);
         } else {
-            $request = new \Magento\Framework\Object($requestInfo);
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('We found an invalid request for adding product to quote.')
+            );
         }
-
-        if (!$request->hasQty()) {
-            $request->setQty(1);
-        }
+        $this->getRequestInfoFilter()->filter($request);
 
         return $request;
     }
@@ -327,7 +345,7 @@ class Cart extends Object implements CartInterface
      * Add product to shopping cart (quote)
      *
      * @param int|Product $productInfo
-     * @param \Magento\Framework\Object|int|array $requestInfo
+     * @param \Magento\Framework\DataObject|int|array $requestInfo
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
@@ -341,11 +359,10 @@ class Cart extends Object implements CartInterface
         if ($productId) {
             $stockItem = $this->stockRegistry->getStockItem($productId, $product->getStore()->getWebsiteId());
             $minimumQty = $stockItem->getMinSaleQty();
-            //If product was not found in cart and there is set minimal qty for it
+            //If product quantity is not specified in request and there is set minimal qty for it
             if ($minimumQty
                 && $minimumQty > 0
-                && $request->getQty() < $minimumQty
-                && !$this->getQuote()->hasProductId($productId)
+                && !$request->getQty()
             ) {
                 $request->setQty($minimumQty);
             }
@@ -479,7 +496,7 @@ class Cart extends Object implements CartInterface
      */
     public function updateItems($data)
     {
-        $infoDataObject = new \Magento\Framework\Object($data);
+        $infoDataObject = new \Magento\Framework\DataObject($data);
         $this->_eventManager->dispatch(
             'checkout_cart_update_items_before',
             ['cart' => $this, 'info' => $infoDataObject]
@@ -534,6 +551,7 @@ class Cart extends Object implements CartInterface
      *
      * @param  int $itemId
      * @return $this
+     * @codeCoverageIgnore
      */
     public function removeItem($itemId)
     {
@@ -567,6 +585,7 @@ class Cart extends Object implements CartInterface
      * Save cart (implement interface method)
      *
      * @return void
+     * @codeCoverageIgnore
      */
     public function saveQuote()
     {
@@ -577,6 +596,7 @@ class Cart extends Object implements CartInterface
      * Mark all quote items as deleted (empty shopping cart)
      *
      * @return $this
+     * @codeCoverageIgnore
      */
     public function truncate()
     {
@@ -632,6 +652,7 @@ class Cart extends Object implements CartInterface
      * Get shopping cart items count
      *
      * @return int
+     * @codeCoverageIgnore
      */
     public function getItemsCount()
     {
@@ -642,6 +663,7 @@ class Cart extends Object implements CartInterface
      * Get shopping cart summary qty
      *
      * @return int|float
+     * @codeCoverageIgnore
      */
     public function getItemsQty()
     {
@@ -650,12 +672,12 @@ class Cart extends Object implements CartInterface
 
     /**
      * Update item in shopping cart (quote)
-     * $requestInfo - either qty (int) or buyRequest in form of array or \Magento\Framework\Object
+     * $requestInfo - either qty (int) or buyRequest in form of array or \Magento\Framework\DataObject
      * $updatingParams - information on how to perform update, passed to Quote->updateItem() method
      *
      * @param int $itemId
-     * @param int|array|\Magento\Framework\Object $requestInfo
-     * @param null|array|\Magento\Framework\Object $updatingParams
+     * @param int|array|\Magento\Framework\DataObject $requestInfo
+     * @param null|array|\Magento\Framework\DataObject $updatingParams
      * @return \Magento\Quote\Model\Quote\Item|string
      * @throws \Magento\Framework\Exception\LocalizedException
      *
@@ -679,7 +701,7 @@ class Cart extends Object implements CartInterface
                 // If product was not found in cart and there is set minimal qty for it
                 if ($minimumQty
                     && $minimumQty > 0
-                    && $request->getQty() < $minimumQty
+                    && !$request->getQty()
                     && !$this->getQuote()->hasProductId($productId)
                 ) {
                     $request->setQty($minimumQty);
@@ -708,5 +730,20 @@ class Cart extends Object implements CartInterface
         );
         $this->_checkoutSession->setLastAddedProductId($productId);
         return $result;
+    }
+
+    /**
+     * Getter for RequestInfoFilter
+     *
+     * @deprecated 100.1.2
+     * @return \Magento\Checkout\Model\Cart\RequestInfoFilterInterface
+     */
+    private function getRequestInfoFilter()
+    {
+        if ($this->requestInfoFilter === null) {
+            $this->requestInfoFilter = \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Magento\Checkout\Model\Cart\RequestInfoFilterInterface::class);
+        }
+        return $this->requestInfoFilter;
     }
 }

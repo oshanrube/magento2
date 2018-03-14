@@ -1,48 +1,58 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Webapi\Controller;
 
-use Magento\Framework\AuthorizationInterface;
+use Magento\Framework\App\DeploymentConfig;
+use Magento\Framework\Config\ConfigOptionsListConstants;
 use Magento\Framework\Exception\AuthorizationException;
+use Magento\Framework\Webapi\Authorization;
 use Magento\Framework\Webapi\ErrorProcessor;
-use Magento\Framework\Webapi\ServiceInputProcessor;
-use Magento\Framework\Webapi\ServiceOutputProcessor;
+use Magento\Framework\Webapi\Request;
 use Magento\Framework\Webapi\Rest\Request as RestRequest;
 use Magento\Framework\Webapi\Rest\Response as RestResponse;
 use Magento\Framework\Webapi\Rest\Response\FieldsFilter;
+use Magento\Framework\Webapi\ServiceInputProcessor;
+use Magento\Framework\Webapi\ServiceOutputProcessor;
+use Magento\Store\Model\Store;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Webapi\Controller\Rest\ParamsOverrider;
 use Magento\Webapi\Controller\Rest\Router;
 use Magento\Webapi\Controller\Rest\Router\Route;
+use Magento\Webapi\Model\Rest\Swagger\Generator;
 
 /**
  * Front controller for WebAPI REST area.
  *
- * TODO: Consider warnings suppression removal
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.TooManyFields)
  */
 class Rest implements \Magento\Framework\App\FrontControllerInterface
 {
+    /** Path for accessing REST API schema */
+    const SCHEMA_PATH = '/schema';
+
     /**
      * @var Router
+     * @deprecated 100.1.0
      */
     protected $_router;
 
     /**
      * @var Route
+     * @deprecated 100.1.0
      */
     protected $_route;
 
     /**
-     * @var RestRequest
+     * @var \Magento\Framework\Webapi\Rest\Request
      */
     protected $_request;
 
     /**
-     * @var RestResponse
+     * @var \Magento\Framework\Webapi\Rest\Response
      */
     protected $_response;
 
@@ -57,22 +67,24 @@ class Rest implements \Magento\Framework\App\FrontControllerInterface
     protected $_appState;
 
     /**
-     * @var AuthorizationInterface
+     * @var Authorization
+     * @deprecated 100.1.0
      */
-    protected $_authorization;
+    protected $authorization;
 
     /**
      * @var ServiceInputProcessor
+     * @deprecated 100.1.0
      */
     protected $serviceInputProcessor;
 
     /**
-     * @var ErrorProcessor
+     * @var \Magento\Framework\Webapi\ErrorProcessor
      */
     protected $_errorProcessor;
 
     /**
-     * @var PathProcessor
+     * @var \Magento\Webapi\Controller\PathProcessor
      */
     protected $_pathProcessor;
 
@@ -82,7 +94,7 @@ class Rest implements \Magento\Framework\App\FrontControllerInterface
     protected $areaList;
 
     /**
-     * @var FieldsFilter
+     * @var \Magento\Framework\Webapi\Rest\Response\FieldsFilter
      */
     protected $fieldsFilter;
 
@@ -93,13 +105,35 @@ class Rest implements \Magento\Framework\App\FrontControllerInterface
 
     /**
      * @var ParamsOverrider
+     * @deprecated 100.1.0
      */
     protected $paramsOverrider;
 
     /**
-     * @var ServiceOutputProcessor $serviceOutputProcessor
+     * @var \Magento\Framework\Webapi\ServiceOutputProcessor
      */
     protected $serviceOutputProcessor;
+
+    /**
+     * @var \Magento\Webapi\Model\Rest\Swagger\Generator
+     */
+    protected $swaggerGenerator;
+
+    /**
+     * @var StoreManagerInterface
+     * @deprecated 100.1.0
+     */
+    private $storeManager;
+
+    /**
+     * @var DeploymentConfig
+     */
+    private $deploymentConfig;
+
+    /**
+     * @var Rest\InputParamsResolver
+     */
+    private $inputParamsResolver;
 
     /**
      * Initialize dependencies
@@ -109,7 +143,7 @@ class Rest implements \Magento\Framework\App\FrontControllerInterface
      * @param Router $router
      * @param \Magento\Framework\ObjectManagerInterface $objectManager
      * @param \Magento\Framework\App\State $appState
-     * @param AuthorizationInterface $authorization
+     * @param Authorization $authorization
      * @param ServiceInputProcessor $serviceInputProcessor
      * @param ErrorProcessor $errorProcessor
      * @param PathProcessor $pathProcessor
@@ -117,6 +151,8 @@ class Rest implements \Magento\Framework\App\FrontControllerInterface
      * @param FieldsFilter $fieldsFilter
      * @param ParamsOverrider $paramsOverrider
      * @param ServiceOutputProcessor $serviceOutputProcessor
+     * @param Generator $swaggerGenerator ,
+     * @param StoreManagerInterface $storeManager
      *
      * TODO: Consider removal of warning suppression
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -127,21 +163,23 @@ class Rest implements \Magento\Framework\App\FrontControllerInterface
         Router $router,
         \Magento\Framework\ObjectManagerInterface $objectManager,
         \Magento\Framework\App\State $appState,
-        AuthorizationInterface $authorization,
+        Authorization $authorization,
         ServiceInputProcessor $serviceInputProcessor,
         ErrorProcessor $errorProcessor,
         PathProcessor $pathProcessor,
         \Magento\Framework\App\AreaList $areaList,
         FieldsFilter $fieldsFilter,
         ParamsOverrider $paramsOverrider,
-        ServiceOutputProcessor $serviceOutputProcessor
+        ServiceOutputProcessor $serviceOutputProcessor,
+        Generator $swaggerGenerator,
+        StoreManagerInterface $storeManager
     ) {
         $this->_router = $router;
         $this->_request = $request;
         $this->_response = $response;
         $this->_objectManager = $objectManager;
         $this->_appState = $appState;
-        $this->_authorization = $authorization;
+        $this->authorization = $authorization;
         $this->serviceInputProcessor = $serviceInputProcessor;
         $this->_errorProcessor = $errorProcessor;
         $this->_pathProcessor = $pathProcessor;
@@ -149,10 +187,41 @@ class Rest implements \Magento\Framework\App\FrontControllerInterface
         $this->fieldsFilter = $fieldsFilter;
         $this->paramsOverrider = $paramsOverrider;
         $this->serviceOutputProcessor = $serviceOutputProcessor;
+        $this->swaggerGenerator = $swaggerGenerator;
+        $this->storeManager = $storeManager;
+    }
+
+    /**
+     * Get deployment config
+     *
+     * @return DeploymentConfig
+     */
+    private function getDeploymentConfig()
+    {
+        if (!$this->deploymentConfig instanceof \Magento\Framework\App\DeploymentConfig) {
+            $this->deploymentConfig = \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Magento\Framework\App\DeploymentConfig::class);
+        }
+        return $this->deploymentConfig;
+    }
+
+    /**
+     * Set deployment config
+     *
+     * @param \Magento\Framework\App\DeploymentConfig $deploymentConfig
+     * @return void
+     * @deprecated 100.1.0
+     */
+    public function setDeploymentConfig(\Magento\Framework\App\DeploymentConfig $deploymentConfig)
+    {
+        $this->deploymentConfig = $deploymentConfig;
     }
 
     /**
      * Handle REST request
+     *
+     * Based on request decide is it schema request or API request and process accordingly.
+     * Throws Exception in case if cannot be processed properly.
      *
      * @param \Magento\Framework\App\RequestInterface $request
      * @return \Magento\Framework\App\ResponseInterface
@@ -164,29 +233,11 @@ class Rest implements \Magento\Framework\App\FrontControllerInterface
         $this->areaList->getArea($this->_appState->getAreaCode())
             ->load(\Magento\Framework\App\Area::PART_TRANSLATE);
         try {
-            $this->checkPermissions();
-            $route = $this->getCurrentRoute();
-            if ($route->isSecure() && !$this->_request->isSecure()) {
-                throw new \Magento\Framework\Webapi\Exception(__('Operation allowed only in HTTPS'));
+            if ($this->isSchemaRequest()) {
+                $this->processSchemaRequest();
+            } else {
+                $this->processApiRequest();
             }
-            /** @var array $inputData */
-            $inputData = $this->_request->getRequestData();
-            $serviceMethodName = $route->getServiceMethod();
-            $serviceClassName = $route->getServiceClass();
-            $inputData = $this->paramsOverrider->override($inputData, $route->getParameters());
-            $inputParams = $this->serviceInputProcessor->process($serviceClassName, $serviceMethodName, $inputData);
-            $service = $this->_objectManager->get($serviceClassName);
-            /** @var \Magento\Framework\Api\AbstractExtensibleObject $outputData */
-            $outputData = call_user_func_array([$service, $serviceMethodName], $inputParams);
-            $outputData = $this->serviceOutputProcessor->process(
-                $outputData,
-                $serviceClassName,
-                $serviceMethodName
-            );
-            if ($this->_request->getParam(FieldsFilter::FILTER_PARAMETER) && is_array($outputData)) {
-                $outputData = $this->fieldsFilter->filter($outputData);
-            }
-            $this->_response->prepareResponse($outputData);
         } catch (\Exception $e) {
             $maskedException = $this->_errorProcessor->maskException($e);
             $this->_response->setException($maskedException);
@@ -195,9 +246,21 @@ class Rest implements \Magento\Framework\App\FrontControllerInterface
     }
 
     /**
+     * Check if current request is schema request.
+     *
+     * @return bool
+     */
+    protected function isSchemaRequest()
+    {
+        return $this->_request->getPathInfo() === self::SCHEMA_PATH;
+    }
+
+    /**
      * Retrieve current route.
      *
      * @return Route
+     * @deprecated 100.1.0
+     * @see \Magento\Webapi\Controller\Rest\InputParamsResolver::getRoute
      */
     protected function getCurrentRoute()
     {
@@ -212,31 +275,109 @@ class Rest implements \Magento\Framework\App\FrontControllerInterface
      *
      * @throws \Magento\Framework\Exception\AuthorizationException
      * @return void
+     * @deprecated 100.1.0
+     * @see \Magento\Webapi\Controller\Rest\RequestValidator::checkPermissions
      */
     protected function checkPermissions()
     {
         $route = $this->getCurrentRoute();
-        if (!$this->isAllowed($route->getAclResources())) {
+        if (!$this->authorization->isAllowed($route->getAclResources())) {
             $params = ['resources' => implode(', ', $route->getAclResources())];
             throw new AuthorizationException(
-                __(AuthorizationException::NOT_AUTHORIZED, $params)
+                __('Consumer is not authorized to access %resources', $params)
             );
         }
     }
 
     /**
-     * Check if all ACL resources are allowed to be accessed by current API user.
+     * Execute schema request
      *
-     * @param string[] $aclResources
-     * @return bool
+     * @return void
      */
-    protected function isAllowed($aclResources)
+    protected function processSchemaRequest()
     {
-        foreach ($aclResources as $resource) {
-            if (!$this->_authorization->isAllowed($resource)) {
-                return false;
-            }
+        $requestedServices = $this->_request->getRequestedServices('all');
+        $requestedServices = $requestedServices == Request::ALL_SERVICES
+            ? $this->swaggerGenerator->getListOfServices()
+            : $requestedServices;
+        $responseBody = $this->swaggerGenerator->generate(
+            $requestedServices,
+            $this->_request->getScheme(),
+            $this->_request->getHttpHost(),
+            $this->_request->getRequestUri()
+        );
+        $this->_response->setBody($responseBody)->setHeader('Content-Type', 'application/json');
+    }
+
+    /**
+     * Execute API request
+     *
+     * @return void
+     * @throws AuthorizationException
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Webapi\Exception
+     */
+    protected function processApiRequest()
+    {
+        $inputParams = $this->getInputParamsResolver()->resolve();
+
+        $route = $this->getInputParamsResolver()->getRoute();
+        $serviceMethodName = $route->getServiceMethod();
+        $serviceClassName = $route->getServiceClass();
+
+        $service = $this->_objectManager->get($serviceClassName);
+        /** @var \Magento\Framework\Api\AbstractExtensibleObject $outputData */
+        $outputData = call_user_func_array([$service, $serviceMethodName], $inputParams);
+        $outputData = $this->serviceOutputProcessor->process(
+            $outputData,
+            $serviceClassName,
+            $serviceMethodName
+        );
+        if ($this->_request->getParam(FieldsFilter::FILTER_PARAMETER) && is_array($outputData)) {
+            $outputData = $this->fieldsFilter->filter($outputData);
         }
-        return true;
+        $header = $this->getDeploymentConfig()->get(ConfigOptionsListConstants::CONFIG_PATH_X_FRAME_OPT);
+        if ($header) {
+            $this->_response->setHeader('X-Frame-Options', $header);
+        }
+        $this->_response->prepareResponse($outputData);
+    }
+
+    /**
+     * Validate request
+     *
+     * @throws AuthorizationException
+     * @throws \Magento\Framework\Webapi\Exception
+     * @return void
+     * @deprecated 100.1.0
+     * @see \Magento\Webapi\Controller\Rest\RequestValidator::validate
+     */
+    protected function validateRequest()
+    {
+        $this->checkPermissions();
+        if ($this->getCurrentRoute()->isSecure() && !$this->_request->isSecure()) {
+            throw new \Magento\Framework\Webapi\Exception(__('Operation allowed only in HTTPS'));
+        }
+        if ($this->storeManager->getStore()->getCode() === Store::ADMIN_CODE
+            && strtoupper($this->_request->getMethod()) === RestRequest::HTTP_METHOD_GET
+        ) {
+            throw new \Magento\Framework\Webapi\Exception(__('Cannot perform GET operation with store code \'all\''));
+        }
+    }
+
+    /**
+     * The getter function to get InputParamsResolver object
+     *
+     * @return \Magento\Webapi\Controller\Rest\InputParamsResolver
+     *
+     * @deprecated 100.1.0
+     */
+    private function getInputParamsResolver()
+    {
+        if ($this->inputParamsResolver === null) {
+            $this->inputParamsResolver = \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Magento\Webapi\Controller\Rest\InputParamsResolver::class);
+        }
+        return $this->inputParamsResolver;
     }
 }

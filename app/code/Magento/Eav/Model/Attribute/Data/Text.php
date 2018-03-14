@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Eav\Model\Attribute\Data;
@@ -15,7 +15,7 @@ use Magento\Framework\App\RequestInterface;
 class Text extends \Magento\Eav\Model\Attribute\Data\AbstractData
 {
     /**
-     * @var \Magento\Framework\Stdlib\String
+     * @var \Magento\Framework\Stdlib\StringUtils
      */
     protected $_string;
 
@@ -23,13 +23,14 @@ class Text extends \Magento\Eav\Model\Attribute\Data\AbstractData
      * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Magento\Framework\Locale\ResolverInterface $localeResolver
-     * @param \Magento\Framework\Stdlib\String $stringHelper
+     * @param \Magento\Framework\Stdlib\StringUtils $stringHelper
+     * @codeCoverageIgnore
      */
     public function __construct(
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
-        \Magento\Framework\Stdlib\String $stringHelper
+        \Magento\Framework\Stdlib\StringUtils $stringHelper
     ) {
         parent::__construct($localeDate, $logger, $localeResolver);
         $this->_string = $stringHelper;
@@ -60,7 +61,6 @@ class Text extends \Magento\Eav\Model\Attribute\Data\AbstractData
     {
         $errors = [];
         $attribute = $this->getAttribute();
-        $label = __($attribute->getStoreLabel());
 
         if ($value === false) {
             // try to load original value and validate it
@@ -68,6 +68,7 @@ class Text extends \Magento\Eav\Model\Attribute\Data\AbstractData
         }
 
         if ($attribute->getIsRequired() && empty($value) && $value !== '0') {
+            $label = __($attribute->getStoreLabel());
             $errors[] = __('"%1" is a required value.', $label);
         }
 
@@ -80,10 +81,12 @@ class Text extends \Magento\Eav\Model\Attribute\Data\AbstractData
 
         $validateRules = $attribute->getValidateRules();
         if (!empty($validateRules['min_text_length']) && $length < $validateRules['min_text_length']) {
+            $label = __($attribute->getStoreLabel());
             $v = $validateRules['min_text_length'];
             $errors[] = __('"%1" length must be equal or greater than %2 characters.', $label, $v);
         }
         if (!empty($validateRules['max_text_length']) && $length > $validateRules['max_text_length']) {
+            $label = __($attribute->getStoreLabel());
             $v = $validateRules['max_text_length'];
             $errors[] = __('"%1" length must be equal or less than %2 characters.', $label, $v);
         }
@@ -118,6 +121,7 @@ class Text extends \Magento\Eav\Model\Attribute\Data\AbstractData
      *
      * @param array|string $value
      * @return $this
+     * @codeCoverageIgnore
      */
     public function restoreValue($value)
     {
@@ -129,6 +133,7 @@ class Text extends \Magento\Eav\Model\Attribute\Data\AbstractData
      *
      * @param string $format
      * @return string|array
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function outputValue($format = \Magento\Eav\Model\AttributeDataFactory::OUTPUT_FORMAT_TEXT)
     {

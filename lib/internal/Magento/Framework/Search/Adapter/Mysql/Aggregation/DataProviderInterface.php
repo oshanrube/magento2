@@ -1,22 +1,32 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\Search\Adapter\Mysql\Aggregation;
 
+use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\DB\Select;
 use Magento\Framework\Search\Request\BucketInterface;
 use Magento\Framework\Search\Request\Dimension;
 
+/**
+ * Interface \Magento\Framework\Search\Adapter\Mysql\Aggregation\DataProviderInterface
+ *
+ */
 interface DataProviderInterface
 {
     /**
      * @param BucketInterface $bucket
      * @param Dimension[] $dimensions
+     * @param Table $entityIdsTable
      * @return Select
      */
-    public function getDataSet(BucketInterface $bucket, array $dimensions);
+    public function getDataSet(
+        BucketInterface $bucket,
+        array $dimensions,
+        Table $entityIdsTable
+    );
 
     /**
      * Executes query and return raw response

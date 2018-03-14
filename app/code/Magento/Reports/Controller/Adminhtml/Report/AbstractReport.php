@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -11,8 +11,21 @@
  */
 namespace Magento\Reports\Controller\Adminhtml\Report;
 
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+
+/**
+ * @api
+ * @since 100.0.2
+ */
 abstract class AbstractReport extends \Magento\Backend\App\Action
 {
+    /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Magento_Reports::report';
+
     /**
      * @var \Magento\Framework\App\Response\Http\FileFactory
      */
@@ -24,18 +37,26 @@ abstract class AbstractReport extends \Magento\Backend\App\Action
     protected $_dateFilter;
 
     /**
+     * @var TimezoneInterface
+     */
+    protected $timezone;
+
+    /**
      * @param \Magento\Backend\App\Action\Context $context
      * @param \Magento\Framework\App\Response\Http\FileFactory $fileFactory
      * @param \Magento\Framework\Stdlib\DateTime\Filter\Date $dateFilter
+     * @param TimezoneInterface $timezone
      */
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         \Magento\Framework\App\Response\Http\FileFactory $fileFactory,
-        \Magento\Framework\Stdlib\DateTime\Filter\Date $dateFilter
+        \Magento\Framework\Stdlib\DateTime\Filter\Date $dateFilter,
+        TimezoneInterface $timezone
     ) {
         parent::__construct($context);
         $this->_fileFactory = $fileFactory;
         $this->_dateFilter = $dateFilter;
+        $this->timezone = $timezone;
     }
 
     /**
@@ -53,7 +74,7 @@ abstract class AbstractReport extends \Magento\Backend\App\Action
     protected function _getSession()
     {
         if ($this->_adminSession === null) {
-            $this->_adminSession = $this->_objectManager->get('Magento\Backend\Model\Auth\Session');
+            $this->_adminSession = $this->_objectManager->get(\Magento\Backend\Model\Auth\Session::class);
         }
         return $this->_adminSession;
     }
@@ -73,7 +94,7 @@ abstract class AbstractReport extends \Magento\Backend\App\Action
     /**
      * Report action init operations
      *
-     * @param array|\Magento\Framework\Object $blocks
+     * @param array|\Magento\Framework\DataObject $blocks
      * @return $this
      */
     public function _initReportAction($blocks)
@@ -83,7 +104,7 @@ abstract class AbstractReport extends \Magento\Backend\App\Action
         }
 
         $requestData = $this->_objectManager->get(
-            'Magento\Backend\Helper\Data'
+            \Magento\Backend\Helper\Data::class
         )->prepareFilterString(
             $this->getRequest()->getParam('filter')
         );
@@ -94,7 +115,7 @@ abstract class AbstractReport extends \Magento\Backend\App\Action
         );
         $requestData = $inputFilter->getUnescaped();
         $requestData['store_ids'] = $this->getRequest()->getParam('store_ids');
-        $params = new \Magento\Framework\Object();
+        $params = new \Magento\Framework\DataObject();
 
         foreach ($requestData as $key => $value) {
             if (!empty($value)) {
@@ -121,17 +142,15 @@ abstract class AbstractReport extends \Magento\Backend\App\Action
      */
     protected function _showLastExecutionTime($flagCode, $refreshCode)
     {
-        $flag = $this->_objectManager->create('Magento\Reports\Model\Flag')->setReportFlagCode($flagCode)->loadSelf();
+        $flag = $this->_objectManager->create(\Magento\Reports\Model\Flag::class)
+            ->setReportFlagCode($flagCode)
+            ->loadSelf();
         $updatedAt = 'undefined';
         if ($flag->hasData()) {
-            $updatedAt =  \IntlDateFormatter::formatObject(
-                $this->_objectManager->get(
-                    'Magento\Framework\Stdlib\DateTime\TimezoneInterface'
-                )->scopeDate(
-                    0,
-                    $flag->getLastUpdate(),
-                    true
-                )
+            $updatedAt =  $this->timezone->formatDate(
+                $flag->getLastUpdate(),
+                \IntlDateFormatter::MEDIUM,
+                true
             );
         }
 

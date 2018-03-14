@@ -1,14 +1,16 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\User\Controller\Adminhtml;
 
+use Magento\Framework\Encryption\Helper\Security;
+
 /**
  * \Magento\User Auth controller
  */
-class Auth extends \Magento\Backend\App\AbstractAction
+abstract class Auth extends \Magento\Backend\App\AbstractAction
 {
     /**
      * User model factory
@@ -59,7 +61,7 @@ class Auth extends \Magento\Backend\App\AbstractAction
         }
 
         $userToken = $user->getRpToken();
-        if (strcmp($userToken, $resetPasswordToken) != 0 || $user->isResetPasswordLinkTokenExpired()) {
+        if (!Security::compareStrings($userToken, $resetPasswordToken) || $user->isResetPasswordLinkTokenExpired()) {
             throw new \Magento\Framework\Exception\LocalizedException(__('Your password reset link has expired.'));
         }
     }

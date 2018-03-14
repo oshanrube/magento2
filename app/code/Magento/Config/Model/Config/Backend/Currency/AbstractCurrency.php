@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -13,39 +13,12 @@
  */
 namespace Magento\Config\Model\Config\Backend\Currency;
 
+/**
+ * @api
+ * @since 100.0.2
+ */
 abstract class AbstractCurrency extends \Magento\Framework\App\Config\Value
 {
-    /**
-     * Core store config
-     *
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    protected $_scopeConfig;
-
-    /**
-     * Constructor
-     *
-     * @param \Magento\Framework\Model\Context $context
-     * @param \Magento\Framework\Registry $registry
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
-     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
-     * @param array $data
-     */
-    public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Magento\Framework\Registry $registry,
-        \Magento\Framework\App\Config\ScopeConfigInterface $config,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
-        array $data = []
-    ) {
-        $this->_scopeConfig = $scopeConfig;
-        parent::__construct($context, $registry, $config, $resource, $resourceCollection, $data);
-    }
-
     /**
      * Retrieve allowed currencies for current scope
      *
@@ -53,7 +26,7 @@ abstract class AbstractCurrency extends \Magento\Framework\App\Config\Value
      */
     protected function _getAllowedCurrencies()
     {
-        if ($this->getData('groups/options/fields/allow/inherit')) {
+        if (!$this->isFormData() || $this->getData('groups/options/fields/allow/inherit')) {
             return explode(
                 ',',
                 (string)$this->_config->getValue(
@@ -63,7 +36,8 @@ abstract class AbstractCurrency extends \Magento\Framework\App\Config\Value
                 )
             );
         }
-        return $this->getData('groups/options/fields/allow/value');
+
+        return (array)$this->getData('groups/options/fields/allow/value');
     }
 
     /**
@@ -75,7 +49,7 @@ abstract class AbstractCurrency extends \Magento\Framework\App\Config\Value
     {
         return explode(
             ',',
-            $this->_scopeConfig->getValue(
+            $this->_config->getValue(
                 'system/currency/installed',
                 \Magento\Store\Model\ScopeInterface::SCOPE_STORE
             )
@@ -89,7 +63,8 @@ abstract class AbstractCurrency extends \Magento\Framework\App\Config\Value
      */
     protected function _getCurrencyBase()
     {
-        if (!($value = $this->getData('groups/options/fields/base/value'))) {
+        $value = $this->getData('groups/options/fields/base/value');
+        if (!$this->isFormData() || !$value) {
             $value = $this->_config->getValue(
                 \Magento\Directory\Model\Currency::XML_PATH_CURRENCY_BASE,
                 $this->getScope(),
@@ -106,7 +81,7 @@ abstract class AbstractCurrency extends \Magento\Framework\App\Config\Value
      */
     protected function _getCurrencyDefault()
     {
-        if (!($value = $this->getData('groups/options/fields/default/value'))) {
+        if (!$this->isFormData() || !($value = $this->getData('groups/options/fields/default/value'))) {
             $value = $this->_config->getValue(
                 \Magento\Directory\Model\Currency::XML_PATH_CURRENCY_DEFAULT,
                 $this->getScope(),
@@ -114,5 +89,15 @@ abstract class AbstractCurrency extends \Magento\Framework\App\Config\Value
             );
         }
         return strval($value);
+    }
+
+    /**
+     * Check whether field saved from Admin form with other currency data or as single field, e.g. from CLI command
+     *
+     * @return bool True in case when field was saved from Admin form
+     */
+    private function isFormData()
+    {
+        return $this->getData('groups/options/fields') !== null;
     }
 }

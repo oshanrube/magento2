@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -12,10 +12,13 @@ use Magento\Framework\App\Filesystem\DirectoryList;
 
 /**
  * Sales Order PDF abstract model
+ *
+ * @api
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @since 100.0.2
  */
-abstract class AbstractPdf extends \Magento\Framework\Object
+abstract class AbstractPdf extends \Magento\Framework\DataObject
 {
     /**
      * Y coordinate
@@ -64,7 +67,7 @@ abstract class AbstractPdf extends \Magento\Framework\Object
     protected $_paymentData;
 
     /**
-     * @var \Magento\Framework\Stdlib\String
+     * @var \Magento\Framework\Stdlib\StringUtils
      */
     protected $string;
 
@@ -117,7 +120,7 @@ abstract class AbstractPdf extends \Magento\Framework\Object
 
     /**
      * @param \Magento\Payment\Helper\Data $paymentData
-     * @param \Magento\Framework\Stdlib\String $string
+     * @param \Magento\Framework\Stdlib\StringUtils $string
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Framework\Filesystem $filesystem
      * @param Config $pdfConfig
@@ -131,7 +134,7 @@ abstract class AbstractPdf extends \Magento\Framework\Object
      */
     public function __construct(
         \Magento\Payment\Helper\Data $paymentData,
-        \Magento\Framework\Stdlib\String $string,
+        \Magento\Framework\Stdlib\StringUtils $string,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\Filesystem $filesystem,
         Config $pdfConfig,
@@ -395,7 +398,10 @@ abstract class AbstractPdf extends \Magento\Framework\Object
 
         if ($putOrderId) {
             $page->drawText(__('Order # ') . $order->getRealOrderId(), 35, $top -= 30, 'UTF-8');
+            $top +=15;
         }
+
+        $top -=30;
         $page->drawText(
             __('Order Date: ') .
             $this->_localeDate->formatDate(
@@ -408,7 +414,7 @@ abstract class AbstractPdf extends \Magento\Framework\Object
                 false
             ),
             35,
-            $top -= 15,
+            $top,
             'UTF-8'
         );
 
@@ -644,7 +650,7 @@ abstract class AbstractPdf extends \Magento\Framework\Object
     /**
      * Return total list
      *
-     * @return \Magento\Sales\Model\Order\Pdf\Total\DefaultTotal
+     * @return \Magento\Sales\Model\Order\Pdf\Total\DefaultTotal[] Array of totals
      */
     protected function _getTotalsList()
     {
@@ -707,7 +713,7 @@ abstract class AbstractPdf extends \Magento\Framework\Object
     /**
      * Parse item description
      *
-     * @param  \Magento\Framework\Object $item
+     * @param  \Magento\Framework\DataObject $item
      * @return array
      */
     protected function _parseItemDescription($item)
@@ -821,12 +827,12 @@ abstract class AbstractPdf extends \Magento\Framework\Object
     /**
      * Draw Item process
      *
-     * @param  \Magento\Framework\Object $item
+     * @param  \Magento\Framework\DataObject $item
      * @param  \Zend_Pdf_Page $page
      * @param  \Magento\Sales\Model\Order $order
      * @return \Zend_Pdf_Page
      */
-    protected function _drawItem(\Magento\Framework\Object $item, \Zend_Pdf_Page $page, \Magento\Sales\Model\Order $order)
+    protected function _drawItem(\Magento\Framework\DataObject $item, \Zend_Pdf_Page $page, \Magento\Sales\Model\Order $order)
     {
         $type = $item->getOrderItem()->getProductType();
         $renderer = $this->_getRenderer($type);

@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Controller\Adminhtml\Product\Attribute;
@@ -15,9 +15,9 @@ class Edit extends \Magento\Catalog\Controller\Adminhtml\Product\Attribute
     public function execute()
     {
         $id = $this->getRequest()->getParam('attribute_id');
-        /** @var $model \Magento\Catalog\Model\Resource\Eav\Attribute */
+        /** @var $model \Magento\Catalog\Model\ResourceModel\Eav\Attribute */
         $model = $this->_objectManager->create(
-            'Magento\Catalog\Model\Resource\Eav\Attribute'
+            \Magento\Catalog\Model\ResourceModel\Eav\Attribute::class
         )->setEntityTypeId(
             $this->_entityTypeId
         );
@@ -39,7 +39,7 @@ class Edit extends \Magento\Catalog\Controller\Adminhtml\Product\Attribute
         }
 
         // set entered data if was error when we do save
-        $data = $this->_objectManager->get('Magento\Backend\Model\Session')->getAttributeData(true);
+        $data = $this->_objectManager->get(\Magento\Backend\Model\Session::class)->getAttributeData(true);
         if (!empty($data)) {
             $model->addData($data);
         }
@@ -52,9 +52,8 @@ class Edit extends \Magento\Catalog\Controller\Adminhtml\Product\Attribute
 
         $item = $id ? __('Edit Product Attribute') : __('New Product Attribute');
 
-        $resultPage = $this->createActionPage();
+        $resultPage = $this->createActionPage($item);
         $resultPage->getConfig()->getTitle()->prepend($id ? $model->getName() : __('New Product Attribute'));
-        $resultPage->addBreadcrumb($item, $item);
         $resultPage->getLayout()
             ->getBlock('attribute_edit_js')
             ->setIsPopup((bool)$this->getRequest()->getParam('popup'));

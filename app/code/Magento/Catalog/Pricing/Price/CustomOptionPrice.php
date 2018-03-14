@@ -1,14 +1,16 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Pricing\Price;
 
 use Magento\Catalog\Model\Product\Option\Value;
-use Magento\Catalog\Model\Product\Option;
 use Magento\Catalog\Pricing\Price;
 use Magento\Framework\Pricing\Price\AbstractPrice;
+use Magento\Framework\Pricing\SaleableInterface;
+use Magento\Framework\Pricing\Adjustment\CalculatorInterface;
+use Magento\Framework\Pricing\Amount\AmountInterface;
 
 /**
  * Class OptionPrice
@@ -25,6 +27,31 @@ class CustomOptionPrice extends AbstractPrice implements CustomOptionPriceInterf
      * @var array
      */
     protected $priceOptions;
+
+    /**
+     * Code of parent adjustment to be skipped from calculation
+     *
+     * @var string
+     */
+    protected $excludeAdjustment = null;
+
+    /**
+     * @param SaleableInterface $saleableItem
+     * @param float $quantity
+     * @param CalculatorInterface $calculator
+     * @param \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency
+     * @param array $excludeAdjustment
+     */
+    public function __construct(
+        SaleableInterface $saleableItem,
+        $quantity,
+        CalculatorInterface $calculator,
+        \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency,
+        $excludeAdjustment = null
+    ) {
+        parent::__construct($saleableItem, $quantity, $calculator, $priceCurrency);
+        $this->excludeAdjustment = $excludeAdjustment;
+    }
 
     /**
      * Get minimal and maximal option values
@@ -65,7 +92,9 @@ class CustomOptionPrice extends AbstractPrice implements CustomOptionPriceInterf
                             $min = $price;
                         }
                         $type = $optionItem->getType();
-                        if ($type == Option::OPTION_TYPE_CHECKBOX || $type == Option::OPTION_TYPE_MULTIPLE) {
+                        if ($type == \Magento\Catalog\Api\Data\ProductCustomOptionInterface::OPTION_TYPE_CHECKBOX ||
+                            $type == \Magento\Catalog\Api\Data\ProductCustomOptionInterface::OPTION_TYPE_MULTIPLE
+                        ) {
                             $max += $price;
                         } elseif ($price > $max) {
                             $max = $price;
@@ -81,6 +110,23 @@ class CustomOptionPrice extends AbstractPrice implements CustomOptionPriceInterf
             }
         }
         return $optionValues;
+    }
+
+    /**
+     * @param float $amount
+     * @param null|bool|string|array $exclude
+     * @param null|array $context
+     * @return AmountInterface|bool|float
+     */
+    public function getCustomAmount($amount = null, $exclude = null, $context = [])
+    {
+        if (null !== $amount) {
+            $amount = $this->priceCurrency->convertAndRound($amount);
+        } else {
+            $amount = $this->getValue();
+        }
+        $exclude = $this->excludeAdjustment;
+        return $this->calculator->getAmount($amount, $this->getProduct(), $exclude, $context);
     }
 
     /**

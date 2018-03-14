@@ -1,16 +1,20 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Customer\Block\Address;
 
+use Magento\Customer\Model\AttributeChecker;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\App\ObjectManager;
 
 /**
  * Customer address edit block
  *
+ * @api
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @since 100.0.2
  */
 class Edit extends \Magento\Directory\Block\Data
 {
@@ -45,21 +49,26 @@ class Edit extends \Magento\Directory\Block\Data
     protected $dataObjectHelper;
 
     /**
+     * @var AttributeChecker
+     */
+    private $attributeChecker;
+
+    /**
      * Constructor
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Directory\Helper\Data $directoryHelper
      * @param \Magento\Framework\Json\EncoderInterface $jsonEncoder
      * @param \Magento\Framework\App\Cache\Type\Config $configCacheType
-     * @param \Magento\Directory\Model\Resource\Region\CollectionFactory $regionCollectionFactory
-     * @param \Magento\Directory\Model\Resource\Country\CollectionFactory $countryCollectionFactory
+     * @param \Magento\Directory\Model\ResourceModel\Region\CollectionFactory $regionCollectionFactory
+     * @param \Magento\Directory\Model\ResourceModel\Country\CollectionFactory $countryCollectionFactory
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Customer\Api\AddressRepositoryInterface $addressRepository
      * @param \Magento\Customer\Api\Data\AddressInterfaceFactory $addressDataFactory
      * @param \Magento\Customer\Helper\Session\CurrentCustomer $currentCustomer
      * @param \Magento\Framework\Api\DataObjectHelper $dataObjectHelper
      * @param array $data
-     *
+     * @param AttributeChecker $attributeChecker
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -67,20 +76,23 @@ class Edit extends \Magento\Directory\Block\Data
         \Magento\Directory\Helper\Data $directoryHelper,
         \Magento\Framework\Json\EncoderInterface $jsonEncoder,
         \Magento\Framework\App\Cache\Type\Config $configCacheType,
-        \Magento\Directory\Model\Resource\Region\CollectionFactory $regionCollectionFactory,
-        \Magento\Directory\Model\Resource\Country\CollectionFactory $countryCollectionFactory,
+        \Magento\Directory\Model\ResourceModel\Region\CollectionFactory $regionCollectionFactory,
+        \Magento\Directory\Model\ResourceModel\Country\CollectionFactory $countryCollectionFactory,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Customer\Api\AddressRepositoryInterface $addressRepository,
         \Magento\Customer\Api\Data\AddressInterfaceFactory $addressDataFactory,
         \Magento\Customer\Helper\Session\CurrentCustomer $currentCustomer,
         \Magento\Framework\Api\DataObjectHelper $dataObjectHelper,
-        array $data = []
+        array $data = [],
+        AttributeChecker $attributeChecker = null
     ) {
         $this->_customerSession = $customerSession;
         $this->_addressRepository = $addressRepository;
         $this->addressDataFactory = $addressDataFactory;
         $this->currentCustomer = $currentCustomer;
         $this->dataObjectHelper = $dataObjectHelper;
+        $this->attributeChecker = $attributeChecker ?: ObjectManager::getInstance()->get(AttributeChecker::class);
+
         parent::__construct(
             $context,
             $directoryHelper,
@@ -126,16 +138,16 @@ class Edit extends \Magento\Directory\Block\Data
         $this->pageConfig->getTitle()->set($this->getTitle());
 
         if ($postedData = $this->_customerSession->getAddressFormData(true)) {
-            if (!empty($postedData['region_id']) || !empty($postedData['region'])) {
-                $postedData['region'] = [
-                    'region_id' => $postedData['region_id'],
-                    'region' => $postedData['region'],
-                ];
+            $postedData['region'] = [
+                'region' => $postedData['region'] ?? null,
+            ];
+            if (!empty($postedData['region_id'])) {
+                $postedData['region']['region_id'] = $postedData['region_id'];
             }
             $this->dataObjectHelper->populateWithArray(
                 $this->_address,
                 $postedData,
-                '\Magento\Customer\Api\Data\AddressInterface'
+                \Magento\Customer\Api\Data\AddressInterface::class
             );
         }
 
@@ -150,7 +162,7 @@ class Edit extends \Magento\Directory\Block\Data
     public function getNameBlockHtml()
     {
         $nameBlock = $this->getLayout()
-            ->createBlock('Magento\Customer\Block\Widget\Name')
+            ->createBlock(\Magento\Customer\Block\Widget\Name::class)
             ->setObject($this->getAddress());
 
         return $nameBlock->toHtml();
@@ -351,5 +363,17 @@ class Edit extends \Magento\Directory\Block\Data
     public function getConfig($path)
     {
         return $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * Checks whether it is allowed to show an attribute on the form.
+     *
+     * @param string $attributeCode
+     * @param string $formName
+     * @return bool
+     */
+    public function isAttributeAllowedOnForm($attributeCode, $formName)
+    {
+        return $this->attributeChecker->isAttributeAllowedOnForm($attributeCode, $formName);
     }
 }

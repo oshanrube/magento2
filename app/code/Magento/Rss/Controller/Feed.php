@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Rss\Controller;
@@ -8,7 +8,7 @@ namespace Magento\Rss\Controller;
 /**
  * Class Feed
  */
-class Feed extends \Magento\Framework\App\Action\Action
+abstract class Feed extends \Magento\Framework\App\Action\Action
 {
     /**
      * @var \Magento\Customer\Model\Session

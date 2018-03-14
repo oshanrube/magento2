@@ -3,7 +3,7 @@
  * Returns an array of Javascript files that should be loaded first by JsTestDriver in the
  * order that they appear in the array when the Javascript unit tests are run.
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  *
  * @return array
@@ -21,6 +21,5 @@ return [
     '/lib/web/mage/decorate.js',
     '/lib/web/jquery/jquery.validate.js',
     '/lib/web/jquery/jquery.metadata.js',
-    '/lib/web/mage/translate.js',
-    '/lib/web/mage/requirejs/plugin/id-normalizer.js',
+    '/lib/web/mage/translate.js'
 ];

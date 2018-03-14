@@ -1,14 +1,48 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Sales\Controller\Adminhtml\Order;
 
-use Magento\Framework\Model\Resource\Db\Collection\AbstractCollection;
+use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
+use Magento\Backend\App\Action\Context;
+use Magento\Ui\Component\MassAction\Filter;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
+use Magento\Sales\Api\OrderManagementInterface;
 
+/**
+ * Class MassHold
+ */
 class MassHold extends \Magento\Sales\Controller\Adminhtml\Order\AbstractMassAction
 {
+    /**
+     * Authorization level of a basic admin session
+     */
+    const ADMIN_RESOURCE = 'Magento_Sales::hold';
+
+    /**
+     * @var OrderManagementInterface
+     */
+    protected $orderManagement;
+
+    /**
+     * @param Context $context
+     * @param Filter $filter
+     * @param CollectionFactory $collectionFactory
+     * @param OrderManagementInterface $orderManagement
+     */
+    public function __construct(
+        Context $context,
+        Filter $filter,
+        CollectionFactory $collectionFactory,
+        OrderManagementInterface $orderManagement
+    ) {
+        parent::__construct($context, $filter);
+        $this->collectionFactory = $collectionFactory;
+        $this->orderManagement = $orderManagement;
+    }
+
     /**
      * Hold selected orders
      *
@@ -22,8 +56,7 @@ class MassHold extends \Magento\Sales\Controller\Adminhtml\Order\AbstractMassAct
             if (!$order->canHold()) {
                 continue;
             }
-            $order->hold();
-            $order->save();
+            $this->orderManagement->hold($order->getEntityId());
             $countHoldOrder++;
         }
         $countNonHoldOrder = $collection->count() - $countHoldOrder;
@@ -39,7 +72,7 @@ class MassHold extends \Magento\Sales\Controller\Adminhtml\Order\AbstractMassAct
         }
 
         $resultRedirect = $this->resultRedirectFactory->create();
-        $resultRedirect->setPath('sales/*/');
+        $resultRedirect->setPath($this->getComponentRefererUrl());
         return $resultRedirect;
     }
 }

@@ -2,7 +2,7 @@
 /**
  * Grouped product type implementation
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\GroupedProduct\Model\Product\Type;
@@ -11,6 +11,8 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @api
+ * @since 100.0.2
  */
 class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
 {
@@ -68,7 +70,7 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
     /**
      * Catalog product link
      *
-     * @var \Magento\GroupedProduct\Model\Resource\Product\Link
+     * @var \Magento\GroupedProduct\Model\ResourceModel\Product\Link
      */
     protected $productLinks;
 
@@ -77,7 +79,9 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
      */
     protected $_appState;
 
-    /** @var \Magento\Msrp\Helper\Data  */
+    /**
+     * @var \Magento\Msrp\Helper\Data
+     */
     protected $msrpData;
 
     /**
@@ -90,12 +94,12 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
      * @param \Magento\Framework\Registry $coreRegistry
      * @param \Psr\Log\LoggerInterface $logger
      * @param ProductRepositoryInterface $productRepository
-     * @param \Magento\GroupedProduct\Model\Resource\Product\Link $catalogProductLink
+     * @param \Magento\GroupedProduct\Model\ResourceModel\Product\Link $catalogProductLink
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Catalog\Model\Product\Attribute\Source\Status $catalogProductStatus
      * @param \Magento\Framework\App\State $appState
      * @param \Magento\Msrp\Helper\Data $msrpData
-     *
+     * @param \Magento\Framework\Serialize\Serializer\Json|null $serializer
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -108,11 +112,12 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
         \Magento\Framework\Registry $coreRegistry,
         \Psr\Log\LoggerInterface $logger,
         ProductRepositoryInterface $productRepository,
-        \Magento\GroupedProduct\Model\Resource\Product\Link $catalogProductLink,
+        \Magento\GroupedProduct\Model\ResourceModel\Product\Link $catalogProductLink,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Model\Product\Attribute\Source\Status $catalogProductStatus,
         \Magento\Framework\App\State $appState,
-        \Magento\Msrp\Helper\Data $msrpData
+        \Magento\Msrp\Helper\Data $msrpData,
+        \Magento\Framework\Serialize\Serializer\Json $serializer = null
     ) {
         $this->productLinks = $catalogProductLink;
         $this->_storeManager = $storeManager;
@@ -128,18 +133,19 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
             $filesystem,
             $coreRegistry,
             $logger,
-            $productRepository
+            $productRepository,
+            $serializer
         );
     }
 
     /**
      * Return relation info about used products
      *
-     * @return \Magento\Framework\Object Object with information data
+     * @return \Magento\Framework\DataObject Object with information data
      */
     public function getRelationInfo()
     {
-        $info = new \Magento\Framework\Object();
+        $info = new \Magento\Framework\DataObject();
         $info->setTable(
             'catalog_product_link'
         )->setParentFieldName(
@@ -147,7 +153,7 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
         )->setChildFieldName(
             'linked_product_id'
         )->setWhere(
-            'link_type_id=' . \Magento\GroupedProduct\Model\Resource\Product\Link::LINK_TYPE_GROUPED
+            'link_type_id=' . \Magento\GroupedProduct\Model\ResourceModel\Product\Link::LINK_TYPE_GROUPED
         );
         return $info;
     }
@@ -168,7 +174,7 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
     {
         return $this->productLinks->getChildrenIds(
             $parentId,
-            \Magento\GroupedProduct\Model\Resource\Product\Link::LINK_TYPE_GROUPED
+            \Magento\GroupedProduct\Model\ResourceModel\Product\Link::LINK_TYPE_GROUPED
         );
     }
 
@@ -182,7 +188,7 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
     {
         return $this->productLinks->getParentIdsByChild(
             $childId,
-            \Magento\GroupedProduct\Model\Resource\Product\Link::LINK_TYPE_GROUPED
+            \Magento\GroupedProduct\Model\ResourceModel\Product\Link::LINK_TYPE_GROUPED
         );
     }
 
@@ -202,7 +208,7 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
             $collection = $this->getAssociatedProductCollection(
                 $product
             )->addAttributeToSelect(
-                '*'
+                ['name', 'price', 'special_price', 'special_from_date', 'special_to_date', 'tax_class_id']
             )->addFilterByRequiredOptions()->setPositionOrder()->addStoreFilter(
                 $this->getStoreFilter($product)
             )->addAttributeToFilter(
@@ -217,6 +223,16 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
             $product->setData($this->_keyAssociatedProducts, $associatedProducts);
         }
         return $product->getData($this->_keyAssociatedProducts);
+    }
+
+    /**
+     * @param \Magento\Catalog\Model\Product $product
+     * @return \Magento\Catalog\Model\Product
+     * @since 100.1.0
+     */
+    public function flushAssociatedProductsCache($product)
+    {
+        return $product->unsData($this->_keyAssociatedProducts);
     }
 
     /**
@@ -291,17 +307,14 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
      * Retrieve collection of associated products
      *
      * @param \Magento\Catalog\Model\Product $product
-     * @return \Magento\Catalog\Model\Resource\Product\Link\Product\Collection
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Link\Product\Collection
      */
     public function getAssociatedProductCollection($product)
     {
         /** @var \Magento\Catalog\Model\Product\Link  $links */
         $links = $product->getLinkInstance();
-        $links->setLinkTypeId(\Magento\GroupedProduct\Model\Resource\Product\Link::LINK_TYPE_GROUPED);
+        $links->setLinkTypeId(\Magento\GroupedProduct\Model\ResourceModel\Product\Link::LINK_TYPE_GROUPED);
         $collection = $links->getProductCollection()->setFlag(
-            'require_stock_items',
-            true
-        )->setFlag(
             'product_children',
             true
         )->setIsStrongMode();
@@ -310,29 +323,12 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
     }
 
     /**
-     * Save type related data
-     *
-     * @param \Magento\Catalog\Model\Product $product
-     * @return $this
-     */
-    public function save($product)
-    {
-        parent::save($product);
-
-        $data = $product->getGroupedLinkData();
-        if ($data !== null) {
-            $this->productLinks->saveGroupedLinks($product, $data);
-        }
-        return $this;
-    }
-
-    /**
-     * @param \Magento\Framework\Object $buyRequest
+     * @param \Magento\Framework\DataObject $buyRequest
      * @param \Magento\Catalog\Model\Product $product
      * @param bool $isStrictProcessMode
      * @return array|string
      */
-    protected function getProductInfo(\Magento\Framework\Object $buyRequest, $product, $isStrictProcessMode)
+    protected function getProductInfo(\Magento\Framework\DataObject $buyRequest, $product, $isStrictProcessMode)
     {
         $productsInfo = $buyRequest->getSuperGroup() ?: [];
         $associatedProducts = $this->getAssociatedProducts($product);
@@ -356,14 +352,14 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
      * Prepare product and its configuration to be added to some products list.
      * Perform standard preparation process and add logic specific to Grouped product type.
      *
-     * @param \Magento\Framework\Object $buyRequest
+     * @param \Magento\Framework\DataObject $buyRequest
      * @param \Magento\Catalog\Model\Product $product
      * @param string $processMode
      * @return \Magento\Framework\Phrase|array|string
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
-    protected function _prepareProduct(\Magento\Framework\Object $buyRequest, $product, $processMode)
+    protected function _prepareProduct(\Magento\Framework\DataObject $buyRequest, $product, $processMode)
     {
         $products = [];
         $associatedProductsInfo = [];
@@ -395,7 +391,7 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
                 $_result[0]->addCustomOption('product_type', self::TYPE_CODE, $product);
                 $_result[0]->addCustomOption(
                     'info_buyRequest',
-                    serialize(
+                    $this->serializer->serialize(
                         [
                             'super_product_config' => [
                                 'product_type' => self::TYPE_CODE,
@@ -413,7 +409,7 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
 
         if (!$isStrictProcessMode || count($associatedProductsInfo)) {
             $product->addCustomOption('product_type', self::TYPE_CODE, $product);
-            $product->addCustomOption('info_buyRequest', serialize($buyRequest->getData()));
+            $product->addCustomOption('info_buyRequest', $this->serializer->serialize($buyRequest->getData()));
 
             $products[] = $product;
         }
@@ -441,7 +437,7 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
      * Prepare selected qty for grouped product's options
      *
      * @param  \Magento\Catalog\Model\Product $product
-     * @param  \Magento\Framework\Object $buyRequest
+     * @param  \Magento\Framework\DataObject $buyRequest
      * @return array
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
@@ -481,6 +477,8 @@ class Grouped extends \Magento\Catalog\Model\Product\Type\AbstractType
      */
     public function beforeSave($product)
     {
+        //clear cached associated links
+        $product->unsetData($this->_keyAssociatedProducts);
         if ($product->hasData('product_options') && !empty($product->getData('product_options'))) {
             throw new \Exception('Custom options for grouped product type are not supported');
         }

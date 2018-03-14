@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -14,7 +14,10 @@ use Magento\Framework\Model\AbstractModel;
 
 /**
  * Class Storage
+ *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @api
+ * @since 100.0.2
  */
 class Storage extends AbstractModel
 {
@@ -98,7 +101,7 @@ class Storage extends AbstractModel
      * @param \Magento\MediaStorage\Model\File\Storage\FileFactory $fileFactory
      * @param \Magento\MediaStorage\Model\File\Storage\DatabaseFactory $databaseFactory
      * @param Filesystem $filesystem
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -113,7 +116,7 @@ class Storage extends AbstractModel
         \Magento\MediaStorage\Model\File\Storage\FileFactory $fileFactory,
         \Magento\MediaStorage\Model\File\Storage\DatabaseFactory $databaseFactory,
         Filesystem $filesystem,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {

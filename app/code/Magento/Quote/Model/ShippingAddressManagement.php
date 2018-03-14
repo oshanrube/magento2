@@ -1,22 +1,25 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Quote\Model;
 
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Psr\Log\LoggerInterface as Logger;
-use Magento\Quote\Api\ShippingAddressManagementInterface;
 
-/** Quote shipping address write service object. */
-class ShippingAddressManagement implements ShippingAddressManagementInterface
+/**
+ * Quote shipping address write service object.
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
+class ShippingAddressManagement implements \Magento\Quote\Model\ShippingAddressManagementInterface
 {
     /**
      * Quote repository.
      *
-     * @var \Magento\Quote\Model\QuoteRepository
+     * @var \Magento\Quote\Api\CartRepositoryInterface
      */
     protected $quoteRepository;
 
@@ -45,24 +48,33 @@ class ShippingAddressManagement implements ShippingAddressManagementInterface
     protected $scopeConfig;
 
     /**
-     * @param QuoteRepository $quoteRepository
+     * @var Quote\TotalsCollector
+     */
+    protected $totalsCollector;
+
+    /**
+     * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      * @param QuoteAddressValidator $addressValidator
      * @param Logger $logger
      * @param \Magento\Customer\Api\AddressRepositoryInterface $addressRepository
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param Quote\TotalsCollector $totalsCollector
+     *
      */
     public function __construct(
-        \Magento\Quote\Model\QuoteRepository $quoteRepository,
+        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         QuoteAddressValidator $addressValidator,
         Logger $logger,
         \Magento\Customer\Api\AddressRepositoryInterface $addressRepository,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Quote\Model\Quote\TotalsCollector $totalsCollector
     ) {
         $this->quoteRepository = $quoteRepository;
         $this->addressValidator = $addressValidator;
         $this->logger = $logger;
         $this->addressRepository = $addressRepository;
         $this->scopeConfig = $scopeConfig;
+        $this->totalsCollector = $totalsCollector;
     }
 
     /**
@@ -86,6 +98,10 @@ class ShippingAddressManagement implements ShippingAddressManagementInterface
         $quote->setShippingAddress($address);
         $address = $quote->getShippingAddress();
 
+        if ($customerAddressId === null) {
+            $address->setCustomerAddressId(null);
+        }
+
         if ($customerAddressId) {
             $addressData = $this->addressRepository->getById($customerAddressId);
             $address = $quote->getShippingAddress()->importCustomerAddressData($addressData);
@@ -95,19 +111,12 @@ class ShippingAddressManagement implements ShippingAddressManagementInterface
         $address->setSameAsBilling($sameAsBilling);
         $address->setSaveInAddressBook($saveInAddressBook);
         $address->setCollectShippingRates(true);
+
         try {
-            $address->collectTotals()->save();
+            $address->save();
         } catch (\Exception $e) {
             $this->logger->critical($e);
-            throw new InputException(__('Unable to save address. Please, check input data.'));
-        }
-
-        if (!$quote->validateMinimumAmount($quote->getIsMultiShipping())) {
-            throw new InputException($this->scopeConfig->getValue(
-                'sales/minimum_order/error_message',
-                \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                $quote->getStoreId()
-            ));
+            throw new InputException(__('Unable to save address. Please check input data.'));
         }
         return $quote->getShippingAddress()->getId();
     }

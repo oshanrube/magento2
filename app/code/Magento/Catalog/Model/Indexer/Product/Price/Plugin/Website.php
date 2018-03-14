@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Model\Indexer\Product\Price\Plugin;
@@ -23,13 +23,13 @@ class Website
     /**
      * Invalidate price indexer
      *
-     * @param \Magento\Store\Model\Resource\Website $subject
-     * @param \Magento\Store\Model\Resource\Website $result
-     * @return \Magento\Store\Model\Resource\Website
+     * @param \Magento\Store\Model\ResourceModel\Website $subject
+     * @param \Magento\Store\Model\ResourceModel\Website $result
+     * @return \Magento\Store\Model\ResourceModel\Website
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function afterDelete(\Magento\Store\Model\Resource\Website $subject, $result)
+    public function afterDelete(\Magento\Store\Model\ResourceModel\Website $subject, $result)
     {
         $this->_processor->markIndexerAsInvalid();
         return $result;

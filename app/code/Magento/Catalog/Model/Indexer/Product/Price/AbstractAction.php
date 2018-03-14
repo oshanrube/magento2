@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Model\Indexer\Product\Price;
@@ -15,7 +15,7 @@ abstract class AbstractAction
     /**
      * Default Product Type Price indexer resource model
      *
-     * @var \Magento\Catalog\Model\Resource\Product\Indexer\Price\DefaultPrice
+     * @var \Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\DefaultPrice
      */
     protected $_defaultIndexerResource;
 
@@ -61,7 +61,7 @@ abstract class AbstractAction
     /**
      * Indexer price factory
      *
-     * @var \Magento\Catalog\Model\Resource\Product\Indexer\Price\Factory
+     * @var \Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\Factory
      */
     protected $_indexerPriceFactory;
 
@@ -71,14 +71,19 @@ abstract class AbstractAction
     protected $_indexers;
 
     /**
+     * @var \Magento\Catalog\Model\ResourceModel\Product
+     */
+    private $productResource;
+
+    /**
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Directory\Model\CurrencyFactory $currencyFactory
      * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate
      * @param \Magento\Framework\Stdlib\DateTime $dateTime
      * @param \Magento\Catalog\Model\Product\Type $catalogProductType
-     * @param \Magento\Catalog\Model\Resource\Product\Indexer\Price\Factory $indexerPriceFactory
-     * @param \Magento\Catalog\Model\Resource\Product\Indexer\Price\DefaultPrice $defaultIndexerResource
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\Factory $indexerPriceFactory
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\DefaultPrice $defaultIndexerResource
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $config,
@@ -87,8 +92,8 @@ abstract class AbstractAction
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
         \Magento\Framework\Stdlib\DateTime $dateTime,
         \Magento\Catalog\Model\Product\Type $catalogProductType,
-        \Magento\Catalog\Model\Resource\Product\Indexer\Price\Factory $indexerPriceFactory,
-        \Magento\Catalog\Model\Resource\Product\Indexer\Price\DefaultPrice $defaultIndexerResource
+        \Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\Factory $indexerPriceFactory,
+        \Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\DefaultPrice $defaultIndexerResource
     ) {
         $this->_config = $config;
         $this->_storeManager = $storeManager;
@@ -98,7 +103,7 @@ abstract class AbstractAction
         $this->_catalogProductType = $catalogProductType;
         $this->_indexerPriceFactory = $indexerPriceFactory;
         $this->_defaultIndexerResource = $defaultIndexerResource;
-        $this->_connection = $this->_defaultIndexerResource->getWriteConnection();
+        $this->_connection = $this->_defaultIndexerResource->getConnection();
     }
 
     /**
@@ -119,7 +124,7 @@ abstract class AbstractAction
     {
         // delete invalid rows
         $select = $this->_connection->select()->from(
-            ['index_price' => $this->_defaultIndexerResource->getTable('catalog_product_index_price')],
+            ['index_price' => $this->getIndexTargetTable()],
             null
         )->joinLeft(
             ['ip_tmp' => $this->_defaultIndexerResource->getIdxTable()],
@@ -136,7 +141,7 @@ abstract class AbstractAction
 
         $this->_insertFromTable(
             $this->_defaultIndexerResource->getIdxTable(),
-            $this->_defaultIndexerResource->getTable('catalog_product_index_price')
+            $this->getIndexTargetTable()
         );
         return $this;
     }
@@ -212,98 +217,97 @@ abstract class AbstractAction
     {
         $table = $this->_defaultIndexerResource->getTable('catalog_product_index_tier_price');
         $this->_emptyTable($table);
-
-        $websiteExpression = $this->_connection->getCheckSql(
-            'tp.website_id = 0',
-            'ROUND(tp.value * cwd.rate, 4)',
-            'tp.value'
-        );
-        $select = $this->_connection->select()->from(
+        if (empty($entityIds)) {
+            return $this;
+        }
+        $linkField = $this->getProductIdFieldName();
+        $priceAttribute = $this->getProductResource()->getAttribute('price');
+        $baseColumns = [
+            'cpe.entity_id',
+            'tp.customer_group_id',
+            'tp.website_id'
+        ];
+        if ($linkField !== 'entity_id') {
+            $baseColumns[] = 'cpe.' . $linkField;
+        };
+        $subSelect = $this->_connection->select()->from(
+            ['cpe' => $this->_defaultIndexerResource->getTable('catalog_product_entity')],
+            array_merge_recursive(
+                $baseColumns,
+                [
+                    'min(tp.value) AS value',
+                    'min(tp.percentage_value) AS percentage_value'
+                ]
+            )
+        )->joinInner(
             ['tp' => $this->_defaultIndexerResource->getTable(['catalog_product_entity', 'tier_price'])],
-            ['entity_id']
-        )->join(
-            ['cg' => $this->_defaultIndexerResource->getTable('customer_group')],
-            'tp.all_groups = 1 OR (tp.all_groups = 0 AND tp.customer_group_id = cg.customer_group_id)',
-            ['customer_group_id']
-        )->join(
-            ['cw' => $this->_defaultIndexerResource->getTable('store_website')],
-            'tp.website_id = 0 OR tp.website_id = cw.website_id',
-            ['website_id']
-        )->join(
-            ['cwd' => $this->_defaultIndexerResource->getTable('catalog_product_index_website')],
-            'cw.website_id = cwd.website_id',
+            'tp.' . $linkField . ' = cpe.' . $linkField,
             []
-        )->where(
-            'cw.website_id != 0'
-        )->columns(
-            new \Zend_Db_Expr("MIN({$websiteExpression})")
-        )->group(
-            ['tp.entity_id', 'cg.customer_group_id', 'cw.website_id']
-        );
+        )->where("cpe.entity_id IN(?)", $entityIds)
+            ->where("tp.website_id != 0")
+            ->group(['cpe.entity_id', 'tp.customer_group_id', 'tp.website_id']);
 
-        if (!empty($entityIds)) {
-            $select->where('tp.entity_id IN(?)', $entityIds);
-        }
+        $subSelect2 = $this->_connection->select()
+            ->from(
+                ['cpe' => $this->_defaultIndexerResource->getTable('catalog_product_entity')],
+                array_merge_recursive(
+                    $baseColumns,
+                    [
+                        'MIN(ROUND(tp.value * cwd.rate, 4)) AS value',
+                        'MIN(ROUND(tp.percentage_value * cwd.rate, 4)) AS percentage_value'
 
-        $query = $select->insertFromSelect($table);
+                    ]
+                )
+            )
+            ->joinInner(
+                ['tp' => $this->_defaultIndexerResource->getTable(['catalog_product_entity', 'tier_price'])],
+                'tp.' . $linkField . ' = cpe.' . $linkField,
+                []
+            )->join(
+                ['cw' => $this->_defaultIndexerResource->getTable('store_website')],
+                true,
+                []
+            )
+            ->joinInner(
+                ['cwd' => $this->_defaultIndexerResource->getTable('catalog_product_index_website')],
+                'cw.website_id = cwd.website_id',
+                []
+            )
+            ->where("cpe.entity_id IN(?)", $entityIds)
+            ->where("tp.website_id = 0")
+            ->group(
+                ['cpe.entity_id', 'tp.customer_group_id', 'tp.website_id']
+            );
+
+        $unionSelect = $this->_connection->select()
+            ->union([$subSelect, $subSelect2], \Magento\Framework\DB\Select::SQL_UNION_ALL);
+        $select = $this->_connection->select()
+            ->from(
+                ['b' => new \Zend_Db_Expr(sprintf('(%s)', $unionSelect->assemble()))],
+                [
+                    'b.entity_id',
+                    'b.customer_group_id',
+                    'b.website_id',
+                    'MIN(IF(b.value = 0, product_price.value * (1 - b.percentage_value / 100), b.value))'
+                ]
+            )
+            ->joinInner(
+                ['product_price' => $priceAttribute->getBackend()->getTable()],
+                'b.' . $linkField . ' = product_price.' . $linkField,
+                []
+            )
+            ->group(['b.entity_id', 'b.customer_group_id', 'b.website_id']);
+
+        $query = $select->insertFromSelect($table, [], false);
+
         $this->_connection->query($query);
-
-        return $this;
-    }
-
-    /**
-     * Prepare group price index table
-     *
-     * @param int|array $entityIds the entity ids limitation
-     * @return \Magento\Catalog\Model\Indexer\Product\Price\AbstractAction
-     */
-    protected function _prepareGroupPriceIndex($entityIds = null)
-    {
-        $table = $this->_defaultIndexerResource->getTable('catalog_product_index_group_price');
-        $this->_emptyTable($table);
-
-        $websiteExpression = $this->_connection->getCheckSql(
-            'gp.website_id = 0',
-            'ROUND(gp.value * cwd.rate, 4)',
-            'gp.value'
-        );
-        $select = $this->_connection->select()->from(
-            ['gp' => $this->_defaultIndexerResource->getTable(['catalog_product_entity', 'group_price'])],
-            ['entity_id']
-        )->join(
-            ['cg' => $this->_defaultIndexerResource->getTable('customer_group')],
-            'gp.all_groups = 1 OR (gp.all_groups = 0 AND gp.customer_group_id = cg.customer_group_id)',
-            ['customer_group_id']
-        )->join(
-            ['cw' => $this->_defaultIndexerResource->getTable('store_website')],
-            'gp.website_id = 0 OR gp.website_id = cw.website_id',
-            ['website_id']
-        )->join(
-            ['cwd' => $this->_defaultIndexerResource->getTable('catalog_product_index_website')],
-            'cw.website_id = cwd.website_id',
-            []
-        )->where(
-            'cw.website_id != 0'
-        )->columns(
-            new \Zend_Db_Expr("MIN({$websiteExpression})")
-        )->group(
-            ['gp.entity_id', 'cg.customer_group_id', 'cw.website_id']
-        );
-
-        if (!empty($entityIds)) {
-            $select->where('gp.entity_id IN(?)', $entityIds);
-        }
-
-        $query = $select->insertFromSelect($table);
-        $this->_connection->query($query);
-
         return $this;
     }
 
     /**
      * Retrieve price indexers per product type
      *
-     * @return \Magento\Catalog\Model\Resource\Product\Indexer\Price\PriceInterface[]
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\PriceInterface[]
      */
     public function getTypeIndexers()
     {
@@ -334,7 +338,7 @@ abstract class AbstractAction
      * Retrieve Price indexer by Product Type
      *
      * @param string $productTypeId
-     * @return \Magento\Catalog\Model\Resource\Product\Indexer\Price\PriceInterface
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\PriceInterface
      * @throws \Magento\Framework\Exception\InputException
      */
     protected function _getIndexer($productTypeId)
@@ -422,11 +426,11 @@ abstract class AbstractAction
         if (!empty($notCompositeIds)) {
             $select = $this->_connection->select()->from(
                 ['l' => $this->_defaultIndexerResource->getTable('catalog_product_relation')],
-                'parent_id'
+                ''
             )->join(
                 ['e' => $this->_defaultIndexerResource->getTable('catalog_product_entity')],
-                'e.entity_id = l.parent_id',
-                ['type_id']
+                'e.' . $this->getProductIdFieldName() . ' = l.parent_id',
+                ['e.entity_id as parent_id', 'type_id']
             )->where(
                 'l.child_id IN(?)',
                 $notCompositeIds
@@ -434,7 +438,7 @@ abstract class AbstractAction
             $pairs = $this->_connection->fetchPairs($select);
             foreach ($pairs as $productId => $productType) {
                 if (!in_array($productId, $changedIds)) {
-                    $changedIds[] = $productId;
+                    $changedIds[] = (string) $productId;
                     $byType[$productType][$productId] = $productId;
                     $compositeIds[$productId] = $productId;
                 }
@@ -445,7 +449,6 @@ abstract class AbstractAction
             $this->_copyRelationIndexData($compositeIds, $notCompositeIds);
         }
         $this->_prepareTierPriceIndex($compositeIds + $notCompositeIds);
-        $this->_prepareGroupPriceIndex($compositeIds + $notCompositeIds);
 
         $indexers = $this->getTypeIndexers();
         foreach ($indexers as $indexer) {
@@ -467,11 +470,15 @@ abstract class AbstractAction
      */
     protected function _copyRelationIndexData($parentIds, $excludeIds = null)
     {
+        $linkField = $this->getProductIdFieldName();
         $select = $this->_connection->select()->from(
             $this->_defaultIndexerResource->getTable('catalog_product_relation'),
             ['child_id']
+        )->join(
+            ['e' => $this->_defaultIndexerResource->getTable('catalog_product_entity')],
+            'e.' . $linkField . ' = parent_id'
         )->where(
-            'parent_id IN(?)',
+            'e.entity_id IN(?)',
             $parentIds
         );
         if (!empty($excludeIds)) {
@@ -482,7 +489,7 @@ abstract class AbstractAction
 
         if ($children) {
             $select = $this->_connection->select()->from(
-                $this->_defaultIndexerResource->getTable('catalog_product_index_price')
+                $this->getIndexTargetTable()
             )->where(
                 'entity_id IN(?)',
                 $children
@@ -492,5 +499,40 @@ abstract class AbstractAction
         }
 
         return $this;
+    }
+
+    /**
+     * Retrieve index table that will be used for write operations.
+     *
+     * This method is used during both partial and full reindex to identify the table.
+     *
+     * @return string
+     */
+    protected function getIndexTargetTable()
+    {
+        return $this->_defaultIndexerResource->getTable('catalog_product_index_price');
+    }
+
+    /**
+     * @return string
+     */
+    protected function getProductIdFieldName()
+    {
+        $table = $this->_defaultIndexerResource->getTable('catalog_product_entity');
+        $indexList = $this->_connection->getIndexList($table);
+        return $indexList[$this->_connection->getPrimaryKeyName($table)]['COLUMNS_LIST'][0];
+    }
+
+    /**
+     * @return \Magento\Catalog\Model\ResourceModel\Product
+     * @deprecated 101.1.0
+     */
+    private function getProductResource()
+    {
+        if (null === $this->productResource) {
+            $this->productResource = \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Magento\Catalog\Model\ResourceModel\Product::class);
+        }
+        return $this->productResource;
     }
 }

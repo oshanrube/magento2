@@ -1,15 +1,59 @@
 <?php
 /**
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Paypal\Controller\Express\AbstractExpress;
 
 use Magento\Paypal\Model\Api\ProcessableException as ApiProcessableException;
 
+/**
+ * Class PlaceOrder
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class PlaceOrder extends \Magento\Paypal\Controller\Express\AbstractExpress
 {
+    /**
+     * @var \Magento\Checkout\Api\AgreementsValidatorInterface
+     */
+    protected $agreementsValidator;
+
+    /**
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param \Magento\Sales\Model\OrderFactory $orderFactory
+     * @param \Magento\Paypal\Model\Express\Checkout\Factory $checkoutFactory
+     * @param \Magento\Framework\Session\Generic $paypalSession
+     * @param \Magento\Framework\Url\Helper\Data $urlHelper
+     * @param \Magento\Customer\Model\Url $customerUrl
+     * @param \Magento\Checkout\Api\AgreementsValidatorInterface $agreementValidator
+     */
+    public function __construct(
+        \Magento\Framework\App\Action\Context $context,
+        \Magento\Customer\Model\Session $customerSession,
+        \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Sales\Model\OrderFactory $orderFactory,
+        \Magento\Paypal\Model\Express\Checkout\Factory $checkoutFactory,
+        \Magento\Framework\Session\Generic $paypalSession,
+        \Magento\Framework\Url\Helper\Data $urlHelper,
+        \Magento\Customer\Model\Url $customerUrl,
+        \Magento\Checkout\Api\AgreementsValidatorInterface $agreementValidator
+    ) {
+        $this->agreementsValidator = $agreementValidator;
+        parent::__construct(
+            $context,
+            $customerSession,
+            $checkoutSession,
+            $orderFactory,
+            $checkoutFactory,
+            $paypalSession,
+            $urlHelper,
+            $customerUrl
+        );
+    }
+
     /**
      * Submit the order
      *
@@ -18,14 +62,21 @@ class PlaceOrder extends \Magento\Paypal\Controller\Express\AbstractExpress
      */
     public function execute()
     {
-        try {
-            $agreementsValidator = $this->_objectManager->get('Magento\Checkout\Model\Agreements\AgreementsValidator');
-            if (!$agreementsValidator->isValid(array_keys($this->getRequest()->getPost('agreement', [])))) {
-                throw new \Magento\Framework\Exception\LocalizedException(
-                    __('Please agree to all the terms and conditions before placing the order.')
-                );
-            }
+        if ($this->isValidationRequired() &&
+            !$this->agreementsValidator->isValid(array_keys($this->getRequest()->getPost('agreement', [])))
+        ) {
+            $e = new \Magento\Framework\Exception\LocalizedException(
+                __('Please agree to all the terms and conditions before placing the order.')
+            );
+            $this->messageManager->addExceptionMessage(
+                $e,
+                $e->getMessage()
+            );
+            $this->_redirect('*/*/review');
+            return;
+        }
 
+        try {
             $this->_initCheckout();
             $this->_checkout->place($this->_initToken());
 
@@ -63,12 +114,11 @@ class PlaceOrder extends \Magento\Paypal\Controller\Express\AbstractExpress
             return;
         } catch (ApiProcessableException $e) {
             $this->_processPaypalApiError($e);
-        } catch (\Magento\Framework\Exception\LocalizedException $e) {
-            $this->messageManager->addError($e->getMessage());
-            $this->_redirect('*/*/review');
         } catch (\Exception $e) {
-            $this->messageManager->addError(__('We can\'t place the order.'));
-            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+            $this->messageManager->addExceptionMessage(
+                $e,
+                __('We can\'t place the order.')
+            );
             $this->_redirect('*/*/review');
         }
     }
@@ -90,6 +140,9 @@ class PlaceOrder extends \Magento\Paypal\Controller\Express\AbstractExpress
                 break;
             case ApiProcessableException::API_DO_EXPRESS_CHECKOUT_FAIL:
                 $this->_redirectSameToken();
+                break;
+            case ApiProcessableException::API_ADDRESS_MATCH_FAIL:
+                $this->redirectToOrderReviewPageAndShowError($exception->getUserMessage());
                 break;
             case ApiProcessableException::API_UNABLE_TRANSACTION_COMPLETE:
                 if ($this->_config->getPaymentAction() == \Magento\Payment\Model\Method\AbstractMethod::ACTION_ORDER) {
@@ -128,7 +181,30 @@ class PlaceOrder extends \Magento\Paypal\Controller\Express\AbstractExpress
      */
     protected function _redirectToCartAndShowError($errorMessage)
     {
-        $this->messageManager->addError($errorMessage);
+        $this->messageManager->addErrorMessage($errorMessage);
         $this->_redirect('checkout/cart');
+    }
+
+    /**
+     * Redirect customer to the paypal order review page and show error message
+     *
+     * @param string $errorMessage
+     * @return void
+     */
+    private function redirectToOrderReviewPageAndShowError($errorMessage)
+    {
+        $this->messageManager->addErrorMessage($errorMessage);
+        $this->_redirect('*/*/review');
+    }
+
+    /**
+     * Return true if agreements validation required
+     *
+     * @return bool
+     */
+    protected function isValidationRequired()
+    {
+        return is_array($this->getRequest()->getBeforeForwardInfo())
+        && empty($this->getRequest()->getBeforeForwardInfo());
     }
 }

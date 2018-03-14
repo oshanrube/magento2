@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\CatalogInventory\Api;
@@ -8,6 +8,7 @@ namespace Magento\CatalogInventory\Api;
 /**
  * Interface StockStatusCriteriaInterface
  * @api
+ * @since 100.0.2
  */
 interface StockStatusCriteriaInterface extends \Magento\Framework\Api\CriteriaInterface
 {
@@ -20,12 +21,12 @@ interface StockStatusCriteriaInterface extends \Magento\Framework\Api\CriteriaIn
     public function addCriteria(\Magento\CatalogInventory\Api\StockStatusCriteriaInterface $criteria);
 
     /**
-     * Filter by website(s)
+     * Filter by scope(s)
      *
-     * @param int $website
+     * @param int $scope
      * @return bool
      */
-    public function setWebsiteFilter($website);
+    public function setScopeFilter($scope);
 
     /**
      * Add product(s) filter

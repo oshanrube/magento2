@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -11,6 +11,10 @@
  */
 namespace Magento\Catalog\Block\Adminhtml\Product\Attribute\Set\Toolbar;
 
+/**
+ * @api
+ * @since 100.0.2
+ */
 class Main extends \Magento\Backend\Block\Template
 {
     /**
@@ -25,9 +29,9 @@ class Main extends \Magento\Backend\Block\Template
     {
         $this->getToolbar()->addChild(
             'addButton',
-            'Magento\Backend\Block\Widget\Button',
+            \Magento\Backend\Block\Widget\Button::class,
             [
-                'label' => __('Add Product Template'),
+                'label' => __('Add Attribute Set'),
                 'onclick' => 'setLocation(\'' . $this->getUrl('catalog/*/add') . '\')',
                 'class' => 'add primary add-set'
             ]
@@ -48,7 +52,7 @@ class Main extends \Magento\Backend\Block\Template
      */
     protected function _getHeader()
     {
-        return __('Product Templates');
+        return __('Attribute Sets');
     }
 
     /**

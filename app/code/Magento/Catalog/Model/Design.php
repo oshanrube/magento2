@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Model;
@@ -8,7 +8,10 @@ namespace Magento\Catalog\Model;
 /**
  * Catalog Custom Category design Model
  *
+ * @api
+ *
  * @author     Magento Core Team <core@magentocommerce.com>
+ * @since 100.0.2
  */
 class Design extends \Magento\Framework\Model\AbstractModel
 {
@@ -33,7 +36,7 @@ class Design extends \Magento\Framework\Model\AbstractModel
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate
      * @param \Magento\Framework\View\DesignInterface $design
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      */
@@ -42,7 +45,7 @@ class Design extends \Magento\Framework\Model\AbstractModel
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
         \Magento\Framework\View\DesignInterface $design,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
@@ -67,7 +70,7 @@ class Design extends \Magento\Framework\Model\AbstractModel
      * Get custom layout settings
      *
      * @param \Magento\Catalog\Model\Category|\Magento\Catalog\Model\Product $object
-     * @return \Magento\Framework\Object
+     * @return \Magento\Framework\DataObject
      */
     public function getDesignSettings($object)
     {
@@ -97,11 +100,11 @@ class Design extends \Magento\Framework\Model\AbstractModel
      * Extract custom layout settings from category or product object
      *
      * @param \Magento\Catalog\Model\Category|\Magento\Catalog\Model\Product $object
-     * @return \Magento\Framework\Object
+     * @return \Magento\Framework\DataObject
      */
     protected function _extractSettings($object)
     {
-        $settings = new \Magento\Framework\Object();
+        $settings = new \Magento\Framework\DataObject();
         if (!$object) {
             return $settings;
         }
@@ -132,9 +135,9 @@ class Design extends \Magento\Framework\Model\AbstractModel
     /**
      * Merge custom design settings
      *
-     * @param \Magento\Framework\Object $categorySettings
-     * @param \Magento\Framework\Object $productSettings
-     * @return \Magento\Framework\Object
+     * @param \Magento\Framework\DataObject $categorySettings
+     * @param \Magento\Framework\DataObject $productSettings
+     * @return \Magento\Framework\DataObject
      */
     protected function _mergeSettings($categorySettings, $productSettings)
     {

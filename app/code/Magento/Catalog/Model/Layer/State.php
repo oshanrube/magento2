@@ -1,20 +1,22 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Model\Layer;
 
 use Magento\Catalog\Model\Layer\Filter\Item;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Object;
+use Magento\Framework\DataObject;
 
 /**
  * Layered navigation state model
  *
+ * @api
  * @author      Magento Core Team <core@magentocommerce.com>
+ * @since 100.0.2
  */
-class State extends Object
+class State extends DataObject
 {
     /**
      * Add filter item to layer state

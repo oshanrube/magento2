@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Config\Model;
@@ -11,8 +11,10 @@ namespace Magento\Config\Model;
  *
  * @author     Magento Core Team <core@magentocommerce.com>
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @api
+ * @since 100.0.2
  */
-class Config extends \Magento\Framework\Object
+class Config extends \Magento\Framework\DataObject
 {
     /**
      * Config data for sections
@@ -151,7 +153,6 @@ class Config extends \Magento\Framework\Object
 
             // re-init configuration
             $this->_appConfig->reinit();
-            $this->_storeManager->reinitStores();
 
             // website and store codes can be used in event implementation, so set them as well
             $this->_eventManager->dispatch(
@@ -161,7 +162,6 @@ class Config extends \Magento\Framework\Object
         } catch (\Exception $e) {
             // re-init configuration
             $this->_appConfig->reinit();
-            $this->_storeManager->reinitStores();
             throw $e;
         }
 
@@ -204,7 +204,6 @@ class Config extends \Magento\Framework\Object
          */
         /** @var $group \Magento\Config\Model\Config\Structure\Element\Group */
         $group = $this->_configStructure->getElement($groupPath);
-
 
         // set value for group field entry by fieldname
         // use extra memory
@@ -398,7 +397,6 @@ class Config extends \Magento\Framework\Object
         if ($this->getStore() === null) {
             $this->setStore('');
         }
-
 
         if ($this->getStore()) {
             $scope = 'stores';

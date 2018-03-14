@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -23,7 +23,7 @@ class Wishlist extends \Magento\Backend\Block\Template
     /**
      * Reports wishlist collection factory
      *
-     * @var \Magento\Reports\Model\Resource\Wishlist\CollectionFactory
+     * @var \Magento\Reports\Model\ResourceModel\Wishlist\CollectionFactory
      */
     protected $_wishlistFactory;
 
@@ -31,12 +31,12 @@ class Wishlist extends \Magento\Backend\Block\Template
      * Constructor
      *
      * @param \Magento\Backend\Block\Template\Context $context
-     * @param \Magento\Reports\Model\Resource\Wishlist\CollectionFactory $wishlistFactory
+     * @param \Magento\Reports\Model\ResourceModel\Wishlist\CollectionFactory $wishlistFactory
      * @param array $data
      */
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
-        \Magento\Reports\Model\Resource\Wishlist\CollectionFactory $wishlistFactory,
+        \Magento\Reports\Model\ResourceModel\Wishlist\CollectionFactory $wishlistFactory,
         array $data = []
     ) {
         $this->_wishlistFactory = $wishlistFactory;
@@ -50,7 +50,7 @@ class Wishlist extends \Magento\Backend\Block\Template
     {
         $this->setChild(
             'grid',
-            $this->getLayout()->createBlock('Magento\Reports\Block\Adminhtml\Wishlist\Grid', 'report.grid')
+            $this->getLayout()->createBlock(\Magento\Reports\Block\Adminhtml\Wishlist\Grid::class, 'report.grid')
         );
 
         $collection = $this->_wishlistFactory->create();

@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\CatalogSearch\Controller\Advanced;
@@ -13,13 +13,6 @@ use Magento\Framework\UrlFactory;
 
 class Result extends \Magento\Framework\App\Action\Action
 {
-    /**
-     * Catalog Layer Resolver
-     *
-     * @var Resolver
-     */
-    private $layerResolver;
-
     /**
      * Url factory
      *
@@ -40,18 +33,15 @@ class Result extends \Magento\Framework\App\Action\Action
      * @param Context $context
      * @param ModelAdvanced $catalogSearchAdvanced
      * @param UrlFactory $urlFactory
-     * @param Resolver $layerResolver
      */
     public function __construct(
         Context $context,
         ModelAdvanced $catalogSearchAdvanced,
-        UrlFactory $urlFactory,
-        Resolver $layerResolver
+        UrlFactory $urlFactory
     ) {
         parent::__construct($context);
         $this->_catalogSearchAdvanced = $catalogSearchAdvanced;
         $this->_urlFactory = $urlFactory;
-        $this->layerResolver = $layerResolver;
     }
 
     /**
@@ -60,7 +50,6 @@ class Result extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         try {
-            $this->layerResolver->create('advanced');
             $this->_catalogSearchAdvanced->addFilters($this->getRequest()->getQueryValue());
             $this->_view->loadLayout();
             $this->_view->renderLayout();

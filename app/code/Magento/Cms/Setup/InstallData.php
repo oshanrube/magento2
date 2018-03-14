@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -106,7 +106,7 @@ class InstallData implements InstallDataInterface
 <div class="privacy-policy cms-content">
     <div class="message info">
         <span>
-            Please replace this text with you Privacy Policy.
+            Please replace this text with your Privacy Policy.
             Please add any additional cookies your website uses below (e.g. Google Analytics).
         </span>
     </div>
@@ -210,7 +210,7 @@ class InstallData implements InstallDataInterface
     </p>
     <h2><a name="list"></a>List of cookies we collect</h2>
     <p>The table below lists the cookies we collect and what information they store.</p>
-    <table class="data-table">
+    <table class="data-table data-table-definition-list">
         <thead>
             <tr>
                 <th>COOKIE name</th>
@@ -336,7 +336,7 @@ EOD;
                 $content = preg_replace('/<li class="last">/ims', '<li>', $content);
                 $replacment = '<li class="last privacy">' .
                     "<a href=\"{{store direct_url=\"privacy-policy-cookie-restriction-mode\"}}\">" .
-                    "Privacy and Cookie Policy</a></li>\r\n</ul>";
+                    __('Privacy and Cookie Policy') . "</a></li>\r\n</ul>";
                 $content = preg_replace('/<\\/ul>/ims', $replacment, $content);
                 $footerLinksBlock->setContent($content)->save();
             }
@@ -377,24 +377,6 @@ EOD;
         $installer->doUpdateClassAliases();
 
         $setup->endSetup();
-
-        $cookieRestriction = $this->createPage()->load('privacy-policy-cookie-restriction-mode', 'identifier');
-
-        if ($cookieRestriction->getId()) {
-            $content = $cookieRestriction->getContent();
-            $replacment = '{{config path="general/store_information/street_line1"}} ' .
-                '{{config path="general/store_information/street_line2"}} ' .
-                '{{config path="general/store_information/city"}} ' .
-                '{{config path="general/store_information/postcode"}} ' .
-                '{{config path="general/store_information/region_id"}} ' .
-                '{{config path="general/store_information/country_id"}}';
-            $content = preg_replace(
-                '/{{config path="general\\/store_information\\/address"}}/ims',
-                $replacment,
-                $content
-            );
-            $cookieRestriction->setContent($content)->save();
-        }
     }
 
     /**

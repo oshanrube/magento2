@@ -1,20 +1,20 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\Catalog\Test\Block\Product\View;
 
 use Magento\Mtf\Block\Form;
+use Magento\Mtf\Client\Element\SimpleElement;
 use Magento\Mtf\Client\Locator;
 use Magento\Mtf\Fixture\FixtureInterface;
-use Magento\Mtf\Fixture\InjectableFixture;
-use Magento\Mtf\Client\Element\SimpleElement;
 
 /**
  * Class CustomOptions
  * Form of custom options product
+ * @SuppressWarnings(PHPMD.TooManyFields)
  */
 class CustomOptions extends Form
 {
@@ -23,21 +23,21 @@ class CustomOptions extends Form
      *
      * @var string
      */
-    protected $optionsContext = '#product-options-wrapper > fieldset';
+    protected $optionsContext = '#product-options-wrapper';
 
     /**
      * Selector for single option block
      *
      * @var string
      */
-    protected $optionElement = './div[contains(@class,"field")][%d]';
+    protected $optionElement = '#product-options-wrapper > * > .field';
 
     /**
      * Selector for title of option
      *
      * @var string
      */
-    protected $title = './/span[1]';
+    protected $title = 'label > span:nth-child(1), legend > span:nth-child(1)';
 
     /**
      * Selector for required option
@@ -110,6 +110,27 @@ class CustomOptions extends Form
     protected $optionByName = '//*[label[contains(.,"%s")] or legend[contains(.,"%s")]]';
 
     /**
+     * Locator for custom option field.
+     *
+     * @var string
+     */
+    private $customOptionField = './/div[contains(@class, "field")';
+
+    /**
+     * Locator for required custom option title.
+     *
+     * @var string
+     */
+    private $requiredOption = 'and contains(@class, "required") and contains(.//span, "%s")]';
+
+    /**
+     * Locator for validation error message after option.
+     *
+     * @var string
+     */
+    private $validationErrorMessage = '//div[@class="mage-error"][contains(text(), "required field")]';
+
+    /**
      * Get product options
      *
      * @param FixtureInterface $product
@@ -149,6 +170,16 @@ class CustomOptions extends Form
     }
 
     /**
+     * Wait for error message.
+     *
+     * @return bool
+     */
+    public function waitValidationErrorMessage()
+    {
+        return $this->waitForElementVisible($this->validationErrorMessage, Locator::SELECTOR_XPATH);
+    }
+
+    /**
      * Get list custom options
      *
      * @return array
@@ -156,17 +187,28 @@ class CustomOptions extends Form
     protected function getListOptions()
     {
         $customOptions = [];
-        $context = $this->_rootElement->find($this->optionsContext);
 
-        $count = 1;
-        $optionElement = $context->find(sprintf($this->optionElement, $count), Locator::SELECTOR_XPATH);
-        while ($optionElement->isVisible()) {
-            $title = $optionElement->find($this->title, Locator::SELECTOR_XPATH)->getText();
+        $optionElements = $this->_rootElement->getElements($this->optionElement);
+        foreach ($optionElements as $optionElement) {
+            $title = $optionElement->find($this->title)->getText();
             $customOptions[$title] = $optionElement;
-            ++$count;
-            $optionElement = $context->find(sprintf($this->optionElement, $count), Locator::SELECTOR_XPATH);
         }
+
         return $customOptions;
+    }
+
+    /**
+     * Check option's validation message is visible or not.
+     *
+     * @param string $customOptionTitle
+     * @return bool
+     */
+    public function isJsMessageVisible($customOptionTitle)
+    {
+        $optionSelector = $this->customOptionField . $this->requiredOption . $this->validationErrorMessage;
+        $title = sprintf($optionSelector, $customOptionTitle);
+
+        return $this->_rootElement->find($title, Locator::SELECTOR_XPATH)->isVisible();
     }
 
     /**
@@ -331,16 +373,19 @@ class CustomOptions extends Form
      * @param int $firstOption
      * @return array
      */
-    protected function getSelectOptionsData(SimpleElement $element, $firstOption = 1)
+    public function getSelectOptionsData(SimpleElement $element, $firstOption = 1)
     {
         $listOptions = [];
 
         $count = $firstOption;
         $selectOption = $element->find(sprintf($this->option, $count), Locator::SELECTOR_XPATH);
+        $index = 0;
         while ($selectOption->isVisible()) {
-            $listOptions[] = $this->parseOptionText($selectOption->getText());
+            $listOptions[$index] = $this->parseOptionText($selectOption->getText());
+            $listOptions[$index]['sort_order'] = $index;
             ++$count;
             $selectOption = $element->find(sprintf($this->option, $count), Locator::SELECTOR_XPATH);
+            $index++;
         }
 
         return [
@@ -384,7 +429,7 @@ class CustomOptions extends Form
      */
     protected function parseOptionText($optionText)
     {
-        preg_match('`^(.*?)\+\$(\d.*?)$`', $optionText, $match);
+        preg_match('`^(.*?) \+ ?\$([\d\.,]*?)$`', $optionText, $match);
         $optionPrice = isset($match[2]) ? str_replace(',', '', $match[2]) : 0;
         $optionTitle = isset($match[1]) ? trim($match[1]) : $optionText;
 

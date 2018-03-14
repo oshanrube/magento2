@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\Catalog\Test\Unit\Model\Product\Option\Validator;
 
-class DefaultValidatorTest extends \PHPUnit_Framework_TestCase
+class DefaultValidatorTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var \Magento\Catalog\Model\Product\Option\Validator\DefaultValidator
@@ -20,8 +20,9 @@ class DefaultValidatorTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $configMock = $this->getMock('Magento\Catalog\Model\ProductOptions\ConfigInterface');
-        $priceConfigMock = new \Magento\Catalog\Model\Config\Source\Product\Options\Price();
+        $configMock = $this->createMock(\Magento\Catalog\Model\ProductOptions\ConfigInterface::class);
+        $storeManagerMock = $this->createMock(\Magento\Store\Model\StoreManagerInterface::class);
+        $priceConfigMock = new \Magento\Catalog\Model\Config\Source\Product\Options\Price($storeManagerMock);
         $config = [
             [
                 'label' => 'group label 1',
@@ -59,10 +60,10 @@ class DefaultValidatorTest extends \PHPUnit_Framework_TestCase
     {
         $mess = ['option required fields' => 'Missed values for option required fields'];
         return [
-            ['option_title', 'name 1.1', 'fixed', 10, new \Magento\Framework\Object(['store_id' => 1]), [], true],
-            ['option_title', 'name 1.1', 'fixed', 10, new \Magento\Framework\Object(['store_id' => 0]), [], true],
-            [null, 'name 1.1', 'fixed', 10, new \Magento\Framework\Object(['store_id' => 1]), [], true],
-            [null, 'name 1.1', 'fixed', 10, new \Magento\Framework\Object(['store_id' => 0]), $mess, false],
+            ['option_title', 'name 1.1', 'fixed', 10, new \Magento\Framework\DataObject(['store_id' => 1]), [], true],
+            ['option_title', 'name 1.1', 'fixed', 10, new \Magento\Framework\DataObject(['store_id' => 0]), [], true],
+            [null, 'name 1.1', 'fixed', 10, new \Magento\Framework\DataObject(['store_id' => 1]), [], true],
+            [null, 'name 1.1', 'fixed', 10, new \Magento\Framework\DataObject(['store_id' => 0]), $mess, false],
         ];
     }
 
@@ -79,7 +80,7 @@ class DefaultValidatorTest extends \PHPUnit_Framework_TestCase
     public function testIsValidTitle($title, $type, $priceType, $price, $product, $messages, $result)
     {
         $methods = ['getTitle', 'getType', 'getPriceType', 'getPrice', '__wakeup', 'getProduct'];
-        $valueMock = $this->getMock('Magento\Catalog\Model\Product\Option', $methods, [], '', false);
+        $valueMock = $this->createPartialMock(\Magento\Catalog\Model\Product\Option::class, $methods);
         $valueMock->expects($this->once())->method('getTitle')->will($this->returnValue($title));
         $valueMock->expects($this->any())->method('getType')->will($this->returnValue($type));
         $valueMock->expects($this->once())->method('getPriceType')->will($this->returnValue($priceType));
@@ -97,8 +98,8 @@ class DefaultValidatorTest extends \PHPUnit_Framework_TestCase
     public function isValidFailDataProvider()
     {
         return [
-            [new \Magento\Framework\Object(['store_id' => 1])],
-            [new \Magento\Framework\Object(['store_id' => 0])],
+            [new \Magento\Framework\DataObject(['store_id' => 1])],
+            [new \Magento\Framework\DataObject(['store_id' => 0])],
         ];
     }
 
@@ -109,7 +110,7 @@ class DefaultValidatorTest extends \PHPUnit_Framework_TestCase
     public function testIsValidFail($product)
     {
         $methods = ['getTitle', 'getType', 'getPriceType', 'getPrice', '__wakeup', 'getProduct'];
-        $valueMock = $this->getMock('Magento\Catalog\Model\Product\Option', $methods, [], '', false);
+        $valueMock = $this->createPartialMock(\Magento\Catalog\Model\Product\Option::class, $methods);
         $valueMock->expects($this->once())->method('getProduct')->will($this->returnValue($product));
         $valueMock->expects($this->once())->method('getTitle');
         $valueMock->expects($this->any())->method('getType');
@@ -131,8 +132,8 @@ class DefaultValidatorTest extends \PHPUnit_Framework_TestCase
     public function validationNegativePriceDataProvider()
     {
         return [
-            ['option_title', 'name 1.1', 'fixed', -12, new \Magento\Framework\Object(['store_id' => 1])],
-            ['option_title', 'name 1.1', 'fixed', -12, new \Magento\Framework\Object(['store_id' => 0])],
+            ['option_title', 'name 1.1', 'fixed', -12, new \Magento\Framework\DataObject(['store_id' => 1])],
+            ['option_title', 'name 1.1', 'fixed', -12, new \Magento\Framework\DataObject(['store_id' => 0])],
         ];
     }
 
@@ -147,7 +148,7 @@ class DefaultValidatorTest extends \PHPUnit_Framework_TestCase
     public function testValidationNegativePrice($title, $type, $priceType, $price, $product)
     {
         $methods = ['getTitle', 'getType', 'getPriceType', 'getPrice', '__wakeup', 'getProduct'];
-        $valueMock = $this->getMock('Magento\Catalog\Model\Product\Option', $methods, [], '', false);
+        $valueMock = $this->createPartialMock(\Magento\Catalog\Model\Product\Option::class, $methods);
         $valueMock->expects($this->once())->method('getTitle')->will($this->returnValue($title));
         $valueMock->expects($this->exactly(2))->method('getType')->will($this->returnValue($type));
         $valueMock->expects($this->once())->method('getPriceType')->will($this->returnValue($priceType));

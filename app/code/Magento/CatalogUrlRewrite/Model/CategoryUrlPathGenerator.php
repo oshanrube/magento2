@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\CatalogUrlRewrite\Model;
@@ -27,10 +27,14 @@ class CategoryUrlPathGenerator
      */
     protected $categoryUrlSuffix = [];
 
-    /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
+    /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
     protected $scopeConfig;
 
-    /** @var \Magento\Store\Model\StoreManagerInterface */
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
     protected $storeManager;
 
     /**
@@ -61,7 +65,7 @@ class CategoryUrlPathGenerator
      */
     public function getUrlPath($category)
     {
-        if ($category->getParentId() == Category::TREE_ROOT_ID) {
+        if (in_array($category->getParentId(), [Category::ROOT_CATEGORY_ID, Category::TREE_ROOT_ID])) {
             return '';
         }
         $path = $category->getUrlPath();
@@ -73,7 +77,9 @@ class CategoryUrlPathGenerator
             return $category->getUrlPath();
         }
         if ($this->isNeedToGenerateUrlPathForParent($category)) {
-            $parentPath = $this->getUrlPath($this->categoryRepository->get($category->getParentId()));
+            $parentPath = $this->getUrlPath(
+                $this->categoryRepository->get($category->getParentId(), $category->getStoreId())
+            );
             $path = $parentPath === '' ? $path : $parentPath . '/' . $path;
         }
         return $path;
@@ -141,7 +147,7 @@ class CategoryUrlPathGenerator
      * @param \Magento\Catalog\Model\Category $category
      * @return string
      */
-    public function generateUrlKey($category)
+    public function getUrlKey($category)
     {
         $urlKey = $category->getUrlKey();
         return $category->formatUrlKey($urlKey === '' || $urlKey === null ? $category->getName() : $urlKey);

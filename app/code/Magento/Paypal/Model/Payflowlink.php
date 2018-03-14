@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -11,6 +11,7 @@ namespace Magento\Paypal\Model;
 use Magento\Payment\Model\Method\AbstractMethod;
 use Magento\Payment\Model\Method\ConfigInterfaceFactory;
 use Magento\Paypal\Model\Payflow\Service\Response\Handler\HandlerInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 
 /**
@@ -41,12 +42,12 @@ class Payflowlink extends \Magento\Paypal\Model\Payflowpro
     /**
      * @var string
      */
-    protected $_formBlockType = 'Magento\Paypal\Block\Payflow\Link\Form';
+    protected $_formBlockType = \Magento\Paypal\Block\Payflow\Link\Form::class;
 
     /**
      * @var string
      */
-    protected $_infoBlockType = 'Magento\Paypal\Block\Payflow\Link\Info';
+    protected $_infoBlockType = \Magento\Paypal\Block\Payment\Info::class;
 
     /**
      * Availability option
@@ -92,7 +93,7 @@ class Payflowlink extends \Magento\Paypal\Model\Payflowpro
     protected $_requestFactory;
 
     /**
-     * @var \Magento\Quote\Model\QuoteRepository
+     * @var \Magento\Quote\Api\CartRepositoryInterface
      */
     protected $quoteRepository;
 
@@ -112,6 +113,11 @@ class Payflowlink extends \Magento\Paypal\Model\Payflowpro
     protected $orderSender;
 
     /**
+     * @var \Magento\Framework\Math\Random
+     */
+    private $mathRandom;
+
+    /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
@@ -127,12 +133,12 @@ class Payflowlink extends \Magento\Paypal\Model\Payflowpro
      * @param HandlerInterface $errorHandler
      * @param \Magento\Framework\Math\Random $mathRandom
      * @param Payflow\RequestFactory $requestFactory
-     * @param \Magento\Quote\Model\QuoteRepository $quoteRepository
+     * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      * @param \Magento\Sales\Model\OrderFactory $orderFactory
      * @param \Magento\Framework\App\RequestInterface $requestHttp
      * @param \Magento\Store\Model\WebsiteFactory $websiteFactory
      * @param OrderSender $orderSender
-     * @param \Magento\Framework\Model\Resource\AbstractResource $resource
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
      * @param array $data
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -153,12 +159,12 @@ class Payflowlink extends \Magento\Paypal\Model\Payflowpro
         HandlerInterface $errorHandler,
         \Magento\Framework\Math\Random $mathRandom,
         \Magento\Paypal\Model\Payflow\RequestFactory $requestFactory,
-        \Magento\Quote\Model\QuoteRepository $quoteRepository,
+        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Framework\App\RequestInterface $requestHttp,
         \Magento\Store\Model\WebsiteFactory $websiteFactory,
         OrderSender $orderSender,
-        \Magento\Framework\Model\Resource\AbstractResource $resource = null,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
@@ -202,10 +208,11 @@ class Payflowlink extends \Magento\Paypal\Model\Payflowpro
     /**
      * Check whether payment method can be used
      *
-     * @param \Magento\Quote\Model\Quote|null $quote
+     * @param \Magento\Quote\Api\Data\CartInterface|\Magento\Quote\Model\Quote|null $quote
      * @return bool
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function isAvailable($quote = null)
+    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
         return AbstractMethod::isAvailable($quote) && $this->getConfig()->isMethodAvailable($this->getCode());
     }
@@ -225,7 +232,7 @@ class Payflowlink extends \Magento\Paypal\Model\Payflowpro
      * Instantiate state and set it to state object
      *
      * @param string $paymentAction
-     * @param \Magento\Framework\Object $stateObject
+     * @param \Magento\Framework\DataObject $stateObject
      * @return void
      */
     public function initialize($paymentAction, $stateObject)
@@ -302,18 +309,16 @@ class Payflowlink extends \Magento\Paypal\Model\Payflowpro
         $response = $this->getResponse();
         $payment = $order->getPayment();
         $payment->setTransactionId($response->getPnref())->setIsTransactionClosed(0);
-        $canSendNewOrderEmail = true;
+        $payment->setCcType($response->getData(OrderPaymentInterface::CC_TYPE));
 
+        $canSendNewOrderEmail = true;
         if ($response->getResult() == self::RESPONSE_CODE_FRAUDSERVICE_FILTER ||
             $response->getResult() == self::RESPONSE_CODE_DECLINED_BY_FILTER
         ) {
             $canSendNewOrderEmail = false;
 
-            $payment->setIsTransactionPending(
-                true
-            )->setIsFraudDetected(
-                true
-            );
+            $payment->setIsTransactionPending(true)
+                ->setIsFraudDetected(true);
 
             $fraudMessage = $response->getData('respmsg');
             if ($response->getData('fps_prexmldata')) {
@@ -392,12 +397,16 @@ class Payflowlink extends \Magento\Paypal\Model\Payflowpro
             $order->getState() != \Magento\Sales\Model\Order::STATE_PENDING_PAYMENT ||
             !$amountCompared
         ) {
-            throw new \Magento\Framework\Exception\LocalizedException(__(self::RESPONSE_ERROR_MSG, 'Order'));
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Payment error. %value was not found.', ['value' => 'Order'])
+            );
         }
 
         $fetchData = $this->fetchTransactionInfo($order->getPayment(), $response->getPnref());
         if (!isset($fetchData['custref']) || $fetchData['custref'] != $order->getIncrementId()) {
-            throw new \Magento\Framework\Exception\LocalizedException(__(self::RESPONSE_ERROR_MSG, 'Transaction'));
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Payment error. %value was not found.', ['value' => 'Transaction'])
+            );
         }
 
         return $order;
@@ -407,43 +416,21 @@ class Payflowlink extends \Magento\Paypal\Model\Payflowpro
      * Build request for getting token
      *
      * @param \Magento\Sales\Model\Order\Payment $payment
-     * @return \Magento\Framework\Object
+     * @return \Magento\Framework\DataObject
      */
     protected function _buildTokenRequest(\Magento\Sales\Model\Order\Payment $payment)
     {
         $request = $this->buildBasicRequest();
-        $request->setCreatesecuretoken(
-            'Y'
-        )->setSecuretokenid(
-            $this->mathRandom->getUniqueHash()
-        )->setTrxtype(
-            $this->_getTrxTokenType()
-        )->setAmt(
-            sprintf('%.2F', $payment->getOrder()->getBaseTotalDue())
-        )->setCurrency(
-            $payment->getOrder()->getBaseCurrencyCode()
-        )->setInvnum(
-            $payment->getOrder()->getIncrementId()
-        )->setCustref(
-            $payment->getOrder()->getIncrementId()
-        )->setPonum(
-            $payment->getOrder()->getId()
-        );
+        $request->setCreatesecuretoken('Y')
+            ->setSecuretokenid($this->mathRandom->getUniqueHash())
+            ->setTrxtype($this->_getTrxTokenType());
 
         $order = $payment->getOrder();
-        if (empty($order)) {
-            return $request;
-        }
+        $request->setAmt(sprintf('%.2F', $order->getBaseTotalDue()))
+            ->setCurrency($order->getBaseCurrencyCode());
+        $this->addRequestOrderInfo($request, $order);
 
-        $billing = $order->getBillingAddress();
-        if (!empty($billing)) {
-            $request = $this->setBilling($request, $billing);
-            $request->setEmail($order->getCustomerEmail());
-        }
-        $shipping = $order->getShippingAddress();
-        if (!empty($shipping)) {
-            $request = $this->setShipping($request, $shipping);
-        }
+        $request = $this->fillCustomerContacts($order, $request);
         //pass store Id to request
         $request->setData('USER1', $order->getStoreId());
         $request->setData('USER2', $this->_getSecureSilentPostHash($payment));
@@ -528,7 +515,7 @@ class Payflowlink extends \Magento\Paypal\Model\Payflowpro
      * If response is failed throw exception
      * Set token data in payment object
      *
-     * @param \Magento\Framework\Object $response
+     * @param \Magento\Framework\DataObject $response
      * @param \Magento\Sales\Model\Order\Payment $payment
      * @return void
      * @throws \Magento\Framework\Exception\LocalizedException

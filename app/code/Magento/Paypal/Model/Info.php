@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -299,7 +299,7 @@ class Info
     /**
      * Grab data from source and map it into payment
      *
-     * @param array|\Magento\Framework\Object|callback $from
+     * @param array|\Magento\Framework\DataObject|callback $from
      * @param \Magento\Payment\Model\InfoInterface $payment
      * @return void
      */
@@ -309,21 +309,21 @@ class Info
         if (is_object($from)) {
             $from = [$from, 'getDataUsingMethod'];
         }
-        \Magento\Framework\Object\Mapper::accumulateByMap($from, [$payment, 'setAdditionalInformation'], $fullMap);
+        \Magento\Framework\DataObject\Mapper::accumulateByMap($from, [$payment, 'setAdditionalInformation'], $fullMap);
     }
 
     /**
      * Grab data from payment and map it into target
      *
      * @param \Magento\Payment\Model\InfoInterface $payment
-     * @param array|\Magento\Framework\Object|callback $to
+     * @param array|\Magento\Framework\DataObject|callback $to
      * @param array|null $map
-     * @return array|\Magento\Framework\Object
+     * @return array|\Magento\Framework\DataObject
      */
     public function &exportFromPayment(\Magento\Payment\Model\InfoInterface $payment, $to, array $map = null)
     {
         $fullMap = array_merge($this->_paymentMap, $this->_systemMap);
-        \Magento\Framework\Object\Mapper::accumulateByMap(
+        \Magento\Framework\DataObject\Mapper::accumulateByMap(
             [$payment, 'getAdditionalInformation'],
             $to,
             $map ? $map : array_flip($fullMap)
@@ -568,7 +568,9 @@ class Info
             }
             if (!empty($this->_paymentMapFull[$key]['value'])) {
                 if ($labelValuesOnly) {
-                    $result[$this->_paymentMapFull[$key]['label']] = $this->_paymentMapFull[$key]['value'];
+                    $value = $this->_paymentMapFull[$key]['value'];
+                    $value = is_array($value) ? array_map('__', $value) : __($value);
+                    $result[$this->_paymentMapFull[$key]['label']] = $value;
                 } else {
                     $result[$key] = $this->_paymentMapFull[$key];
                 }
@@ -675,31 +677,24 @@ class Info
     {
         if (!isset($this->_labelCodesCache[self::PAYPAL_AVS_CODE])) {
             $this->_labelCodesCache[self::PAYPAL_AVS_CODE] = [
-                // Visa, MasterCard, Discover and American Express
-                'A' => __('Matched Address only (no ZIP)'),
-                // international "A"
-                'B' => __('Matched Address only (no ZIP) International'),
+                'A' => __('Matched Address only (no ZIP)'), // Visa, MasterCard, Discover and American Express
+                'B' => __('Matched Address only (no ZIP) International'), // international "A"
                 'N' => __('No Details matched'),
-                // international "N"
-                'C' => __('No Details matched. International'),
+                'C' => __('No Details matched. International'), // international "N"
                 'X' => __('Exact Match.'),
-                // international "X"
-                'D' => __('Exact Match. Address and Postal Code. International'),
-                // UK-specific "X"
-                'F' => __('Exact Match. Address and Postal Code. UK-specific'),
+                'D' => __('Exact Match. Address and Postal Code. International'), // international "X"
+                'F' => __('Exact Match. Address and Postal Code. UK-specific'), // UK-specific "X"
                 'E' => __('N/A. Not allowed for MOTO (Internet/Phone) transactions'),
                 'G' => __('N/A. Global Unavailable'),
                 'I' => __('N/A. International Unavailable'),
                 'Z' => __('Matched five-digit ZIP only (no Address)'),
-                // international "Z"
-                'P' => __('Matched Postal Code only (no Address)'),
+                'P' => __('Matched Postal Code only (no Address)'), // international "Z"
                 'R' => __('N/A. Retry'),
                 'S' => __('N/A. Service not Supported'),
                 'U' => __('N/A. Unavailable'),
-                'W' => __('Matched whole nine-didgit ZIP (no Address)'),
-                'Y' => __('Yes. Matched Address and five-didgit ZIP'),
-                // Maestro and Solo
-                '0' => __('All the address information matched'),
+                'W' => __('Matched whole nine-digit ZIP (no Address)'),
+                'Y' => __('Yes. Matched Address and five-digit ZIP'),
+                '0' => __('All the address information matched'), // Maestro and Solo
                 '1' => __('None of the address information matched'),
                 '2' => __('Part of the address information matched'),
                 '3' => __('N/A. The merchant did not provide AVS information'),

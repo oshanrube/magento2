@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -13,7 +13,10 @@ use \Magento\Checkout\Helper\Data;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Store\Model\ScopeInterface;
 
-class DataTest extends \PHPUnit_Framework_TestCase
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
+class DataTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject|\Magento\Framework\Pricing\PriceCurrencyInterface
@@ -58,7 +61,7 @@ class DataTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $objectManagerHelper = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
-        $className = 'Magento\Checkout\Helper\Data';
+        $className = \Magento\Checkout\Helper\Data::class;
         $arguments = $objectManagerHelper->getConstructArguments($className);
         /** @var \Magento\Framework\App\Helper\Context $context */
         $context = $arguments['context'];
@@ -140,8 +143,8 @@ class DataTest extends \PHPUnit_Framework_TestCase
      */
     public function testSendPaymentFailedEmail()
     {
-        $shippingAddress = new \Magento\Framework\Object(['shipping_method' => 'ground_transportation']);
-        $billingAddress = new \Magento\Framework\Object(['street' => 'Fixture St']);
+        $shippingAddress = new \Magento\Framework\DataObject(['shipping_method' => 'ground_transportation']);
+        $billingAddress = new \Magento\Framework\DataObject(['street' => 'Fixture St']);
 
         $this->_transportBuilder->expects(
             $this->once()
@@ -215,21 +218,21 @@ class DataTest extends \PHPUnit_Framework_TestCase
         )->method(
             'getTransport'
         )->will(
-            $this->returnValue($this->getMock('Magento\Framework\Mail\TransportInterface'))
+            $this->returnValue($this->createMock(\Magento\Framework\Mail\TransportInterface::class))
         );
 
         $this->_translator->expects($this->at(1))->method('suspend');
         $this->_translator->expects($this->at(1))->method('resume');
 
-        $productOne = $this->getMock('\Magento\Catalog\Model\Product', [], [], '', false);
+        $productOne = $this->createMock(\Magento\Catalog\Model\Product::class);
         $productOne->expects($this->once())->method('getName')->will($this->returnValue('Product One'));
         $productOne->expects($this->once())->method('getFinalPrice')->with(2)->will($this->returnValue(10));
 
-        $productTwo = $this->getMock('\Magento\Catalog\Model\Product', [], [], '', false);
+        $productTwo = $this->createMock(\Magento\Catalog\Model\Product::class);
         $productTwo->expects($this->once())->method('getName')->will($this->returnValue('Product Two'));
         $productTwo->expects($this->once())->method('getFinalPrice')->with(3)->will($this->returnValue(60));
 
-        $quote = new \Magento\Framework\Object(
+        $quote = new \Magento\Framework\DataObject(
             [
                 'store_id' => 8,
                 'store_currency_code' => 'USD',
@@ -239,10 +242,10 @@ class DataTest extends \PHPUnit_Framework_TestCase
                 'customer_email' => 'john.doe@example.com',
                 'billing_address' => $billingAddress,
                 'shipping_address' => $shippingAddress,
-                'payment' => new \Magento\Framework\Object(['method' => 'fixture-payment-method']),
+                'payment' => new \Magento\Framework\DataObject(['method' => 'fixture-payment-method']),
                 'all_visible_items' => [
-                    new \Magento\Framework\Object(['product' => $productOne, 'qty' => 2]),
-                    new \Magento\Framework\Object(['product' => $productTwo, 'qty' => 3])
+                    new \Magento\Framework\DataObject(['product' => $productOne, 'qty' => 2]),
+                    new \Magento\Framework\DataObject(['product' => $productTwo, 'qty' => 3])
                 ]
             ]
         );
@@ -259,7 +262,7 @@ class DataTest extends \PHPUnit_Framework_TestCase
 
     public function testGetQuote()
     {
-        $quoteMock = $this->getMock('\Magento\Quote\Model\Quote', [], [], '', false);
+        $quoteMock = $this->createMock(\Magento\Quote\Model\Quote::class);
         $this->_checkoutSession->expects($this->once())->method('getQuote')->will($this->returnValue($quoteMock));
         $this->assertEquals($quoteMock, $this->_helper->getQuote());
     }
@@ -267,14 +270,8 @@ class DataTest extends \PHPUnit_Framework_TestCase
     public function testFormatPrice()
     {
         $price = 5.5;
-        $quoteMock = $this->getMock('\Magento\Quote\Model\Quote', [], [], '', false);
-        $storeMock = $this->getMock(
-            'Magento\Store\Model\Store',
-            ['formatPrice', '__wakeup'],
-            [],
-            '',
-            false
-        );
+        $quoteMock = $this->createMock(\Magento\Quote\Model\Quote::class);
+        $storeMock = $this->createPartialMock(\Magento\Store\Model\Store::class, ['formatPrice', '__wakeup']);
         $this->_checkoutSession->expects($this->once())->method('getQuote')->will($this->returnValue($quoteMock));
         $quoteMock->expects($this->once())->method('getStore')->will($this->returnValue($storeMock));
         $this->priceCurrency->expects($this->once())->method('format')->will($this->returnValue('5.5'));
@@ -301,10 +298,10 @@ class DataTest extends \PHPUnit_Framework_TestCase
     {
         $objectManagerHelper = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
         $context = $objectManagerHelper->getObject(
-            'Magento\Framework\App\Helper\Context'
+            \Magento\Framework\App\Helper\Context::class
         );
         $helper = $objectManagerHelper->getObject(
-            'Magento\Checkout\Helper\Data',
+            \Magento\Checkout\Helper\Data::class,
             ['context' => $context]
         );
         $context->getRequest()->expects($this->once())->method('getParam')->with('context')->will(
@@ -324,7 +321,7 @@ class DataTest extends \PHPUnit_Framework_TestCase
 
     public function testGetPriceInclTax()
     {
-        $itemMock = $this->getMock('Magento\Framework\Object', ['getPriceInclTax'], [], '', false);
+        $itemMock = $this->createPartialMock(\Magento\Framework\DataObject::class, ['getPriceInclTax']);
         $itemMock->expects($this->exactly(2))->method('getPriceInclTax')->will($this->returnValue(5.5));
         $this->assertEquals(5.5, $this->_helper->getPriceInclTax($itemMock));
     }
@@ -337,22 +334,16 @@ class DataTest extends \PHPUnit_Framework_TestCase
         $rowTotal = 15;
         $roundPrice = 17;
         $expected = 17;
-        $storeManager = $this->getMock('\Magento\Store\Model\StoreManagerInterface', [], [], '', false);
+        $storeManager = $this->createMock(\Magento\Store\Model\StoreManagerInterface::class);
         $objectManagerHelper = new ObjectManager($this);
         $helper = $objectManagerHelper->getObject(
-            '\Magento\Checkout\Helper\Data',
+            \Magento\Checkout\Helper\Data::class,
             [
                 'storeManager' => $storeManager,
                 'priceCurrency' => $this->priceCurrency,
             ]
         );
-        $itemMock = $this->getMock(
-            'Magento\Framework\Object',
-            ['getPriceInclTax', 'getQty', 'getTaxAmount', 'getDiscountTaxCompensation', 'getRowTotal'],
-            [],
-            '',
-            false
-        );
+        $itemMock = $this->createPartialMock(\Magento\Framework\DataObject::class, ['getPriceInclTax', 'getQty', 'getTaxAmount', 'getDiscountTaxCompensation', 'getRowTotal', 'getQtyOrdered']);
         $itemMock->expects($this->once())->method('getPriceInclTax')->will($this->returnValue(false));
         $itemMock->expects($this->exactly(2))->method('getQty')->will($this->returnValue($qty));
         $itemMock->expects($this->never())->method('getQtyOrdered');
@@ -368,7 +359,7 @@ class DataTest extends \PHPUnit_Framework_TestCase
     {
         $rowTotalInclTax = 5.5;
         $expected = 5.5;
-        $itemMock = $this->getMock('Magento\Framework\Object', ['getRowTotalInclTax'], [], '', false);
+        $itemMock = $this->createPartialMock(\Magento\Framework\DataObject::class, ['getRowTotalInclTax']);
         $itemMock->expects($this->exactly(2))->method('getRowTotalInclTax')->will($this->returnValue($rowTotalInclTax));
         $this->assertEquals($expected, $this->_helper->getSubtotalInclTax($itemMock));
     }
@@ -379,13 +370,7 @@ class DataTest extends \PHPUnit_Framework_TestCase
         $discountTaxCompensation = 1;
         $rowTotal = 15;
         $expected = 17;
-        $itemMock = $this->getMock(
-            'Magento\Framework\Object',
-            ['getRowTotalInclTax', 'getTaxAmount', 'getDiscountTaxCompensation', 'getRowTotal'],
-            [],
-            '',
-            false
-        );
+        $itemMock = $this->createPartialMock(\Magento\Framework\DataObject::class, ['getRowTotalInclTax', 'getTaxAmount', 'getDiscountTaxCompensation', 'getRowTotal']);
         $itemMock->expects($this->once())->method('getRowTotalInclTax')->will($this->returnValue(false));
         $itemMock->expects($this->once())->method('getTaxAmount')->will($this->returnValue($taxAmount));
         $itemMock->expects($this->once())
@@ -396,16 +381,16 @@ class DataTest extends \PHPUnit_Framework_TestCase
 
     public function testGetBasePriceInclTaxWithoutQty()
     {
-        $storeManager = $this->getMock('\Magento\Store\Model\StoreManagerInterface', [], [], '', false);
+        $storeManager = $this->createMock(\Magento\Store\Model\StoreManagerInterface::class);
         $objectManagerHelper = new ObjectManager($this);
         $helper = $objectManagerHelper->getObject(
-            '\Magento\Checkout\Helper\Data',
+            \Magento\Checkout\Helper\Data::class,
             [
                 'storeManager' => $storeManager,
                 'priceCurrency' => $this->priceCurrency,
             ]
         );
-        $itemMock = $this->getMock('Magento\Framework\Object', ['getQty'], [], '', false);
+        $itemMock = $this->createPartialMock(\Magento\Framework\DataObject::class, ['getQty']);
         $itemMock->expects($this->once())->method('getQty');
         $this->priceCurrency->expects($this->once())->method('round');
         $helper->getPriceInclTax($itemMock);
@@ -413,16 +398,16 @@ class DataTest extends \PHPUnit_Framework_TestCase
 
     public function testGetBasePriceInclTax()
     {
-        $storeManager = $this->getMock('\Magento\Store\Model\StoreManagerInterface', [], [], '', false);
+        $storeManager = $this->createMock(\Magento\Store\Model\StoreManagerInterface::class);
         $objectManagerHelper = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
         $helper = $objectManagerHelper->getObject(
-            '\Magento\Checkout\Helper\Data',
+            \Magento\Checkout\Helper\Data::class,
             [
                 'storeManager' => $storeManager,
                 'priceCurrency' => $this->priceCurrency,
             ]
         );
-        $itemMock = $this->getMock('Magento\Framework\Object', ['getQty', 'getQtyOrdered'], [], '', false);
+        $itemMock = $this->createPartialMock(\Magento\Framework\DataObject::class, ['getQty', 'getQtyOrdered']);
         $itemMock->expects($this->once())->method('getQty')->will($this->returnValue(false));
         $itemMock->expects($this->exactly(2))->method('getQtyOrdered')->will($this->returnValue(5.5));
         $this->priceCurrency->expects($this->once())->method('round');
@@ -431,13 +416,7 @@ class DataTest extends \PHPUnit_Framework_TestCase
 
     public function testGetBaseSubtotalInclTax()
     {
-        $itemMock = $this->getMock(
-            'Magento\Framework\Object',
-            ['getBaseTaxAmount', 'getBaseDiscountTaxCompensation', 'getBaseRowTotal'],
-            [],
-            '',
-            false
-        );
+        $itemMock = $this->createPartialMock(\Magento\Framework\DataObject::class, ['getBaseTaxAmount', 'getBaseDiscountTaxCompensation', 'getBaseRowTotal']);
         $itemMock->expects($this->once())->method('getBaseTaxAmount');
         $itemMock->expects($this->once())->method('getBaseDiscountTaxCompensation');
         $itemMock->expects($this->once())->method('getBaseRowTotal');
@@ -446,7 +425,7 @@ class DataTest extends \PHPUnit_Framework_TestCase
 
     public function testIsAllowedGuestCheckoutWithoutStore()
     {
-        $quoteMock = $this->getMock('\Magento\Quote\Model\Quote', [], [], '', false);
+        $quoteMock = $this->createMock(\Magento\Quote\Model\Quote::class);
         $store = null;
         $quoteMock->expects($this->once())->method('getStoreId')->will($this->returnValue(1));
         $this->_scopeConfig->expects($this->once())

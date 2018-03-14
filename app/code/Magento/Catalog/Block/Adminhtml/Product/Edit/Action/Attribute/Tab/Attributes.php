@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -16,7 +16,9 @@ namespace Magento\Catalog\Block\Adminhtml\Product\Edit\Action\Attribute\Tab;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 
 /**
+ * @api
  * @SuppressWarnings(PHPMD.DepthOfInheritance)
+ * @since 100.0.2
  */
 class Attributes extends \Magento\Catalog\Block\Adminhtml\Form implements
     \Magento\Backend\Block\Widget\Tab\TabInterface
@@ -70,7 +72,6 @@ class Attributes extends \Magento\Catalog\Block\Adminhtml\Form implements
             [
                 'category_ids',
                 'gallery',
-                'group_price',
                 'image',
                 'media_gallery',
                 'quantity_and_stock_status',
@@ -99,7 +100,7 @@ class Attributes extends \Magento\Catalog\Block\Adminhtml\Form implements
     /**
      * Retrieve attributes for product mass update
      *
-     * @return \Magento\Framework\Object[]
+     * @return \Magento\Framework\DataObject[]
      */
     public function getAttributes()
     {
@@ -114,10 +115,10 @@ class Attributes extends \Magento\Catalog\Block\Adminhtml\Form implements
     protected function _getAdditionalElementTypes()
     {
         return [
-            'price' => 'Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Price',
-            'weight' => 'Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Weight',
-            'image' => 'Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Image',
-            'boolean' => 'Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Boolean'
+            'price' => \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Price::class,
+            'weight' => \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Weight::class,
+            'image' => \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Image::class,
+            'boolean' => \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Boolean::class
         ];
     }
 
@@ -145,8 +146,8 @@ class Attributes extends \Magento\Catalog\Block\Adminhtml\Form implements
 HTML;
         if ($elementId === 'weight') {
             $html .= <<<HTML
-<script>require(["jquery"],function($) {
-    $('#weight_and_type_switcher, label[for=weight_and_type_switcher]').hide();
+<script>require(['Magento_Catalog/js/product/weight-handler'], function (weightHandle) {
+    weightHandle.hideWeightSwitcher();
 });</script>
 HTML;
         }

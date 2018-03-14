@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -27,7 +27,7 @@ class AssertReviewCreationSuccessMessage extends AbstractConstraint
      */
     public function processAssert(CatalogProductView $catalogProductView)
     {
-        $actualMessage = $catalogProductView->getMessagesBlock()->getSuccessMessages();
+        $actualMessage = $catalogProductView->getMessagesBlock()->getSuccessMessage();
         \PHPUnit_Framework_Assert::assertEquals(
             self::SUCCESS_MESSAGE,
             $actualMessage,

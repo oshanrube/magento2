@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Sales\Controller\Adminhtml\Order;
@@ -8,8 +8,15 @@ namespace Magento\Sales\Controller\Adminhtml\Order;
 /**
  * Order status management controller
  */
-class Status extends \Magento\Backend\App\Action
+abstract class Status extends \Magento\Backend\App\Action
 {
+    /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Magento_Sales::order_statuses';
+
     /**
      * Core registry
      *
@@ -38,20 +45,10 @@ class Status extends \Magento\Backend\App\Action
     {
         $statusCode = $this->getRequest()->getParam('status');
         if ($statusCode) {
-            $status = $this->_objectManager->create('Magento\Sales\Model\Order\Status')->load($statusCode);
+            $status = $this->_objectManager->create(\Magento\Sales\Model\Order\Status::class)->load($statusCode);
         } else {
             $status = false;
         }
         return $status;
-    }
-
-    /**
-     * Check current user permission on resource and privilege
-     *
-     * @return bool
-     */
-    protected function _isAllowed()
-    {
-        return $this->_authorization->isAllowed('Magento_Sales::order_statuses');
     }
 }

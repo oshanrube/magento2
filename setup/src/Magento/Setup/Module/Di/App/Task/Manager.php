@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Setup\Module\Di\App\Task;
@@ -20,8 +20,9 @@ class Manager
     /**
      * @param OperationFactory $operationFactory
      */
-    public function __construct(OperationFactory $operationFactory)
-    {
+    public function __construct(
+        OperationFactory $operationFactory
+    ) {
         $this->operationFactory = $operationFactory;
     }
 
@@ -40,13 +41,23 @@ class Manager
     /**
      * Processes list of operations
      *
+     * @param callable $beforeCallback
+     * @param callable $afterCallback
      * @return void
      */
-    public function process()
+    public function process(\Closure $beforeCallback = null, \Closure $afterCallback = null)
     {
         /** @var OperationInterface $operation */
         foreach ($this->operationsList as $operation) {
+            if (is_callable($beforeCallback)) {
+                $beforeCallback($operation);
+            }
+
             $operation->doOperation();
+
+            if (is_callable($afterCallback)) {
+                $afterCallback($operation);
+            }
         }
         $this->operationsList = [];
     }

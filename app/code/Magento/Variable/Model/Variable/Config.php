@@ -1,18 +1,16 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-
-// @codingStandardsIgnoreFile
+namespace Magento\Variable\Model\Variable;
 
 /**
  * Variable Wysiwyg Plugin Config
  *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @api
+ * @since 100.0.2
  */
-namespace Magento\Variable\Model\Variable;
-
 class Config
 {
     /**
@@ -26,11 +24,14 @@ class Config
     protected $_url;
 
     /**
+     * Constructor
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param \Magento\Backend\Model\UrlInterface $url
      */
-    public function __construct(\Magento\Framework\View\Asset\Repository $assetRepo, \Magento\Backend\Model\UrlInterface $url)
-    {
+    public function __construct(
+        \Magento\Framework\View\Asset\Repository $assetRepo,
+        \Magento\Backend\Model\UrlInterface $url
+    ) {
         $this->_assetRepo = $assetRepo;
         $this->_url = $url;
     }
@@ -38,7 +39,7 @@ class Config
     /**
      * Prepare variable wysiwyg config
      *
-     * @param \Magento\Framework\Object $config
+     * @param \Magento\Framework\DataObject $config
      * @return array
      */
     public function getWysiwygPluginSettings($config)

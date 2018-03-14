@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -12,20 +12,12 @@ use Magento\Framework\Search\Request\QueryInterface as RequestQueryInterface;
 class QueryContainer
 {
     const DERIVED_QUERY_PREFIX = 'derived_';
+
     /**
      * @var array
      */
     private $queries = [];
 
-    /**
-     * @var string[]
-     */
-    private $filters = [];
-
-    /**
-     * @var int
-     */
-    private $filtersCount = 0;
     /**
      * @var \Magento\Framework\Search\Adapter\Mysql\Query\MatchContainerFactory
      */
@@ -62,43 +54,9 @@ class QueryContainer
     }
 
     /**
-     * @param string $filter
-     * @return void
-     */
-    public function addFilter($filter)
-    {
-        $this->filters[] = '(' . $filter . ')';
-        $this->filtersCount++;
-    }
-
-    /**
-     * @return void
-     */
-    public function clearFilters()
-    {
-        $this->filters = [];
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getFilters()
-    {
-        return $this->filters;
-    }
-
-    /**
-     * @return int
-     */
-    public function getFiltersCount()
-    {
-        return $this->filtersCount;
-    }
-
-    /**
      * @return MatchContainer[]
      */
-    public function getDerivedQueries()
+    public function getMatchQueries()
     {
         return $this->queries;
     }

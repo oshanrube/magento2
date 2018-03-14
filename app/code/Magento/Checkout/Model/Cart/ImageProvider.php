@@ -1,12 +1,13 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Checkout\Model\Cart;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @api
  */
 class ImageProvider
 {
@@ -23,6 +24,7 @@ class ImageProvider
     /**
      * @param \Magento\Quote\Api\CartItemRepositoryInterface $itemRepository
      * @param \Magento\Checkout\CustomerData\ItemPoolInterface $itemPool
+     * @codeCoverageIgnore
      */
     public function __construct(
         \Magento\Quote\Api\CartItemRepositoryInterface $itemRepository,

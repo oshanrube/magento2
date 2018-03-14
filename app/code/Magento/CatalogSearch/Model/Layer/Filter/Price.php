@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\CatalogSearch\Model\Layer\Filter;
@@ -28,7 +28,7 @@ class Price extends AbstractFilter
     private $priceCurrency;
 
     /**
-     * @var \Magento\Catalog\Model\Resource\Layer\Filter\Price
+     * @var \Magento\Catalog\Model\ResourceModel\Layer\Filter\Price
      */
     private $resource;
 
@@ -47,7 +47,7 @@ class Price extends AbstractFilter
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Catalog\Model\Layer $layer
      * @param \Magento\Catalog\Model\Layer\Filter\Item\DataBuilder $itemDataBuilder
-     * @param \Magento\Catalog\Model\Resource\Layer\Filter\Price $resource
+     * @param \Magento\Catalog\Model\ResourceModel\Layer\Filter\Price $resource
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Framework\Search\Dynamic\Algorithm $priceAlgorithm
      * @param \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency
@@ -62,7 +62,7 @@ class Price extends AbstractFilter
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Catalog\Model\Layer $layer,
         \Magento\Catalog\Model\Layer\Filter\Item\DataBuilder $itemDataBuilder,
-        \Magento\Catalog\Model\Resource\Layer\Filter\Price $resource,
+        \Magento\Catalog\Model\ResourceModel\Layer\Filter\Price $resource,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\Search\Dynamic\Algorithm $priceAlgorithm,
         \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency,
@@ -86,7 +86,7 @@ class Price extends AbstractFilter
     }
 
     /**
-     * @return \Magento\Catalog\Model\Resource\Layer\Filter\Price
+     * @return \Magento\Catalog\Model\ResourceModel\Layer\Filter\Price
      */
     public function getResource()
     {
@@ -175,6 +175,9 @@ class Price extends AbstractFilter
      */
     protected function _renderRangeLabel($fromPrice, $toPrice)
     {
+        $fromPrice = empty($fromPrice) ? 0 : $fromPrice * $this->getCurrencyRate();
+        $toPrice = empty($toPrice) ? $toPrice : $toPrice * $this->getCurrencyRate();
+
         $formattedFromPrice = $this->priceCurrency->format($fromPrice);
         if ($toPrice === '') {
             return __('%1 and above', $formattedFromPrice);
@@ -201,7 +204,7 @@ class Price extends AbstractFilter
         $attribute = $this->getAttributeModel();
         $this->_requestVar = $attribute->getAttributeCode();
 
-        /** @var \Magento\CatalogSearch\Model\Resource\Fulltext\Collection $productCollection */
+        /** @var \Magento\CatalogSearch\Model\ResourceModel\Fulltext\Collection $productCollection */
         $productCollection = $this->getLayer()->getProductCollection();
         $facets = $productCollection->getFacetedData($attribute->getAttributeCode());
 
@@ -261,10 +264,7 @@ class Price extends AbstractFilter
         if ($to == '*') {
             $to = $this->getTo($to);
         }
-        $label = $this->_renderRangeLabel(
-            empty($from) ? 0 : $from * $this->getCurrencyRate(),
-            empty($to) ? $to : $to * $this->getCurrencyRate()
-        );
+        $label = $this->_renderRangeLabel($from, $to);
         $value = $from . '-' . $to . $this->dataProvider->getAdditionalRequestData();
 
         $data = [

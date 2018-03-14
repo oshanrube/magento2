@@ -1,5 +1,5 @@
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -13,8 +13,9 @@ function init(grunt, options) {
         stripJsonComments   = require('strip-json-comments'),
         path                = require('path'),
         config,
-        themes;
-        
+        themes,
+        file;
+
     config = grunt.file.read(__dirname + '/settings.json');
     config = stripJsonComments(config);
     config = JSON.parse(config);
@@ -28,6 +29,12 @@ function init(grunt, options) {
     tasks = Object.keys(themes);
 
     config.themes = themes;
+
+    file = grunt.option('file');
+
+    if (file) {
+        config.singleTest = file;
+    }
 
     enableTasks(grunt, config);
 }

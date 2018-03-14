@@ -1,16 +1,19 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\ImportExport\Block\Adminhtml\Export;
 
 use Magento\Eav\Model\Entity\Attribute;
+use Magento\Catalog\Api\Data\ProductAttributeInterface;
 
 /**
  * Export filter block
  *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @api
+ * @since 100.0.2
  */
 class Filter extends \Magento\Backend\Block\Widget\Grid\Extended
 {
@@ -92,7 +95,7 @@ class Filter extends \Magento\Backend\Block\Widget\Grid\Extended
         ];
         /** @var $selectBlock \Magento\Framework\View\Element\Html\Date */
         $dateBlock = $this->_layout->createBlock(
-            'Magento\Framework\View\Element\Html\Date',
+            \Magento\Framework\View\Element\Html\Date::class,
             '',
             ['data' => $arguments]
         );
@@ -120,7 +123,7 @@ class Filter extends \Magento\Backend\Block\Widget\Grid\Extended
     {
         $html = '<input type="text" name="' . $this->getFilterElementName(
             $attribute->getAttributeCode()
-        ) . '" class="input-text input-text-export-filter"';
+        ) . '" class="admin__control-text input-text input-text-export-filter"';
         if ($value) {
             $html .= ' value="' . $this->escapeHtml($value) . '"';
         }
@@ -157,7 +160,7 @@ class Filter extends \Magento\Backend\Block\Widget\Grid\Extended
             ];
             /** @var $selectBlock \Magento\Framework\View\Element\Html\Select */
             $selectBlock = $this->_layout->createBlock(
-                'Magento\Framework\View\Element\Html\Select',
+                \Magento\Framework\View\Element\Html\Select::class,
                 '',
                 ['data' => $arguments]
             );
@@ -184,25 +187,40 @@ class Filter extends \Magento\Backend\Block\Widget\Grid\Extended
             $toValue = $this->escapeHtml(next($value));
         }
 
-        return '<strong class="admin__control-support-text">' . __(
-            'From'
-        ) .
-        ':</strong>&nbsp;' .
-        '<input type="text" name="' .
-        $name .
-        '[]" class="input-text input-text-range"' .
-        ' value="' .
-        $fromValue .
-        '"/>&nbsp;' .
-        '<strong class="admin__control-support-text">' .
-        __(
-            'To'
-        ) .
-        ':</strong>&nbsp;<input type="text" name="' .
-        $name .
-        '[]" class="input-text input-text-range" value="' .
-        $toValue .
-        '" />';
+        return '<strong class="admin__control-support-text">' .
+            $this->getFromAttributePrefix($attribute) .
+            ':</strong>&nbsp;' .
+            '<input type="text" name="' .
+            $name .
+            '[]" class="admin__control-text input-text input-text-range"' .
+            ' value="' .
+            $fromValue .
+            '"/>&nbsp;' .
+            '<strong class="admin__control-support-text">' .
+            __(
+                'To'
+            ) .
+            ':</strong>&nbsp;<input type="text" name="' .
+            $name .
+            '[]" class="admin__control-text input-text input-text-range" value="' .
+            $toValue .
+            '" />';
+    }
+
+    /**
+     * Get 'From' prefix to attribute.
+     *
+     * @param Attribute $attribute
+     * @return \Magento\Framework\Phrase
+     * @since 100.2.0
+     */
+    protected function getFromAttributePrefix(Attribute $attribute)
+    {
+        $attributePrefix = $attribute->getAttributeCode() === ProductAttributeInterface::CODE_TIER_PRICE
+            ? __('Fixed Price: From')
+            : __('From');
+
+        return $attributePrefix;
     }
 
     /**
@@ -236,11 +254,11 @@ class Filter extends \Magento\Backend\Block\Widget\Grid\Extended
             $arguments = [
                 'name' => $this->getFilterElementName($attribute->getAttributeCode()),
                 'id' => $this->getFilterElementId($attribute->getAttributeCode()),
-                'class' => 'select select-export-filter',
+                'class' => 'admin__control-select select select-export-filter',
             ];
             /** @var $selectBlock \Magento\Framework\View\Element\Html\Select */
             $selectBlock = $this->_layout->createBlock(
-                'Magento\Framework\View\Element\Html\Select',
+                \Magento\Framework\View\Element\Html\Select::class,
                 '',
                 ['data' => $arguments]
             );
@@ -322,12 +340,12 @@ class Filter extends \Magento\Backend\Block\Widget\Grid\Extended
      *
      * @param mixed $value
      * @param Attribute $row
-     * @param \Magento\Framework\Object $column
+     * @param \Magento\Framework\DataObject $column
      * @param boolean $isExport
      * @return string
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function decorateFilter($value, Attribute $row, \Magento\Framework\Object $column, $isExport)
+    public function decorateFilter($value, Attribute $row, \Magento\Framework\DataObject $column, $isExport)
     {
         $value = null;
         $values = $column->getValues();
@@ -400,7 +418,7 @@ class Filter extends \Magento\Backend\Block\Widget\Grid\Extended
      * Prepare collection by setting page number, sorting etc..
      *
      * @param \Magento\Framework\Data\Collection $collection
-     * @return \Magento\Eav\Model\Resource\Entity\Attribute\Collection
+     * @return \Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection
      */
     public function prepareCollection(\Magento\Framework\Data\Collection $collection)
     {

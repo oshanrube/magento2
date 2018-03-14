@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Ui\Controller;
@@ -15,5 +15,5 @@ interface UiActionInterface
      *
      * @return mixed
      */
-    public function execute();
+    public function executeAjaxRequest();
 }

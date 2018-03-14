@@ -1,16 +1,20 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\CatalogSearch\Model\Indexer;
 
 use Magento\Catalog\Model\Product;
-use Magento\Catalog\Model\Resource\Product\Attribute\CollectionFactory;
+use Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory;
 use Magento\Eav\Model\Config;
 use Magento\Eav\Model\Entity\Attribute;
 
-class ProductFieldset implements \Magento\Indexer\Model\FieldsetInterface
+/**
+ * @api
+ * @since 100.0.2
+ */
+class ProductFieldset implements \Magento\Framework\Indexer\FieldsetInterface
 {
     /**
      * @var Config
@@ -28,23 +32,15 @@ class ProductFieldset implements \Magento\Indexer\Model\FieldsetInterface
     private $searchableAttributes;
     
     /**
-     * @var string
-     */
-    private $defaultHandler;
-
-    /**
      * @param Config $eavConfig
      * @param CollectionFactory $collectionFactory
-     * @param string $defaultHandler
      */
     public function __construct(
         Config $eavConfig,
-        CollectionFactory $collectionFactory,
-        $defaultHandler = 'Magento\Indexer\Model\Handler\DefaultHandler'
+        CollectionFactory $collectionFactory
     ) {
         $this->eavConfig = $eavConfig;
         $this->collectionFactory = $collectionFactory;
-        $this->defaultHandler = $defaultHandler;
     }
 
     /**
@@ -63,14 +59,6 @@ class ProductFieldset implements \Magento\Indexer\Model\FieldsetInterface
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function getDefaultHandler()
-    {
-        return $this->defaultHandler;
-    }
-
-    /**
      * Retrieve searchable attributes
      *
      * @return Attribute[]
@@ -80,7 +68,7 @@ class ProductFieldset implements \Magento\Indexer\Model\FieldsetInterface
         if ($this->searchableAttributes === null) {
             $this->searchableAttributes = [];
 
-            /** @var \Magento\Catalog\Model\Resource\Product\Attribute\Collection $productAttributes */
+            /** @var \Magento\Catalog\Model\ResourceModel\Product\Attribute\Collection $productAttributes */
             $productAttributes = $this->collectionFactory->create();
             $productAttributes->addToIndexFilter(true);
 

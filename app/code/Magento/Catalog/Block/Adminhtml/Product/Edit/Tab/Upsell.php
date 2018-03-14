@@ -1,16 +1,14 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
- */
-
-/**
- * Upsell products admin grid
- *
- * @author      Magento Core Team <core@magentocommerce.com>
  */
 namespace Magento\Catalog\Block\Adminhtml\Product\Edit\Tab;
 
+/**
+ * @api
+ * @since 100.0.2
+ */
 class Upsell extends \Magento\Backend\Block\Widget\Grid\Extended
 {
     /**
@@ -26,7 +24,7 @@ class Upsell extends \Magento\Backend\Block\Widget\Grid\Extended
     protected $_linkFactory;
 
     /**
-     * @var \Magento\Eav\Model\Resource\Entity\Attribute\Set\CollectionFactory]
+     * @var \Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory]
      */
     protected $_setsFactory;
 
@@ -54,7 +52,7 @@ class Upsell extends \Magento\Backend\Block\Widget\Grid\Extended
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Backend\Helper\Data $backendHelper
      * @param \Magento\Catalog\Model\Product\LinkFactory $linkFactory
-     * @param \Magento\Eav\Model\Resource\Entity\Attribute\Set\CollectionFactory $setsFactory
+     * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory $setsFactory
      * @param \Magento\Catalog\Model\ProductFactory $productFactory
      * @param \Magento\Catalog\Model\Product\Type $type
      * @param \Magento\Catalog\Model\Product\Attribute\Source\Status $status
@@ -68,7 +66,7 @@ class Upsell extends \Magento\Backend\Block\Widget\Grid\Extended
         \Magento\Backend\Block\Template\Context $context,
         \Magento\Backend\Helper\Data $backendHelper,
         \Magento\Catalog\Model\Product\LinkFactory $linkFactory,
-        \Magento\Eav\Model\Resource\Entity\Attribute\Set\CollectionFactory $setsFactory,
+        \Magento\Eav\Model\ResourceModel\Entity\Attribute\Set\CollectionFactory $setsFactory,
         \Magento\Catalog\Model\ProductFactory $productFactory,
         \Magento\Catalog\Model\Product\Type $type,
         \Magento\Catalog\Model\Product\Attribute\Source\Status $status,
@@ -239,7 +237,7 @@ class Upsell extends \Magento\Backend\Block\Widget\Grid\Extended
         $this->addColumn(
             'set_name',
             [
-                'header' => __('Product Template'),
+                'header' => __('Attribute Set'),
                 'index' => 'attribute_set_id',
                 'type' => 'options',
                 'options' => $sets,
@@ -364,7 +362,7 @@ class Upsell extends \Magento\Backend\Block\Widget\Grid\Extended
     /**
      * Apply `position` filter to cross-sell grid.
      *
-     * @param \Magento\Catalog\Model\Resource\Product\Link\Product\Collection $collection
+     * @param \Magento\Catalog\Model\ResourceModel\Product\Link\Product\Collection $collection
      * @param \Magento\Backend\Block\Widget\Grid\Column\Extended $column
      * @return $this
      */

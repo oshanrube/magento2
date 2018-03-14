@@ -1,12 +1,19 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\OfflineShipping\Model\Carrier;
 
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Quote\Model\Quote\Address\RateRequest;
 
+/**
+ * Table rate shipping model
+ *
+ * @api
+ * @since 100.0.2
+ */
 class Tablerate extends \Magento\Shipping\Model\Carrier\AbstractCarrier implements
     \Magento\Shipping\Model\Carrier\CarrierInterface
 {
@@ -41,7 +48,7 @@ class Tablerate extends \Magento\Shipping\Model\Carrier\AbstractCarrier implemen
     protected $_resultMethodFactory;
 
     /**
-     * @var \Magento\OfflineShipping\Model\Resource\Carrier\TablerateFactory
+     * @var \Magento\OfflineShipping\Model\ResourceModel\Carrier\TablerateFactory
      */
     protected $_tablerateFactory;
 
@@ -51,7 +58,7 @@ class Tablerate extends \Magento\Shipping\Model\Carrier\AbstractCarrier implemen
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Magento\Shipping\Model\Rate\ResultFactory $rateResultFactory
      * @param \Magento\Quote\Model\Quote\Address\RateResult\MethodFactory $resultMethodFactory
-     * @param \Magento\OfflineShipping\Model\Resource\Carrier\TablerateFactory $tablerateFactory
+     * @param \Magento\OfflineShipping\Model\ResourceModel\Carrier\TablerateFactory $tablerateFactory
      * @param array $data
      * @SuppressWarnings(PHPMD.UnusedLocalVariable)
      */
@@ -61,7 +68,7 @@ class Tablerate extends \Magento\Shipping\Model\Carrier\AbstractCarrier implemen
         \Psr\Log\LoggerInterface $logger,
         \Magento\Shipping\Model\Rate\ResultFactory $rateResultFactory,
         \Magento\Quote\Model\Quote\Address\RateResult\MethodFactory $resultMethodFactory,
-        \Magento\OfflineShipping\Model\Resource\Carrier\TablerateFactory $tablerateFactory,
+        \Magento\OfflineShipping\Model\ResourceModel\Carrier\TablerateFactory $tablerateFactory,
         array $data = []
     ) {
         $this->_rateResultFactory = $rateResultFactory;
@@ -74,13 +81,13 @@ class Tablerate extends \Magento\Shipping\Model\Carrier\AbstractCarrier implemen
     }
 
     /**
-     * @param \Magento\Framework\Object $request
+     * @param RateRequest $request
      * @return \Magento\Shipping\Model\Rate\Result
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
-    public function collectRates(\Magento\Framework\Object $request)
+    public function collectRates(RateRequest $request)
     {
         if (!$this->getConfigFlag('active')) {
             return false;
@@ -106,8 +113,9 @@ class Tablerate extends \Magento\Shipping\Model\Carrier\AbstractCarrier implemen
 
         // Free shipping by qty
         $freeQty = 0;
+        $freePackageValue = 0;
+
         if ($request->getAllItems()) {
-            $freePackageValue = 0;
             foreach ($request->getAllItems() as $item) {
                 if ($item->getProduct()->isVirtual() || $item->getParentItem()) {
                     continue;
@@ -150,25 +158,28 @@ class Tablerate extends \Magento\Shipping\Model\Carrier\AbstractCarrier implemen
         $request->setPackageQty($oldQty);
 
         if (!empty($rate) && $rate['price'] >= 0) {
-            /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
-            $method = $this->_resultMethodFactory->create();
-
-            $method->setCarrier('tablerate');
-            $method->setCarrierTitle($this->getConfigData('title'));
-
-            $method->setMethod('bestway');
-            $method->setMethodTitle($this->getConfigData('name'));
-
-            if ($request->getFreeShipping() === true || $request->getPackageQty() == $freeQty) {
+            if ($request->getPackageQty() == $freeQty) {
                 $shippingPrice = 0;
             } else {
                 $shippingPrice = $this->getFinalPriceWithHandlingFee($rate['price']);
             }
-
-            $method->setPrice($shippingPrice);
-            $method->setCost($rate['cost']);
-
+            $method = $this->createShippingMethod($shippingPrice, $rate['cost']);
             $result->append($method);
+        } elseif ($request->getPackageQty() == $freeQty) {
+
+            /**
+             * Promotion rule was applied for the whole cart.
+             *  In this case all other shipping methods could be omitted
+             * Table rate shipping method with 0$ price must be shown if grand total is more than minimal value.
+             * Free package weight has been already taken into account.
+             */
+            $request->setPackageValue($freePackageValue);
+            $request->setPackageQty($freeQty);
+            $rate = $this->getRate($request);
+            if (!empty($rate) && $rate['price'] >= 0) {
+                $method = $this->createShippingMethod(0, 0);
+                $result->append($method);
+            }
         } else {
             /** @var \Magento\Quote\Model\Quote\Address\RateResult\Error $error */
             $error = $this->_rateErrorFactory->create(
@@ -239,5 +250,28 @@ class Tablerate extends \Magento\Shipping\Model\Carrier\AbstractCarrier implemen
     public function getAllowedMethods()
     {
         return ['bestway' => $this->getConfigData('name')];
+    }
+
+    /**
+     * Get the method object based on the shipping price and cost
+     *
+     * @param float $shippingPrice
+     * @param float $cost
+     * @return \Magento\Quote\Model\Quote\Address\RateResult\Method
+     */
+    private function createShippingMethod($shippingPrice, $cost)
+    {
+        /** @var  \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
+        $method = $this->_resultMethodFactory->create();
+
+        $method->setCarrier('tablerate');
+        $method->setCarrierTitle($this->getConfigData('title'));
+
+        $method->setMethod('bestway');
+        $method->setMethodTitle($this->getConfigData('name'));
+
+        $method->setPrice($shippingPrice);
+        $method->setCost($cost);
+        return $method;
     }
 }

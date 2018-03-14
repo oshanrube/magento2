@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Sales\Controller\Adminhtml;
@@ -9,14 +9,22 @@ use Magento\Backend\App\Action;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Result\PageFactory;
 use Magento\Framework\View\Result\LayoutFactory;
+use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 
 /**
  * Adminhtml sales transactions controller
  *
  * @author Magento Core Team <core@magentocommerce.com>
  */
-class Transactions extends \Magento\Backend\App\Action
+abstract class Transactions extends \Magento\Backend\App\Action
 {
+    /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Magento_Sales::transactions';
+
     /**
      * Core registry
      *
@@ -35,20 +43,28 @@ class Transactions extends \Magento\Backend\App\Action
     protected $resultLayoutFactory;
 
     /**
+     * @var OrderPaymentRepositoryInterface
+     */
+    protected $orderPaymentRepository;
+
+    /**
      * @param \Magento\Backend\App\Action\Context $context
      * @param Registry $coreRegistry
      * @param PageFactory $resultPageFactory
      * @param LayoutFactory $resultLayoutFactory
+     * @param OrderPaymentRepositoryInterface $orderPaymentRepository
      */
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         Registry $coreRegistry,
         PageFactory $resultPageFactory,
-        LayoutFactory $resultLayoutFactory
+        LayoutFactory $resultLayoutFactory,
+        OrderPaymentRepositoryInterface $orderPaymentRepository
     ) {
         $this->_coreRegistry = $coreRegistry;
         $this->resultPageFactory = $resultPageFactory;
         $this->resultLayoutFactory = $resultLayoutFactory;
+        $this->orderPaymentRepository = $orderPaymentRepository;
         parent::__construct($context);
     }
 
@@ -60,7 +76,7 @@ class Transactions extends \Magento\Backend\App\Action
     protected function _initTransaction()
     {
         $txn = $this->_objectManager->create(
-            'Magento\Sales\Model\Order\Payment\Transaction'
+            \Magento\Sales\Model\Order\Payment\Transaction::class
         )->load(
             $this->getRequest()->getParam('txn_id')
         );
@@ -77,15 +93,5 @@ class Transactions extends \Magento\Backend\App\Action
 
         $this->_coreRegistry->register('current_transaction', $txn);
         return $txn;
-    }
-
-    /**
-     * Check currently called action by permissions for current user
-     *
-     * @return bool
-     */
-    protected function _isAllowed()
-    {
-        return $this->_authorization->isAllowed('Magento_Sales::transactions');
     }
 }

@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 // @codingStandardsIgnoreFile
 
-class ConfigDomMock extends \PHPUnit_Framework_TestCase
+class ConfigDomMock extends \PHPUnit\Framework\TestCase
 {
     /**
      * @param null|string $initialContents
@@ -15,7 +15,7 @@ class ConfigDomMock extends \PHPUnit_Framework_TestCase
      * @param $perFileSchema
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function __construct($initialContents, $idAttributes, $typeAttribute, $perFileSchema)
+    public function __construct($initialContents, $validationState, $idAttributes, $typeAttribute, $perFileSchema)
     {
         $this->assertEquals('first content item', $initialContents);
         $this->assertEquals('xsi:type', $typeAttribute);

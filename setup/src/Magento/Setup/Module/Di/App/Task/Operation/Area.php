@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Setup\Module\Di\App\Task\Operation;
@@ -76,8 +76,13 @@ class Area implements OperationInterface
         }
 
         $definitionsCollection = new DefinitionsCollection();
-        foreach ($this->data as $path) {
-            $definitionsCollection->addCollection($this->getDefinitionsCollection($path));
+        foreach ($this->data as $paths) {
+            if (!is_array($paths)) {
+                $paths = (array)$paths;
+            }
+            foreach ($paths as $path) {
+                $definitionsCollection->addCollection($this->getDefinitionsCollection($path));
+            }
         }
 
         $areaCodes = array_merge([App\Area::AREA_GLOBAL], $this->areaList->getCodes());
@@ -105,5 +110,15 @@ class Area implements OperationInterface
             $definitions->addDefinition($className, $constructorArguments);
         }
         return $definitions;
+    }
+
+    /**
+     * Returns operation name
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return 'Area configuration aggregation';
     }
 }

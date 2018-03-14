@@ -1,17 +1,17 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\Framework\View\Test\Unit\Asset;
 
-use \Magento\Framework\View\Asset\File;
+use Magento\Framework\View\Asset\File;
 
-class FileTest extends \PHPUnit_Framework_TestCase
+class FileTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var Source|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Magento\Framework\View\Asset\Source|\PHPUnit_Framework_MockObject_MockObject
      */
     private $source;
 
@@ -21,15 +21,36 @@ class FileTest extends \PHPUnit_Framework_TestCase
     private $context;
 
     /**
+     * @var \Magento\Framework\View\Asset\Minification|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $minificationMock;
+
+    /**
      * @var File
      */
     private $object;
 
-    public function setUp()
+    protected function setUp()
     {
-        $this->source = $this->getMock('Magento\Framework\View\Asset\Source', [], [], '', false);
-        $this->context = $this->getMockForAbstractClass('\Magento\Framework\View\Asset\ContextInterface');
-        $this->object = new File($this->source, $this->context, 'dir/file.css', 'Magento_Module', 'css');
+        $this->source = $this->createMock(\Magento\Framework\View\Asset\Source::class);
+        $this->context = $this->getMockForAbstractClass(\Magento\Framework\View\Asset\ContextInterface::class);
+        $this->minificationMock = $this->getMockBuilder(\Magento\Framework\View\Asset\Minification::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->minificationMock
+            ->expects($this->any())
+            ->method('addMinifiedSign')
+            ->willReturnArgument(0);
+
+        $this->object = new File(
+            $this->source,
+            $this->context,
+            'dir/file.css',
+            'Magento_Module',
+            'css',
+            $this->minificationMock
+        );
     }
 
     public function testGetUrl()
@@ -42,7 +63,7 @@ class FileTest extends \PHPUnit_Framework_TestCase
     public function testGetContentType()
     {
         $this->assertEquals('css', $this->object->getContentType());
-        $object = new File($this->source, $this->context, '', '', 'type');
+        $object = new File($this->source, $this->context, '', '', 'type', $this->minificationMock);
         $this->assertEquals('type', $object->getContentType());
     }
 
@@ -56,7 +77,7 @@ class FileTest extends \PHPUnit_Framework_TestCase
     public function testGetPath($contextPath, $module, $filePath, $expected)
     {
         $this->context->expects($this->once())->method('getPath')->will($this->returnValue($contextPath));
-        $object = new File($this->source, $this->context, $filePath, $module, '');
+        $object = new File($this->source, $this->context, $filePath, $module, '', $this->minificationMock);
         $this->assertEquals($expected, $object->getPath());
     }
 

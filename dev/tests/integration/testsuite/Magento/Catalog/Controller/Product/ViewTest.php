@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Controller\Product;
@@ -15,6 +15,9 @@ class ViewTest extends \Magento\TestFramework\TestCase\AbstractController
      */
     public function testViewActionWithCanonicalTag()
     {
+        $this->markTestSkipped(
+            'MAGETWO-40724: Canonical url from tests sometimes does not equal canonical url from action'
+        );
         $this->dispatch('catalog/product/view/id/1/');
 
         $this->assertContains(

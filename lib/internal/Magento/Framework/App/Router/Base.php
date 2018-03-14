@@ -2,13 +2,10 @@
 /**
  * Base router
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\App\Router;
-
-use Magento\Framework\App\RequestInterface;
-use Magento\Store\Model\ScopeInterface;
 
 /**
  * @SuppressWarnings(PHPMD.TooManyFields)
@@ -24,7 +21,7 @@ class Base implements \Magento\Framework\App\RouterInterface
     /**
      * @var string
      */
-    protected $actionInterface = '\Magento\Framework\App\ActionInterface';
+    protected $actionInterface = \Magento\Framework\App\ActionInterface::class;
 
     /**
      * @var array
@@ -109,7 +106,9 @@ class Base implements \Magento\Framework\App\RouterInterface
      */
     protected $actionList;
 
-    /** @var PathConfigInterface */
+    /**
+     * @var \Magento\Framework\App\Router\PathConfigInterface
+     */
     protected $pathConfig;
 
     /**
@@ -119,7 +118,6 @@ class Base implements \Magento\Framework\App\RouterInterface
      * @param \Magento\Framework\App\ResponseFactory $responseFactory
      * @param \Magento\Framework\App\Route\ConfigInterface $routeConfig
      * @param \Magento\Framework\UrlInterface $url
-     * @param string $routerId
      * @param \Magento\Framework\Code\NameBuilder $nameBuilder
      * @param \Magento\Framework\App\Router\PathConfigInterface $pathConfig
      *
@@ -134,7 +132,6 @@ class Base implements \Magento\Framework\App\RouterInterface
         \Magento\Framework\App\ResponseFactory $responseFactory,
         \Magento\Framework\App\Route\ConfigInterface $routeConfig,
         \Magento\Framework\UrlInterface $url,
-        $routerId,
         \Magento\Framework\Code\NameBuilder $nameBuilder,
         \Magento\Framework\App\Router\PathConfigInterface $pathConfig
     ) {
@@ -152,7 +149,7 @@ class Base implements \Magento\Framework\App\RouterInterface
      * Match provided request and if matched - return corresponding controller
      *
      * @param \Magento\Framework\App\RequestInterface $request
-     * @return \Magento\Framework\App\Action\Action|null
+     * @return \Magento\Framework\App\ActionInterface|null
      */
     public function match(\Magento\Framework\App\RequestInterface $request)
     {
@@ -235,10 +232,9 @@ class Base implements \Magento\Framework\App\RouterInterface
      * Get not found controller instance
      *
      * @param string $currentModuleName
-     * @param \Magento\Framework\App\RequestInterface $request
-     * @return \Magento\Framework\App\Action\Action|null
+     * @return \Magento\Framework\App\ActionInterface|null
      */
-    protected function getNotFoundAction($currentModuleName, RequestInterface $request)
+    protected function getNotFoundAction($currentModuleName)
     {
         if (!$this->applyNoRoute) {
             return null;
@@ -250,7 +246,7 @@ class Base implements \Magento\Framework\App\RouterInterface
         }
 
         // instantiate action class
-        return $this->actionFactory->create($actionClassName, ['request' => $request]);
+        return $this->actionFactory->create($actionClassName);
     }
 
     /**
@@ -258,7 +254,7 @@ class Base implements \Magento\Framework\App\RouterInterface
      *
      * @param \Magento\Framework\App\RequestInterface $request
      * @param array $params
-     * @return \Magento\Framework\App\Action\Action|null
+     * @return \Magento\Framework\App\ActionInterface|null
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
@@ -298,12 +294,12 @@ class Base implements \Magento\Framework\App\RouterInterface
                 continue;
             }
 
-            $actionInstance = $this->actionFactory->create($actionClassName, ['request' => $request]);
+            $actionInstance = $this->actionFactory->create($actionClassName);
             break;
         }
 
         if (null == $actionInstance) {
-            $actionInstance = $this->getNotFoundAction($currentModuleName, $request);
+            $actionInstance = $this->getNotFoundAction($currentModuleName);
             if ($actionInstance === null) {
                 return null;
             }
@@ -331,7 +327,7 @@ class Base implements \Magento\Framework\App\RouterInterface
      */
     public function getActionClassName($module, $actionPath)
     {
-        $prefix = $this->pathPrefix ? 'Controller\\' . $this->pathPrefix  : 'Controller';
+        $prefix = $this->pathPrefix ? 'Controller\\' . $this->pathPrefix : 'Controller';
         return $this->nameBuilder->buildClassName([$module, $prefix, $actionPath]);
     }
 

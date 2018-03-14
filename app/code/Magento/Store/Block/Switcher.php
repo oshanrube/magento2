@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -12,6 +12,10 @@ namespace Magento\Store\Block;
 use Magento\Directory\Helper\Data;
 use Magento\Store\Model\Group;
 
+/**
+ * @api
+ * @since 100.0.2
+ */
 class Switcher extends \Magento\Framework\View\Element\Template
 {
     /**
@@ -91,7 +95,7 @@ class Switcher extends \Magento\Framework\View\Element\Template
             $stores = [];
             foreach ($websiteStores as $store) {
                 /* @var $store \Magento\Store\Model\Store */
-                if (!$store->getIsActive()) {
+                if (!$store->isActive()) {
                     continue;
                 }
                 $localeCode = $this->_scopeConfig->getValue(
@@ -214,13 +218,18 @@ class Switcher extends \Magento\Framework\View\Element\Template
      * Returns target store post data
      *
      * @param \Magento\Store\Model\Store $store
+     * @param array $data
      * @return string
      */
-    public function getTargetStorePostData(\Magento\Store\Model\Store $store)
+    public function getTargetStorePostData(\Magento\Store\Model\Store $store, $data = [])
     {
+        $data[\Magento\Store\Api\StoreResolverInterface::PARAM_NAME]
+            = $store->getCode();
+        //We need to fromStore as true because it will enable proper URL
+        //rewriting during store switching.
         return $this->_postDataHelper->getPostData(
-            $this->getUrl('stores/store/switch'),
-            ['___store' => $store->getCode(), '___from_store' => $this->getStoreCode()]
+            $store->getCurrentUrl(true),
+            $data
         );
     }
 }

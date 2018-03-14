@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -14,8 +14,15 @@ namespace Magento\Tax\Controller\Adminhtml;
 use Magento\Backend\App\Action;
 use Magento\Framework\Controller\ResultFactory;
 
-class Rule extends \Magento\Backend\App\Action
+abstract class Rule extends \Magento\Backend\App\Action
 {
+    /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Magento_Tax::manage_tax';
+
     /**
      * Core registry
      *
@@ -23,10 +30,14 @@ class Rule extends \Magento\Backend\App\Action
      */
     protected $_coreRegistry = null;
 
-    /** @var \Magento\Tax\Api\TaxRuleRepositoryInterface */
+    /**
+     * @var \Magento\Tax\Api\TaxRuleRepositoryInterface
+     */
     protected $ruleService;
 
-    /** @var \Magento\Tax\Api\Data\TaxRuleInterfaceFactory */
+    /**
+     * @var \Magento\Tax\Api\Data\TaxRuleInterfaceFactory
+     */
     protected $taxRuleDataObjectFactory;
 
     /**
@@ -59,16 +70,6 @@ class Rule extends \Magento\Backend\App\Action
             ->addBreadcrumb(__('Tax'), __('Tax'))
             ->addBreadcrumb(__('Tax Rules'), __('Tax Rules'));
         return $resultPage;
-    }
-
-    /**
-     * Check if sales rule is allowed
-     *
-     * @return bool
-     */
-    protected function _isAllowed()
-    {
-        return $this->_authorization->isAllowed('Magento_Tax::manage_tax');
     }
 
     /**

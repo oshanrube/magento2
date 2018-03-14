@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Email\Model\Source;
@@ -9,8 +9,6 @@ use Magento\Store\Model\Store;
 
 /**
  * Store Contact Information source model
- *
- * @author     Magento Core Team <core@magentocommerce.com>
  */
 class Variables implements \Magento\Framework\Option\ArrayInterface
 {
@@ -49,6 +47,7 @@ class Variables implements \Magento\Framework\Option\ArrayInterface
             ['value' => 'general/store_information/city', 'label' => __('City')],
             ['value' => 'general/store_information/street_line1', 'label' => __('Street Address 1')],
             ['value' => 'general/store_information/street_line2', 'label' => __('Street Address 2')],
+            ['value' => 'general/store_information/merchant_vat_number', 'label' => __('VAT Number')],
         ];
     }
 
@@ -61,7 +60,7 @@ class Variables implements \Magento\Framework\Option\ArrayInterface
     public function toOptionArray($withGroup = false)
     {
         $optionArray = [];
-        foreach ($this->_configVariables as $variable) {
+        foreach ($this->getData() as $variable) {
             $optionArray[] = [
                 'value' => '{{config path="' . $variable['value'] . '"}}',
                 'label' => $variable['label'],
@@ -71,5 +70,16 @@ class Variables implements \Magento\Framework\Option\ArrayInterface
             $optionArray = ['label' => __('Store Contact Information'), 'value' => $optionArray];
         }
         return $optionArray;
+    }
+
+    /**
+     * Return available config variables
+     *
+     * @return array
+     * @codeCoverageIgnore
+     */
+    public function getData()
+    {
+        return $this->_configVariables;
     }
 }

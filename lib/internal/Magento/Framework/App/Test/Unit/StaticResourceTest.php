@@ -1,17 +1,24 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
-// @codingStandardsIgnoreFile
-
 namespace Magento\Framework\App\Test\Unit;
 
-class StaticResourceTest extends \PHPUnit_Framework_TestCase
+use Magento\Framework\App\Bootstrap;
+use Magento\Framework\Filesystem;
+use Magento\Framework\App\State as AppState;
+
+/**
+ * Test for Magento\Framework\App\StaticResource class.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
+class StaticResourceTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var \Magento\Framework\App\State|\PHPUnit_Framework_MockObject_MockObject
+     * @var AppState|\PHPUnit_Framework_MockObject_MockObject
      */
     private $state;
 
@@ -56,27 +63,21 @@ class StaticResourceTest extends \PHPUnit_Framework_TestCase
     private $object;
 
     /**
-     * @var \Magento\Framework\View\Asset\MinifyService|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Psr\Log\LoggerInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $minifyService;
+    private $logger;
 
     protected function setUp()
     {
-        $this->state = $this->getMock('Magento\Framework\App\State', [], [], '', false);
-        $this->response = $this->getMock('Magento\MediaStorage\Model\File\Storage\Response', [], [], '', false);
-        $this->request = $this->getMock('Magento\Framework\App\Request\Http', [], [], '', false);
-        $this->publisher = $this->getMock('Magento\Framework\App\View\Asset\Publisher', [], [], '', false);
-        $this->assetRepo = $this->getMock('Magento\Framework\View\Asset\Repository', [], [], '', false);
-        $this->moduleList = $this->getMock('Magento\Framework\Module\ModuleList', [], [], '', false);
-        $this->objectManager = $this->getMockForAbstractClass('Magento\Framework\ObjectManagerInterface');
-        $this->configLoader = $this->getMock(
-            'Magento\Framework\App\ObjectManager\ConfigLoader', [], [], '', false
-        );
-        $this->minifyService = $this->getMockBuilder('Magento\Framework\View\Asset\MinifyService')
-            ->disableOriginalConstructor()
-            ->setMethods(['getAssets'])
-            ->getMock();
-
+        $this->state = $this->createMock(AppState::class);
+        $this->response = $this->createMock(\Magento\MediaStorage\Model\File\Storage\Response::class);
+        $this->request = $this->createMock(\Magento\Framework\App\Request\Http::class);
+        $this->publisher = $this->createMock(\Magento\Framework\App\View\Asset\Publisher::class);
+        $this->assetRepo = $this->createMock(\Magento\Framework\View\Asset\Repository::class);
+        $this->moduleList = $this->createMock(\Magento\Framework\Module\ModuleList::class);
+        $this->objectManager = $this->getMockForAbstractClass(\Magento\Framework\ObjectManagerInterface::class);
+        $this->logger = $this->getMockForAbstractClass(\Psr\Log\LoggerInterface::class);
+        $this->configLoader = $this->createMock(\Magento\Framework\App\ObjectManager\ConfigLoader::class);
         $this->object = new \Magento\Framework\App\StaticResource(
             $this->state,
             $this->response,
@@ -86,8 +87,7 @@ class StaticResourceTest extends \PHPUnit_Framework_TestCase
             $this->moduleList,
             $this->objectManager,
             $this->configLoader,
-            $this->minifyService,
-            $this->getMockForAbstractClass('\Magento\Framework\View\DesignInterface')
+            $this->getMockForAbstractClass(\Magento\Framework\View\DesignInterface::class)
         );
     }
 
@@ -95,7 +95,7 @@ class StaticResourceTest extends \PHPUnit_Framework_TestCase
     {
         $this->state->expects($this->once())
             ->method('getMode')
-            ->will($this->returnValue(\Magento\Framework\App\State::MODE_PRODUCTION));
+            ->will($this->returnValue(AppState::MODE_PRODUCTION));
         $this->response->expects($this->once())
             ->method('setHttpResponseCode')
             ->with(404);
@@ -143,7 +143,7 @@ class StaticResourceTest extends \PHPUnit_Framework_TestCase
             ->method('has')
             ->with($requestedModule)
             ->will($this->returnValue($moduleExists));
-        $asset = $this->getMockForAbstractClass('\Magento\Framework\View\Asset\LocalInterface');
+        $asset = $this->getMockForAbstractClass(\Magento\Framework\View\Asset\LocalInterface::class);
         $asset->expects($this->once())->method('getSourceFile')->will($this->returnValue('resource/file.css'));
         $this->assetRepo->expects($this->once())
             ->method('createAsset')
@@ -153,7 +153,6 @@ class StaticResourceTest extends \PHPUnit_Framework_TestCase
         $this->response->expects($this->once())
             ->method('setFilePath')
             ->with('resource/file.css');
-        $this->minifyService->expects($this->once())->method('getAssets')->willReturnArgument(0);
         $this->object->launch();
     }
 
@@ -164,7 +163,7 @@ class StaticResourceTest extends \PHPUnit_Framework_TestCase
     {
         return [
             'developer mode with non-modular resource' => [
-                \Magento\Framework\App\State::MODE_DEVELOPER,
+                AppState::MODE_DEVELOPER,
                 'area/Magento/theme/locale/dir/file.js',
                 'dir',
                 false,
@@ -172,7 +171,7 @@ class StaticResourceTest extends \PHPUnit_Framework_TestCase
                 ['area' => 'area', 'locale' => 'locale', 'module' => '', 'theme' => 'Magento/theme'],
             ],
             'default mode with modular resource' => [
-                \Magento\Framework\App\State::MODE_DEFAULT,
+                AppState::MODE_DEFAULT,
                 'area/Magento/theme/locale/Namespace_Module/dir/file.js',
                 'Namespace_Module',
                 true,
@@ -192,25 +191,42 @@ class StaticResourceTest extends \PHPUnit_Framework_TestCase
     {
         $this->state->expects($this->once())
             ->method('getMode')
-            ->will($this->returnValue(\Magento\Framework\App\State::MODE_DEVELOPER));
+            ->will($this->returnValue(AppState::MODE_DEVELOPER));
         $this->request->expects($this->once())
             ->method('get')
             ->with('resource')
             ->will($this->returnValue('short/path.js'));
         $this->object->launch();
     }
-
-    public function testCatchException()
+    
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testLaunchPathAbove()
     {
-        $bootstrap = $this->getMock('Magento\Framework\App\Bootstrap', [], [], '', false);
-        $bootstrap->expects($this->at(0))->method('isDeveloperMode')->willReturn(false);
-        $bootstrap->expects($this->at(1))->method('isDeveloperMode')->willReturn(true);
-        $exception = new \Exception('message');
-        $this->response->expects($this->exactly(2))->method('setHttpResponseCode')->with(404);
-        $this->response->expects($this->exactly(2))->method('setHeader')->with('Content-Type', 'text/plain');
-        $this->response->expects($this->exactly(2))->method('sendResponse');
-        $this->response->expects($this->once())->method('setBody')->with($this->stringStartsWith('message'));
-        $this->assertTrue($this->object->catchException($bootstrap, $exception));
+        $this->state->expects($this->once())
+            ->method('getMode')
+            ->willreturn(AppState::MODE_DEVELOPER);
+        $this->request->expects($this->once())
+            ->method('get')
+            ->with('resource')
+            ->willReturn('frontend/..\..\folder_above/././Magento_Ui/template/messages.html');
+        $this->object->launch();
+    }
+
+    public function testCatchExceptionDeveloperMode()
+    {
+        $this->objectManager->expects($this->once())
+            ->method('get')
+            ->with(\Psr\Log\LoggerInterface::class)
+            ->willReturn($this->logger);
+        $this->logger->expects($this->once())
+            ->method('critical');
+        $bootstrap = $this->getMockBuilder(Bootstrap::class)->disableOriginalConstructor()->getMock();
+        $bootstrap->expects($this->once())->method('isDeveloperMode')->willReturn(true);
+        $exception = new \Exception('Error: nothing works');
+        $this->response->expects($this->once())->method('setHttpResponseCode')->with(404);
+        $this->response->expects($this->once())->method('sendResponse');
         $this->assertTrue($this->object->catchException($bootstrap, $exception));
     }
 }

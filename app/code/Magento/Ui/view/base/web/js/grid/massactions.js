@@ -1,6 +1,10 @@
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
+ */
+
+/**
+ * @api
  */
 define([
     'underscore',
@@ -16,7 +20,8 @@ define([
     return Collapsible.extend({
         defaults: {
             template: 'ui/grid/actions',
-            selectProvider: '',
+            stickyTmpl: 'ui/grid/sticky/actions',
+            selectProvider: 'ns = ${ $.ns }, index = ids',
             actions: [],
             noItemsMsg: $t('You haven\'t selected any items!'),
             modules: {
@@ -55,7 +60,7 @@ define([
                 return this;
             }
 
-            action   = this.getAction(actionIndex),
+            action   = this.getAction(actionIndex);
             callback = this._getCallback(action, data);
 
             action.confirm ?
@@ -98,7 +103,7 @@ define([
          */
         addAction: function (action) {
             var actions = this.actions(),
-                index = _.findIdnex(actions, {
+                index = _.findIndex(actions, {
                     type: action.type
                 });
 
@@ -153,6 +158,8 @@ define([
             if (!selections[itemsType].length) {
                 selections[itemsType] = false;
             }
+
+            _.extend(selections, data.params || {});
 
             utils.submit({
                 url: action.url,

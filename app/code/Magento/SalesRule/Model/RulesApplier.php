@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\SalesRule\Model;
@@ -44,7 +44,7 @@ class RulesApplier
      * Apply rules to current order item
      *
      * @param \Magento\Quote\Model\Quote\Item\AbstractItem $item
-     * @param \Magento\SalesRule\Model\Resource\Rule\Collection $rules
+     * @param \Magento\SalesRule\Model\ResourceModel\Rule\Collection $rules
      * @param bool $skipValidation
      * @param mixed $couponCode
      * @return array

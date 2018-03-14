@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\ProductAlert\Model;
@@ -74,7 +74,7 @@ class Observer
     protected $_storeManager;
 
     /**
-     * @var \Magento\ProductAlert\Model\Resource\Price\CollectionFactory
+     * @var \Magento\ProductAlert\Model\ResourceModel\Price\CollectionFactory
      */
     protected $_priceColFactory;
 
@@ -94,7 +94,7 @@ class Observer
     protected $_dateFactory;
 
     /**
-     * @var \Magento\ProductAlert\Model\Resource\Stock\CollectionFactory
+     * @var \Magento\ProductAlert\Model\ResourceModel\Stock\CollectionFactory
      */
     protected $_stockColFactory;
 
@@ -117,11 +117,11 @@ class Observer
      * @param \Magento\Catalog\Helper\Data $catalogData
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\ProductAlert\Model\Resource\Price\CollectionFactory $priceColFactory
+     * @param \Magento\ProductAlert\Model\ResourceModel\Price\CollectionFactory $priceColFactory
      * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
      * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
      * @param \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateFactory
-     * @param \Magento\ProductAlert\Model\Resource\Stock\CollectionFactory $stockColFactory
+     * @param \Magento\ProductAlert\Model\ResourceModel\Stock\CollectionFactory $stockColFactory
      * @param \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder
      * @param \Magento\ProductAlert\Model\EmailFactory $emailFactory
      * @param \Magento\Framework\Translate\Inline\StateInterface $inlineTranslation
@@ -131,11 +131,11 @@ class Observer
         \Magento\Catalog\Helper\Data $catalogData,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\ProductAlert\Model\Resource\Price\CollectionFactory $priceColFactory,
+        \Magento\ProductAlert\Model\ResourceModel\Price\CollectionFactory $priceColFactory,
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository,
         \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         \Magento\Framework\Stdlib\DateTime\DateTimeFactory $dateFactory,
-        \Magento\ProductAlert\Model\Resource\Stock\CollectionFactory $stockColFactory,
+        \Magento\ProductAlert\Model\ResourceModel\Stock\CollectionFactory $stockColFactory,
         \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder,
         \Magento\ProductAlert\Model\EmailFactory $emailFactory,
         \Magento\Framework\Translate\Inline\StateInterface $inlineTranslation
@@ -157,6 +157,7 @@ class Observer
      * Retrieve website collection array
      *
      * @return array
+     * @throws \Exception
      */
     protected function _getWebsites()
     {
@@ -165,6 +166,7 @@ class Observer
                 $this->_websites = $this->_storeManager->getWebsites();
             } catch (\Exception $e) {
                 $this->_errors[] = $e->getMessage();
+                throw $e;
             }
         }
         return $this->_websites;
@@ -175,6 +177,7 @@ class Observer
      *
      * @param \Magento\ProductAlert\Model\Email $email
      * @return $this
+     * @throws \Exception
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
@@ -183,7 +186,6 @@ class Observer
         $email->setType('price');
         foreach ($this->_getWebsites() as $website) {
             /* @var $website \Magento\Store\Model\Website */
-
             if (!$website->getDefaultGroup() || !$website->getDefaultGroup()->getDefaultStore()) {
                 continue;
             }
@@ -201,7 +203,7 @@ class Observer
                 )->setCustomerOrder();
             } catch (\Exception $e) {
                 $this->_errors[] = $e->getMessage();
-                return $this;
+                throw $e;
             }
 
             $previousCustomer = null;
@@ -244,6 +246,7 @@ class Observer
                     }
                 } catch (\Exception $e) {
                     $this->_errors[] = $e->getMessage();
+                    throw $e;
                 }
             }
             if ($previousCustomer) {
@@ -251,6 +254,7 @@ class Observer
                     $email->send();
                 } catch (\Exception $e) {
                     $this->_errors[] = $e->getMessage();
+                    throw $e;
                 }
             }
         }
@@ -262,6 +266,7 @@ class Observer
      *
      * @param \Magento\ProductAlert\Model\Email $email
      * @return $this
+     * @throws \Exception
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
@@ -291,7 +296,7 @@ class Observer
                 )->setCustomerOrder();
             } catch (\Exception $e) {
                 $this->_errors[] = $e->getMessage();
-                return $this;
+                throw $e;
             }
 
             $previousCustomer = null;
@@ -331,6 +336,7 @@ class Observer
                     }
                 } catch (\Exception $e) {
                     $this->_errors[] = $e->getMessage();
+                    throw $e;
                 }
             }
 
@@ -339,6 +345,7 @@ class Observer
                     $email->send();
                 } catch (\Exception $e) {
                     $this->_errors[] = $e->getMessage();
+                    throw $e;
                 }
             }
         }

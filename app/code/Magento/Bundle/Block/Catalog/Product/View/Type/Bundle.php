@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Bundle\Block\Catalog\Product\View\Type;
@@ -11,7 +11,10 @@ use Magento\Catalog\Model\Product;
 /**
  * Catalog bundle product info block
  *
+ * @api
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @api
+ * @since 100.0.2
  */
 class Bundle extends \Magento\Catalog\Block\Product\View\AbstractView
 {
@@ -49,6 +52,11 @@ class Bundle extends \Magento\Catalog\Block\Product\View\AbstractView
     private $selectedOptions = [];
 
     /**
+     * @var \Magento\CatalogRule\Model\ResourceModel\Product\CollectionProcessor
+     */
+    private $catalogRuleProcessor;
+
+    /**
      * @param \Magento\Catalog\Block\Product\Context $context
      * @param \Magento\Framework\Stdlib\ArrayUtils $arrayUtils
      * @param \Magento\Catalog\Helper\Product $catalogProduct
@@ -78,12 +86,32 @@ class Bundle extends \Magento\Catalog\Block\Product\View\AbstractView
     }
 
     /**
+     * @deprecated 100.2.0
+     * @return \Magento\CatalogRule\Model\ResourceModel\Product\CollectionProcessor
+     */
+    private function getCatalogRuleProcessor()
+    {
+        if ($this->catalogRuleProcessor === null) {
+            $this->catalogRuleProcessor = \Magento\Framework\App\ObjectManager::getInstance()
+                ->get(\Magento\CatalogRule\Model\ResourceModel\Product\CollectionProcessor::class);
+        }
+
+        return $this->catalogRuleProcessor;
+    }
+
+    /**
+     * Returns the bundle product options
+     * Will return cached options data if the product options are already initialized
+     * In a case when $stripSelection parameter is true will reload stored bundle selections collection from DB
+     *
+     * @param bool $stripSelection
      * @return array
      */
-    public function getOptions()
+    public function getOptions($stripSelection = false)
     {
         if (!$this->options) {
             $product = $this->getProduct();
+            /** @var \Magento\Bundle\Model\Product\Type $typeInstance */
             $typeInstance = $product->getTypeInstance();
             $typeInstance->setStoreFilter($product->getStoreId(), $product);
 
@@ -93,10 +121,12 @@ class Bundle extends \Magento\Catalog\Block\Product\View\AbstractView
                 $typeInstance->getOptionsIds($product),
                 $product
             );
+            $this->getCatalogRuleProcessor()->addPriceData($selectionCollection);
+            $selectionCollection->addTierPriceData();
 
             $this->options = $optionCollection->appendSelections(
                 $selectionCollection,
-                false,
+                $stripSelection,
                 $this->catalogProduct->getSkipSaleableCheck()
             );
         }
@@ -131,7 +161,7 @@ class Bundle extends \Magento\Catalog\Block\Product\View\AbstractView
 
         $defaultValues = [];
         $preConfiguredFlag = $currentProduct->hasPreconfiguredValues();
-        /** @var \Magento\Framework\Object|null $preConfiguredValues */
+        /** @var \Magento\Framework\DataObject|null $preConfiguredValues */
         $preConfiguredValues = $preConfiguredFlag ? $currentProduct->getPreconfiguredValues() : null;
 
         $position = 0;
@@ -153,6 +183,16 @@ class Bundle extends \Magento\Catalog\Block\Product\View\AbstractView
             $position++;
         }
         $config = $this->getConfigData($currentProduct, $options);
+
+        $configObj = new \Magento\Framework\DataObject(
+            [
+                'config' => $config,
+            ]
+        );
+
+        //pass the return array encapsulated in an object for the other modules to be able to alter it eg: weee
+        $this->_eventManager->dispatch('catalog_product_option_price_configuration_after', ['configObj' => $configObj]);
+        $config=$configObj->getConfig();
 
         if ($preConfiguredFlag && !empty($defaultValues)) {
             $config['defaultValues'] = $defaultValues;
@@ -196,6 +236,7 @@ class Bundle extends \Magento\Catalog\Block\Product\View\AbstractView
         $selection = [
             'qty' => $qty,
             'customQty' => $selection->getSelectionCanChangeQty(),
+            'optionId' => $selection->getId(),
             'prices' => [
                 'oldPrice' => [
                     'amount' => $basePrice

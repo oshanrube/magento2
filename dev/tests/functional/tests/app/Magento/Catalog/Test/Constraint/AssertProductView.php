@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -70,11 +70,6 @@ class AssertProductView extends AbstractConstraint
         $priceComparing = false;
         if ($specialPrice = $product->getSpecialPrice()) {
             $priceComparing = $specialPrice;
-        }
-
-        if ($groupPrice = $product->getGroupPrice()) {
-            $groupPrice = reset($groupPrice);
-            $priceComparing = $groupPrice['price'];
         }
 
         if ($priceComparing && isset($price['price_special_price'])) {

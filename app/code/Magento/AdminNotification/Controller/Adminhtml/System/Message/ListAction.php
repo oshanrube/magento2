@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\AdminNotification\Controller\Adminhtml\System\Message;
@@ -9,12 +9,17 @@ namespace Magento\AdminNotification\Controller\Adminhtml\System\Message;
 class ListAction extends \Magento\Backend\App\AbstractAction
 {
     /**
+     * Authorization level of a basic admin session
+     */
+    const ADMIN_RESOURCE = 'Magento_AdminNotification::show_list';
+
+    /**
      * @var \Magento\Framework\Json\Helper\Data
      */
     protected $jsonHelper;
 
     /**
-     * @var \Magento\AdminNotification\Model\Resource\System\Message\Collection
+     * @var \Magento\AdminNotification\Model\ResourceModel\System\Message\Collection
      */
     protected $messageCollection;
 
@@ -23,12 +28,12 @@ class ListAction extends \Magento\Backend\App\AbstractAction
      *
      * @param \Magento\Backend\App\Action\Context $context
      * @param \Magento\Framework\Json\Helper\Data $jsonHelper
-     * @param \Magento\AdminNotification\Model\Resource\System\Message\Collection $messageCollection
+     * @param \Magento\AdminNotification\Model\ResourceModel\System\Message\Collection $messageCollection
      */
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         \Magento\Framework\Json\Helper\Data $jsonHelper,
-        \Magento\AdminNotification\Model\Resource\System\Message\Collection $messageCollection
+        \Magento\AdminNotification\Model\ResourceModel\System\Message\Collection $messageCollection
     ) {
         $this->jsonHelper = $jsonHelper;
         $this->messageCollection = $messageCollection;

@@ -1,12 +1,15 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\MediaStorage\Model\File\Storage;
 
 /**
  * Class File
+ *
+ * @api
+ * @since 100.0.2
  */
 class File
 {
@@ -59,13 +62,13 @@ class File
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Magento\MediaStorage\Helper\File\Storage\Database $storageHelper
      * @param \Magento\MediaStorage\Helper\File\Media $mediaHelper
-     * @param \Magento\MediaStorage\Model\Resource\File\Storage\File $fileUtility
+     * @param \Magento\MediaStorage\Model\ResourceModel\File\Storage\File $fileUtility
      */
     public function __construct(
         \Psr\Log\LoggerInterface $logger,
         \Magento\MediaStorage\Helper\File\Storage\Database $storageHelper,
         \Magento\MediaStorage\Helper\File\Media $mediaHelper,
-        \Magento\MediaStorage\Model\Resource\File\Storage\File $fileUtility
+        \Magento\MediaStorage\Model\ResourceModel\File\Storage\File $fileUtility
     ) {
         $this->_fileUtility = $fileUtility;
         $this->_storageHelper = $storageHelper;

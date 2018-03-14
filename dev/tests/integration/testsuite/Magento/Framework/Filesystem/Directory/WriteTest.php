@@ -2,7 +2,7 @@
 /**
  * Test for \Magento\Framework\Filesystem\Directory\Write
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\Filesystem\Directory;
@@ -14,7 +14,7 @@ use Magento\TestFramework\Helper\Bootstrap;
  * Class ReadTest
  * Test for Magento\Framework\Filesystem\Directory\Read class
  */
-class WriteTest extends \PHPUnit_Framework_TestCase
+class WriteTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * Test data to be cleaned
@@ -58,7 +58,7 @@ class WriteTest extends \PHPUnit_Framework_TestCase
         return [
             ['newDir1', 0777, "newDir1"],
             ['newDir1', 0777, "root_dir1/subdir1/subdir2"],
-            ['newDir2', 0755, "root_dir2/subdir"],
+            ['newDir2', 0777, "root_dir2/subdir"],
             ['newDir1', 0777, "."]
         ];
     }
@@ -232,6 +232,19 @@ class WriteTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test for changePermissionsRecursively method
+     */
+    public function testChangePermissionsRecursively()
+    {
+        $directory = $this->getDirectoryInstance('newDir1', 0777);
+        $directory->create('test_directory');
+        $directory->create('test_directory/subdirectory');
+        $directory->writeFile('test_directory/subdirectory/test_file.txt', 'Test Content');
+
+        $this->assertTrue($directory->changePermissionsRecursively('test_directory', 0777, 0644));
+    }
+
+    /**
      * Test for touch method
      *
      * @dataProvider touchProvider
@@ -372,7 +385,7 @@ class WriteTest extends \PHPUnit_Framework_TestCase
         $fullPath = __DIR__ . '/../_files/' . $path;
         $objectManager = Bootstrap::getObjectManager();
         /** @var \Magento\Framework\Filesystem\Directory\WriteFactory $directoryFactory */
-        $directoryFactory = $objectManager->create('Magento\Framework\Filesystem\Directory\WriteFactory');
+        $directoryFactory = $objectManager->create(\Magento\Framework\Filesystem\Directory\WriteFactory::class);
         $directory = $directoryFactory->create($fullPath, DriverPool::FILE, $permissions);
         $this->testDirectories[] = $directory;
         return $directory;

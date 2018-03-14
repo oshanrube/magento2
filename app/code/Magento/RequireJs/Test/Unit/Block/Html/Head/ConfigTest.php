@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -8,7 +8,7 @@ namespace Magento\RequireJs\Test\Unit\Block\Html\Head;
 
 use \Magento\RequireJs\Block\Html\Head\Config;
 
-class ConfigTest extends \PHPUnit_Framework_TestCase
+class ConfigTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var \Magento\Framework\View\Element\Context|\PHPUnit_Framework_MockObject_MockObject
@@ -36,17 +36,22 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
     protected $blockConfig;
 
     /**
-     * @var \Magento\Framework\View\Page\Config|\Magento\Framework\View\Asset\ConfigInterface
+     * @var \Magento\Framework\View\Asset\ConfigInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $bundleConfig;
 
+    /**
+     * @var \Magento\Framework\View\Asset\Minification|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $minificationMock;
+
     protected function setUp()
     {
-        $this->context = $this->getMock('\Magento\Framework\View\Element\Context', [], [], '', false);
-        $this->config = $this->getMock('\Magento\Framework\RequireJs\Config', [], [], '', false);
-        $this->fileManager = $this->getMock('\Magento\RequireJs\Model\FileManager', [], [], '', false);
-        $this->pageConfig = $this->getMock('\Magento\Framework\View\Page\Config', [], [], '', false);
-        $this->bundleConfig = $this->getMock('Magento\Framework\View\Asset\ConfigInterface', [], [], '', false);
+        $this->context = $this->createMock(\Magento\Framework\View\Element\Context::class);
+        $this->config = $this->createMock(\Magento\Framework\RequireJs\Config::class);
+        $this->fileManager = $this->createMock(\Magento\RequireJs\Model\FileManager::class);
+        $this->pageConfig = $this->createMock(\Magento\Framework\View\Page\Config::class);
+        $this->bundleConfig = $this->createMock(\Magento\Framework\View\Asset\ConfigInterface::class);
     }
 
     public function testSetLayout()
@@ -56,19 +61,28 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
             ->method('isBundlingJsFiles')
             ->willReturn(true);
         $filePath = 'require_js_fie_path';
-        $asset = $this->getMockForAbstractClass('\Magento\Framework\View\Asset\LocalInterface');
+        $asset = $this->getMockForAbstractClass(\Magento\Framework\View\Asset\LocalInterface::class);
         $asset->expects($this->atLeastOnce())
             ->method('getFilePath')
             ->willReturn($filePath);
-        $requireJsAsset = $this->getMockForAbstractClass('\Magento\Framework\View\Asset\LocalInterface');
+        $requireJsAsset = $this->getMockForAbstractClass(\Magento\Framework\View\Asset\LocalInterface::class);
         $requireJsAsset
             ->expects($this->atLeastOnce())
             ->method('getFilePath')
             ->willReturn('/path/to/require/require.js');
+        $minResolverAsset = $this->getMockForAbstractClass(\Magento\Framework\View\Asset\LocalInterface::class);
+        $minResolverAsset
+            ->expects($this->atLeastOnce())
+            ->method('getFilePath')
+            ->willReturn('/path/to/require/require-min-resolver.js');
 
         $this->fileManager
             ->expects($this->once())
             ->method('createRequireJsConfigAsset')
+            ->will($this->returnValue($requireJsAsset));
+        $this->fileManager
+            ->expects($this->once())
+            ->method('createRequireJsMixinsAsset')
             ->will($this->returnValue($requireJsAsset));
         $this->fileManager
             ->expects($this->once())
@@ -78,10 +92,14 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('createBundleJsPool')
             ->will($this->returnValue([$asset]));
+        $this->fileManager
+            ->expects($this->once())
+            ->method('createMinResolverAsset')
+            ->will($this->returnValue($minResolverAsset));
 
-        $layout = $this->getMock('Magento\Framework\View\LayoutInterface');
+        $layout = $this->createMock(\Magento\Framework\View\LayoutInterface::class);
 
-        $assetCollection = $this->getMockBuilder('Magento\Framework\View\Asset\GroupedCollection')
+        $assetCollection = $this->getMockBuilder(\Magento\Framework\View\Asset\GroupedCollection::class)
             ->disableOriginalConstructor()
             ->getMock();
         $this->pageConfig->expects($this->atLeastOnce())
@@ -93,27 +111,23 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
             ->method('insert')
             ->willReturn(true);
 
-        $object = new Config($this->context, $this->config, $this->fileManager, $this->pageConfig, $this->bundleConfig);
-        $object->setLayout($layout);
-    }
+        $this->minificationMock = $this->getMockBuilder(\Magento\Framework\View\Asset\Minification::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->minificationMock
+            ->expects($this->any())
+            ->method('isEnabled')
+            ->with('js')
+            ->willReturn(true);
 
-    public function testToHtml()
-    {
-        $this->context->expects($this->once())
-            ->method('getEventManager')
-            ->will($this->returnValue($this->getMockForAbstractClass('\Magento\Framework\Event\ManagerInterface')));
-        $this->context->expects($this->once())
-            ->method('getScopeConfig')
-            ->will($this->returnValue(
-                $this->getMockForAbstractClass('\Magento\Framework\App\Config\ScopeConfigInterface')
-            ));
-        $this->config->expects($this->once())->method('getBaseConfig')->will($this->returnValue('the config data'));
-        $object = new Config($this->context, $this->config, $this->fileManager, $this->pageConfig, $this->bundleConfig);
-        $html = $object->toHtml();
-        $expectedFormat = <<<expected
-<script type="text/javascript">
-the config data</script>
-expected;
-        $this->assertStringMatchesFormat($expectedFormat, $html);
+        $object = new Config(
+            $this->context,
+            $this->config,
+            $this->fileManager,
+            $this->pageConfig,
+            $this->bundleConfig,
+            $this->minificationMock
+        );
+        $object->setLayout($layout);
     }
 }

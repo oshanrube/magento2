@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -9,8 +9,8 @@ namespace Magento\Paypal\Setup;
 use Magento\Framework\Setup\InstallDataInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
-use Magento\Sales\Setup\SalesSetupFactory;
 use Magento\Quote\Setup\QuoteSetupFactory;
+use Magento\Sales\Setup\SalesSetupFactory;
 
 /**
  * @codeCoverageIgnore
@@ -27,7 +27,6 @@ class InstallData implements InstallDataInterface
      */
     protected $quoteSetupFactory;
 
-
     /**
      * @param SalesSetupFactory $salesSetupFactory
      * @param QuoteSetupFactory $quoteSetupFactory
@@ -37,7 +36,7 @@ class InstallData implements InstallDataInterface
         $this->salesSetupFactory = $salesSetupFactory;
         $this->quoteSetupFactory = $quoteSetupFactory;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -48,8 +47,8 @@ class InstallData implements InstallDataInterface
          */
         $setup->startSetup();
 
-        $quoteInstaller = $this->quoteSetupFactory->create(['resourceName' => 'quote_setup']);
-        $salesInstaller = $this->salesSetupFactory->create(['resourceName' => 'sales_setup']);
+        $quoteInstaller = $this->quoteSetupFactory->create(['resourceName' => 'quote_setup', 'setup' => $setup]);
+        $salesInstaller = $this->salesSetupFactory->create(['resourceName' => 'sales_setup', 'setup' => $setup]);
         /**
          * Add paypal attributes to the:
          *  - sales/flat_quote_payment_item table
@@ -80,6 +79,5 @@ class InstallData implements InstallDataInterface
          * Prepare database after install
          */
         $setup->endSetup();
-
     }
 }

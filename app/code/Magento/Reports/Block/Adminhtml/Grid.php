@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -9,7 +9,9 @@ namespace Magento\Reports\Block\Adminhtml;
 /**
  * Backend report grid block
  *
+ * @api
  * @author     Magento Core Team <core@magentocommerce.com>
+ * @since 100.0.2
  */
 class Grid extends \Magento\Backend\Block\Widget\Grid
 {
@@ -115,7 +117,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid
             $this->_setFilterValues($this->_defaultFilter);
         }
 
-        /** @var $collection \Magento\Reports\Model\Resource\Report\Collection */
+        /** @var $collection \Magento\Reports\Model\ResourceModel\Report\Collection */
         $collection = $this->getCollection();
         if ($collection) {
             $collection->setPeriod($this->getFilter('report_period'));
@@ -373,7 +375,7 @@ class Grid extends \Magento\Backend\Block\Widget\Grid
     {
         $this->addChild(
             'refresh_button',
-            'Magento\Backend\Block\Widget\Button',
+            \Magento\Backend\Block\Widget\Button::class,
             ['label' => __('Refresh'), 'onclick' => "{$this->getJsObjectName()}.doFilter();", 'class' => 'task']
         );
     }

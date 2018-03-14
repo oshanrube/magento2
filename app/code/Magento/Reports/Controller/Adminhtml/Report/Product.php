@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -11,7 +11,11 @@
  */
 namespace Magento\Reports\Controller\Adminhtml\Report;
 
-class Product extends AbstractReport
+/**
+ * @api
+ * @since 100.0.2
+ */
+abstract class Product extends AbstractReport
 {
     /**
      * Add report/products breadcrumbs

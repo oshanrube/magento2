@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Model\Category\Attribute\Backend;
@@ -8,7 +8,10 @@ namespace Magento\Catalog\Model\Category\Attribute\Backend;
 /**
  * Catalog Category Attribute Default and Available Sort By Backend Model
  *
+ * @api
+ *
  * @author     Magento Core Team <core@magentocommerce.com>
+ * @since 100.0.2
  */
 class Sortby extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
 {
@@ -32,7 +35,7 @@ class Sortby extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
     /**
      * Validate process
      *
-     * @param \Magento\Framework\Object $object
+     * @param \Magento\Framework\DataObject $object
      * @return bool
      * @throws \Magento\Framework\Exception\LocalizedException
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
@@ -85,7 +88,7 @@ class Sortby extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
     /**
      * Before Attribute Save Process
      *
-     * @param \Magento\Framework\Object $object
+     * @param \Magento\Framework\DataObject $object
      * @return $this
      */
     public function beforeSave($object)
@@ -96,10 +99,10 @@ class Sortby extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
             if (!is_array($data)) {
                 $data = [];
             }
-            $object->setData($attributeCode, join(',', $data));
+            $object->setData($attributeCode, implode(',', $data) ?: null);
         }
         if (!$object->hasData($attributeCode)) {
-            $object->setData($attributeCode, false);
+            $object->setData($attributeCode, null);
         }
         return $this;
     }
@@ -107,7 +110,7 @@ class Sortby extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
     /**
      * After Load Attribute Process
      *
-     * @param \Magento\Framework\Object $object
+     * @param \Magento\Framework\DataObject $object
      * @return $this
      */
     public function afterLoad($object)
@@ -116,7 +119,11 @@ class Sortby extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
         if ($attributeCode == 'available_sort_by') {
             $data = $object->getData($attributeCode);
             if ($data) {
-                $object->setData($attributeCode, explode(',', $data));
+                if (!is_array($data)) {
+                    $object->setData($attributeCode, explode(',', $data));
+                } else {
+                    $object->setData($attributeCode, $data);
+                }
             }
         }
         return $this;

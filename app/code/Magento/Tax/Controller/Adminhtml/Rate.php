@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -13,8 +13,15 @@ use Magento\Framework\Controller\ResultFactory;
  *
  * @author      Magento Core Team <core@magentocommerce.com>
  */
-class Rate extends \Magento\Backend\App\Action
+abstract class Rate extends \Magento\Backend\App\Action
 {
+    /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Magento_Tax::manage_tax';
+
     /**
      * @var \Magento\Framework\Registry
      */
@@ -61,7 +68,7 @@ class Rate extends \Magento\Backend\App\Action
             if (is_array($value)) {
                 $result[$key] = $this->_processRateData($value);
             } else {
-                $result[$key] = trim(strip_tags($value));
+                $result[$key] = trim($value);
             }
         }
         return $result;
@@ -79,13 +86,5 @@ class Rate extends \Magento\Backend\App\Action
             ->addBreadcrumb(__('Sales'), __('Sales'))
             ->addBreadcrumb(__('Tax'), __('Tax'));
         return $resultPage;
-    }
-
-    /**
-     * @return bool
-     */
-    protected function _isAllowed()
-    {
-        return $this->_authorization->isAllowed('Magento_Tax::manage_tax');
     }
 }

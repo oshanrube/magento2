@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Sales\Model\Order\Email\Sender;
@@ -11,7 +11,7 @@ use Magento\Sales\Model\Order\Email\Container\ShipmentIdentity;
 use Magento\Sales\Model\Order\Email\Container\Template;
 use Magento\Sales\Model\Order\Email\Sender;
 use Magento\Sales\Model\Order\Shipment;
-use Magento\Sales\Model\Resource\Order\Shipment as ShipmentResource;
+use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
 use Magento\Sales\Model\Order\Address\Renderer;
 use Magento\Framework\Event\ManagerInterface;
 
@@ -126,6 +126,9 @@ class ShipmentSender extends Sender
                 $this->shipmentResource->saveAttribute($shipment, ['send_email', 'email_sent']);
                 return true;
             }
+        } else {
+            $shipment->setEmailSent(null);
+            $this->shipmentResource->saveAttribute($shipment, 'email_sent');
         }
 
         $this->shipmentResource->saveAttribute($shipment, 'send_email');

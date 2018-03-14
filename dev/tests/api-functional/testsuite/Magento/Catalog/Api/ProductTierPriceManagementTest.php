@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -36,22 +36,22 @@ class ProductTierPriceManagementTest extends WebapiAbstract
             ],
         ];
 
-        $groupPriceList = $this->_webApiCall(
+        $tearPriceList = $this->_webApiCall(
             $serviceInfo,
             ['sku' => $productSku, 'customerGroupId' => $customerGroupId]
         );
 
-        $this->assertCount($count, $groupPriceList);
+        $this->assertCount($count, $tearPriceList);
         if ($count) {
-            $this->assertEquals($value, $groupPriceList[0]['value']);
-            $this->assertEquals($qty, $groupPriceList[0]['qty']);
+            $this->assertEquals($value, $tearPriceList[0]['value']);
+            $this->assertEquals($qty, $tearPriceList[0]['qty']);
         }
     }
 
     public function getListDataProvider()
     {
         return [
-            [0, 1, 5, 3],
+            [0, 2, 5, 3],
             [1, 0, null, null],
             ['all', 2, 8, 2],
         ];
@@ -122,7 +122,7 @@ class ProductTierPriceManagementTest extends WebapiAbstract
         $this->_webApiCall($serviceInfo, $requestData);
         $objectManager = \Magento\TestFramework\ObjectManager::getInstance();
         /** @var \Magento\Catalog\Api\ProductTierPriceManagementInterface $service */
-        $service = $objectManager->get('Magento\Catalog\Api\ProductTierPriceManagementInterface');
+        $service = $objectManager->get(\Magento\Catalog\Api\ProductTierPriceManagementInterface::class);
         $prices = $service->getList($productSku, 1);
         $this->assertCount(1, $prices);
         $this->assertEquals(10, $prices[0]->getValue());
@@ -160,7 +160,7 @@ class ProductTierPriceManagementTest extends WebapiAbstract
         $this->_webApiCall($serviceInfo, $requestData);
         $objectManager = \Magento\TestFramework\ObjectManager::getInstance();
         /** @var \Magento\Catalog\Api\ProductTierPriceManagementInterface $service */
-        $service = $objectManager->get('Magento\Catalog\Api\ProductTierPriceManagementInterface');
+        $service = $objectManager->get(\Magento\Catalog\Api\ProductTierPriceManagementInterface::class);
         $prices = $service->getList($productSku, 'all');
         $this->assertCount(3, $prices);
         $this->assertEquals(20, (int)$prices[2]->getValue());
@@ -198,7 +198,7 @@ class ProductTierPriceManagementTest extends WebapiAbstract
         $this->_webApiCall($serviceInfo, $requestData);
         $objectManager = \Magento\TestFramework\ObjectManager::getInstance();
         /** @var \Magento\Catalog\Api\ProductTierPriceManagementInterface $service */
-        $service = $objectManager->get('Magento\Catalog\Api\ProductTierPriceManagementInterface');
+        $service = $objectManager->get(\Magento\Catalog\Api\ProductTierPriceManagementInterface::class);
         $prices = $service->getList($productSku, 'all');
         $this->assertCount(2, $prices);
         $this->assertEquals(20, (int)$prices[0]->getValue());

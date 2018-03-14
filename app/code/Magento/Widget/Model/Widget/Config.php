@@ -1,12 +1,13 @@
 <?php
 /**
- * Widgets Insertion Plugin Config for Editor HTML Element
- *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Widget\Model\Widget;
 
+/**
+ * Widgets Insertion Plugin Config for Editor HTML Element
+ */
 class Config
 {
     /**
@@ -63,7 +64,7 @@ class Config
     /**
      * Return config settings for widgets insertion plugin based on editor element config
      *
-     * @param \Magento\Framework\Object $config
+     * @param \Magento\Framework\DataObject $config
      * @return array
      */
     public function getPluginSettings($config)
@@ -83,7 +84,7 @@ class Config
     /**
      * Return Widgets Insertion Plugin Window URL
      *
-     * @param \Magento\Framework\Object $config Editor element config
+     * @param \Magento\Framework\DataObject $config Editor element config
      * @return string
      */
     public function getWidgetWindowUrl($config)

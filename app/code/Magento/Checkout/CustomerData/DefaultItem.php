@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -12,9 +12,9 @@ namespace Magento\Checkout\CustomerData;
 class DefaultItem extends AbstractItem
 {
     /**
-     * @var \Magento\Catalog\Model\Product\Image\View
+     * @var \Magento\Catalog\Helper\Image
      */
-    protected $productImageView;
+    protected $imageHelper;
 
     /**
      * @var \Magento\Msrp\Helper\Data
@@ -37,21 +37,22 @@ class DefaultItem extends AbstractItem
     protected $checkoutHelper;
 
     /**
-     * @param \Magento\Catalog\Model\Product\Image\View $productImageView
+     * @param \Magento\Catalog\Helper\Image $imageHelper
      * @param \Magento\Msrp\Helper\Data $msrpHelper
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param \Magento\Catalog\Helper\Product\ConfigurationPool $configurationPool
      * @param \Magento\Checkout\Helper\Data $checkoutHelper
+     * @codeCoverageIgnore
      */
     public function __construct(
-        \Magento\Catalog\Model\Product\Image\View $productImageView,
+        \Magento\Catalog\Helper\Image $imageHelper,
         \Magento\Msrp\Helper\Data $msrpHelper,
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Catalog\Helper\Product\ConfigurationPool $configurationPool,
         \Magento\Checkout\Helper\Data $checkoutHelper
     ) {
         $this->configurationPool = $configurationPool;
-        $this->productImageView = $productImageView;
+        $this->imageHelper = $imageHelper;
         $this->msrpHelper = $msrpHelper;
         $this->urlBuilder = $urlBuilder;
         $this->checkoutHelper = $checkoutHelper;
@@ -62,26 +63,25 @@ class DefaultItem extends AbstractItem
      */
     protected function doGetItemData()
     {
-        $this->productImageView->init(
-            $this->getProductForThumbnail(),
-            'mini_cart_product_thumbnail',
-            'Magento_Catalog'
-        );
+        $imageHelper = $this->imageHelper->init($this->getProductForThumbnail(), 'mini_cart_product_thumbnail');
         return [
             'options' => $this->getOptionList(),
             'qty' => $this->item->getQty() * 1,
             'item_id' => $this->item->getId(),
             'configure_url' => $this->getConfigureUrl(),
             'is_visible_in_site_visibility' => $this->item->getProduct()->isVisibleInSiteVisibility(),
+            'product_id' => $this->item->getProduct()->getId(),
             'product_name' => $this->item->getProduct()->getName(),
+            'product_sku' => $this->item->getProduct()->getSku(),
             'product_url' => $this->getProductUrl(),
             'product_has_url' => $this->hasProductUrl(),
             'product_price' => $this->checkoutHelper->formatPrice($this->item->getCalculationPrice()),
+            'product_price_value' => $this->item->getCalculationPrice(),
             'product_image' => [
-                'src' => $this->productImageView->getUrl(),
-                'alt' => $this->productImageView->getLabel(),
-                'width' => $this->productImageView->getWidth(),
-                'height' => $this->productImageView->getHeight(),
+                'src' => $imageHelper->getUrl(),
+                'alt' => $imageHelper->getLabel(),
+                'width' => $imageHelper->getWidth(),
+                'height' => $imageHelper->getHeight(),
             ],
             'canApplyMsrp' => $this->msrpHelper->isShowBeforeOrderConfirm($this->item->getProduct())
                 && $this->msrpHelper->isMinimalPriceLessMsrp($this->item->getProduct()),
@@ -92,6 +92,7 @@ class DefaultItem extends AbstractItem
      * Get list of all options for product
      *
      * @return array
+     * @codeCoverageIgnore
      */
     protected function getOptionList()
     {
@@ -100,6 +101,7 @@ class DefaultItem extends AbstractItem
 
     /**
      * @return \Magento\Catalog\Model\Product
+     * @codeCoverageIgnore
      */
     protected function getProductForThumbnail()
     {
@@ -108,6 +110,7 @@ class DefaultItem extends AbstractItem
 
     /**
      * @return \Magento\Catalog\Model\Product
+     * @codeCoverageIgnore
      */
     protected function getProduct()
     {

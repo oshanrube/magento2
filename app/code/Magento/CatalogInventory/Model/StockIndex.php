@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -17,6 +17,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 
 /**
  * Class StockIndex
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class StockIndex implements StockIndexInterface
 {
@@ -31,7 +32,7 @@ class StockIndex implements StockIndexInterface
     protected $productRepository;
 
     /**
-     * @var \Magento\CatalogInventory\Model\Resource\Stock\Status
+     * @var \Magento\CatalogInventory\Model\ResourceModel\Stock\Status
      */
     protected $stockStatusResource;
 
@@ -76,18 +77,19 @@ class StockIndex implements StockIndexInterface
      * Rebuild stock index of the given website
      *
      * @param int $productId
-     * @param int $websiteId
+     * @param int $scopeId
+     * @deprecated 100.1.0
      * @return true
      * @SuppressWarnings(PHPMD.UnusedLocalVariable)
      */
-    public function rebuild($productId = null, $websiteId = null)
+    public function rebuild($productId = null, $scopeId = null)
     {
         if ($productId !== null) {
-            $this->updateProductStockStatus($productId, $websiteId);
+            $this->updateProductStockStatus($productId, $scopeId);
         } else {
             $lastProductId = 0;
             while (true) {
-                /** @var \Magento\CatalogInventory\Model\Resource\Stock\Status $resource */
+                /** @var \Magento\CatalogInventory\Model\ResourceModel\Stock\Status $resource */
                 $resource = $this->getStockStatusResource();
                 $productCollection = $resource->getProductCollection($lastProductId);
                 if (!$productCollection) {
@@ -95,7 +97,7 @@ class StockIndex implements StockIndexInterface
                 }
                 foreach ($productCollection as $productId => $productType) {
                     $lastProductId = $productId;
-                    $this->updateProductStockStatus($productId, $websiteId);
+                    $this->updateProductStockStatus($productId, $scopeId);
                 }
             }
         }
@@ -107,6 +109,7 @@ class StockIndex implements StockIndexInterface
      *
      * @param int $productId
      * @param int $websiteId
+     * @deprecated 100.1.0
      * @return void
      */
     public function updateProductStockStatus($productId, $websiteId)
@@ -119,8 +122,8 @@ class StockIndex implements StockIndexInterface
             $status = $item->getIsInStock();
             $qty = $item->getQty();
         }
-        $this->processChildren($productId, $websiteId, $qty, $status);
-        $this->processParents($productId, $websiteId);
+        $this->processChildren($productId, $item->getWebsiteId(), $qty, $status);
+        $this->processParents($productId, $item->getWebsiteId());
     }
 
     /**
@@ -199,7 +202,7 @@ class StockIndex implements StockIndexInterface
     protected function getWebsitesWithDefaultStores($websiteId = null)
     {
         if (is_null($this->websites)) {
-            /** @var \Magento\CatalogInventory\Model\Resource\Stock\Status $resource */
+            /** @var \Magento\CatalogInventory\Model\ResourceModel\Stock\Status $resource */
             $resource = $this->getStockStatusResource();
             $this->websites = $resource->getWebsiteStores();
         }
@@ -250,7 +253,7 @@ class StockIndex implements StockIndexInterface
     protected function getProductTypeInstances()
     {
         if (empty($this->productTypes)) {
-            $productEmulator = new \Magento\Framework\Object();
+            $productEmulator = new \Magento\Framework\DataObject();
             foreach (array_keys($this->productType->getTypes()) as $typeId) {
                 $productEmulator->setTypeId($typeId);
                 $this->productTypes[$typeId] = $this->productType->factory($productEmulator);
@@ -260,13 +263,13 @@ class StockIndex implements StockIndexInterface
     }
 
     /**
-     * @return \Magento\CatalogInventory\Model\Resource\Stock\Status
+     * @return \Magento\CatalogInventory\Model\ResourceModel\Stock\Status
      */
     protected function getStockStatusResource()
     {
         if (empty($this->stockStatusResource)) {
             $this->stockStatusResource = \Magento\Framework\App\ObjectManager::getInstance()->get(
-                'Magento\CatalogInventory\Model\Resource\Stock\Status'
+                \Magento\CatalogInventory\Model\ResourceModel\Stock\Status::class
             );
         }
         return $this->stockStatusResource;

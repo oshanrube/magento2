@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Reports\Block\Adminhtml\Grid;
@@ -44,14 +44,14 @@ class AbstractGrid extends \Magento\Backend\Block\Widget\Grid\Extended
     /**
      * Resource collection factory
      *
-     * @var \Magento\Reports\Model\Resource\Report\Collection\Factory
+     * @var \Magento\Reports\Model\ResourceModel\Report\Collection\Factory
      */
     protected $_resourceFactory;
 
     /**
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Backend\Helper\Data $backendHelper
-     * @param \Magento\Reports\Model\Resource\Report\Collection\Factory $resourceFactory
+     * @param \Magento\Reports\Model\ResourceModel\Report\Collection\Factory $resourceFactory
      * @param \Magento\Reports\Model\Grouped\CollectionFactory $collectionFactory
      * @param \Magento\Reports\Helper\Data $reportsData
      * @param array $data
@@ -59,7 +59,7 @@ class AbstractGrid extends \Magento\Backend\Block\Widget\Grid\Extended
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
         \Magento\Backend\Helper\Data $backendHelper,
-        \Magento\Reports\Model\Resource\Report\Collection\Factory $resourceFactory,
+        \Magento\Reports\Model\ResourceModel\Report\Collection\Factory $resourceFactory,
         \Magento\Reports\Model\Grouped\CollectionFactory $collectionFactory,
         \Magento\Reports\Helper\Data $reportsData,
         array $data = []
@@ -304,7 +304,7 @@ class AbstractGrid extends \Magento\Backend\Block\Widget\Grid\Extended
             $this->_addOrderStatusFilter($totalsCollection, $filterData);
 
             if ($totalsCollection->load()->getSize() < 1 || !$filterData->getData('from')) {
-                $this->setTotals(new \Magento\Framework\Object());
+                $this->setTotals(new \Magento\Framework\DataObject());
                 $this->setCountTotals(false);
             } else {
                 foreach ($totalsCollection->getItems() as $item) {
@@ -363,12 +363,11 @@ class AbstractGrid extends \Magento\Backend\Block\Widget\Grid\Extended
     public function getCurrentCurrencyCode()
     {
         if ($this->_currentCurrencyCode === null) {
-            $this->_currentCurrencyCode = count(
-                $this->_storeIds
-            ) > 0 ? $this->_storeManager->getStore(
-                array_shift($this->_storeIds)
-            )->getBaseCurrencyCode() : $this->_storeManager->getStore()->getBaseCurrencyCode();
+            $this->_currentCurrencyCode = count($this->_storeIds) > 0
+                ? $this->_storeManager->getStore(array_shift($this->_storeIds))->getCurrentCurrencyCode()
+                : $this->_storeManager->getStore()->getBaseCurrencyCode();
         }
+
         return $this->_currentCurrencyCode;
     }
 
@@ -386,8 +385,8 @@ class AbstractGrid extends \Magento\Backend\Block\Widget\Grid\Extended
     /**
      * Add order status filter
      *
-     * @param \Magento\Reports\Model\Resource\Report\Collection\AbstractCollection $collection
-     * @param \Magento\Framework\Object $filterData
+     * @param \Magento\Reports\Model\ResourceModel\Report\Collection\AbstractCollection $collection
+     * @param \Magento\Framework\DataObject $filterData
      * @return $this
      */
     protected function _addOrderStatusFilter($collection, $filterData)
@@ -400,8 +399,8 @@ class AbstractGrid extends \Magento\Backend\Block\Widget\Grid\Extended
      * Adds custom filter to resource collection
      * Can be overridden in child classes if custom filter needed
      *
-     * @param \Magento\Reports\Model\Resource\Report\Collection\AbstractCollection $collection
-     * @param \Magento\Framework\Object $filterData
+     * @param \Magento\Reports\Model\ResourceModel\Report\Collection\AbstractCollection $collection
+     * @param \Magento\Framework\DataObject $filterData
      * @return $this
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      * @codeCoverageIgnore

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -14,6 +14,11 @@
  */
 namespace Magento\Catalog\Model\Template;
 
+/**
+ * Work with catalog(store, website) urls
+ *
+ * @package Magento\Catalog\Model\Template
+ */
 class Filter extends \Magento\Framework\Filter\Template
 {
     /**
@@ -43,13 +48,13 @@ class Filter extends \Magento\Framework\Filter\Template
     protected $_storeManager;
 
     /**
-     * @param \Magento\Framework\Stdlib\String $string
+     * @param \Magento\Framework\Stdlib\StringUtils $string
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\View\Asset\Repository $assetRepo
      * @param array $variables
      */
     public function __construct(
-        \Magento\Framework\Stdlib\String $string,
+        \Magento\Framework\Stdlib\StringUtils $string,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         $variables = []

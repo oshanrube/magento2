@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Catalog\Ui\Component\Listing\Columns;
@@ -8,6 +8,10 @@ namespace Magento\Catalog\Ui\Component\Listing\Columns;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 
+/**
+ * @api
+ * @since 100.0.2
+ */
 class Thumbnail extends \Magento\Ui\Component\Listing\Columns\Column
 {
     const NAME = 'thumbnail';
@@ -17,7 +21,7 @@ class Thumbnail extends \Magento\Ui\Component\Listing\Columns\Column
     /**
      * @param ContextInterface $context
      * @param UiComponentFactory $uiComponentFactory
-     * @param \Magento\Catalog\Model\Product\Image\ViewFactory $imageFactory
+     * @param \Magento\Catalog\Helper\Image $imageHelper
      * @param \Magento\Framework\UrlInterface $urlBuilder
      * @param array $components
      * @param array $data
@@ -25,13 +29,13 @@ class Thumbnail extends \Magento\Ui\Component\Listing\Columns\Column
     public function __construct(
         ContextInterface $context,
         UiComponentFactory $uiComponentFactory,
-        \Magento\Catalog\Model\Product\Image\ViewFactory $imageFactory,
+        \Magento\Catalog\Helper\Image $imageHelper,
         \Magento\Framework\UrlInterface $urlBuilder,
         array $components = [],
         array $data = []
     ) {
         parent::__construct($context, $uiComponentFactory, $components, $data);
-        $this->imageFactory = $imageFactory;
+        $this->imageHelper = $imageHelper;
         $this->urlBuilder = $urlBuilder;
     }
 
@@ -39,27 +43,27 @@ class Thumbnail extends \Magento\Ui\Component\Listing\Columns\Column
      * Prepare Data Source
      *
      * @param array $dataSource
-     * @return void
+     * @return array
      */
-    public function prepareDataSource(array & $dataSource)
+    public function prepareDataSource(array $dataSource)
     {
         if (isset($dataSource['data']['items'])) {
             $fieldName = $this->getData('name');
             foreach ($dataSource['data']['items'] as & $item) {
-                $product = new \Magento\Framework\Object($item);
-                $imageView = $this->imageFactory->create()
-                    ->init($product, 'product_listing_thumbnail', 'Magento_Catalog');
-                $origImageView = $this->imageFactory->create()
-                    ->init($product, 'product_listing_thumbnail_preview', 'Magento_Catalog');
-                $item[$fieldName . '_src'] = $imageView->getUrl();
-                $item[$fieldName . '_alt'] = $this->getAlt($item) ?: $imageView->getLabel();
+                $product = new \Magento\Framework\DataObject($item);
+                $imageHelper = $this->imageHelper->init($product, 'product_listing_thumbnail');
+                $item[$fieldName . '_src'] = $imageHelper->getUrl();
+                $item[$fieldName . '_alt'] = $this->getAlt($item) ?: $imageHelper->getLabel();
                 $item[$fieldName . '_link'] = $this->urlBuilder->getUrl(
                     'catalog/product/edit',
                     ['id' => $product->getEntityId(), 'store' => $this->context->getRequestParam('store')]
                 );
-                $item[$fieldName . '_orig_src'] = $origImageView->getUrl();
+                $origImageHelper = $this->imageHelper->init($product, 'product_listing_thumbnail_preview');
+                $item[$fieldName . '_orig_src'] = $origImageHelper->getUrl();
             }
         }
+
+        return $dataSource;
     }
 
     /**

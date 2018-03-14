@@ -1,14 +1,14 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\Framework\View\Design\FileResolution\Fallback\Resolver;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
-use Magento\Framework\Filesystem;
-use Magento\Framework\Filesystem\Directory\ReadInterface;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Filesystem\Directory\ReadFactory;
 use Magento\Framework\View\Design\Fallback\Rule\RuleInterface;
 use Magento\Framework\View\Design\Fallback\RulePool;
 use Magento\Framework\View\Design\FileResolution\Fallback;
@@ -20,9 +20,11 @@ use Magento\Framework\View\Design\ThemeInterface;
 class Simple implements Fallback\ResolverInterface
 {
     /**
-     * @var ReadInterface
+     * Directory read factory
+     *
+     * @var ReadFactory
      */
-    protected $rootDirectory;
+    protected $readFactory;
 
     /**
      * Fallback factory
@@ -32,17 +34,18 @@ class Simple implements Fallback\ResolverInterface
     protected $rulePool;
 
     /**
-     * Constructor
-     *
-     * @param Filesystem $filesystem
-     * @param RulePool $rulePool
-     * @param Fallback\CacheDataInterface $cache
+     * @var DirectoryList
      */
-    public function __construct(Filesystem $filesystem, RulePool $rulePool, Fallback\CacheDataInterface $cache)
+    private $directoryList;
+
+    /**
+     * @param ReadFactory $readFactory
+     * @param RulePool $rulePool
+     */
+    public function __construct(ReadFactory $readFactory, RulePool $rulePool)
     {
-        $this->rootDirectory = $filesystem->getDirectoryRead(DirectoryList::ROOT);
+        $this->readFactory = $readFactory;
         $this->rulePool = $rulePool;
-        $this->cache = $cache;
     }
 
     /**
@@ -50,26 +53,18 @@ class Simple implements Fallback\ResolverInterface
      */
     public function resolve($type, $file, $area = null, ThemeInterface $theme = null, $locale = null, $module = null)
     {
-        self::assertFilePathFormat($file);
-        $themePath = $theme ? $theme->getThemePath() : '';
-        $path = $this->cache->getFromCache($type, $file, $area, $themePath, $locale, $module);
-        if (false !== $path) {
-            $path = $path ? $this->rootDirectory->getAbsolutePath($path) : false;
-        } else {
-            $params = ['area' => $area, 'theme' => $theme, 'locale' => $locale];
-            foreach ($params as $key => $param) {
-                if ($param === null) {
-                    unset($params[$key]);
-                }
-            }
-            if (!empty($module)) {
-                list($params['namespace'], $params['module']) = explode('_', $module, 2);
-            }
-            $path = $this->resolveFile($this->rulePool->getRule($type), $file, $params);
-            $cachedValue = $path ? $this->rootDirectory->getRelativePath($path) : '';
 
-            $this->cache->saveToCache($cachedValue, $type, $file, $area, $themePath, $locale, $module);
+        $params = ['area' => $area, 'theme' => $theme, 'locale' => $locale];
+        foreach ($params as $key => $param) {
+            if ($param === null) {
+                unset($params[$key]);
+            }
         }
+        if (!empty($module)) {
+            $params['module_name'] = $module;
+        }
+        $path = $this->resolveFile($this->rulePool->getRule($type), $file, $params);
+
         return $path;
     }
 
@@ -88,6 +83,34 @@ class Simple implements Fallback\ResolverInterface
     }
 
     /**
+     * Validate the file path to be secured
+     *
+     * @param string $fileName
+     * @param string $filePath
+     * @return bool
+     */
+    private function checkFilePathAccess($fileName, $filePath)
+    {
+        // Check if file name not contains any references '/./', '/../'
+        if (strpos(str_replace('\\', '/', $fileName), './') === false) {
+            return true;
+        }
+
+        $realPath = realpath($filePath);
+        $directoryWeb = $this->readFactory->create(
+            $this->getDirectoryList()->getPath(DirectoryList::LIB_WEB)
+        );
+        $fileRead = $this->readFactory->create($realPath);
+
+        // Check if file path starts with web lib directory path
+        if (strpos($fileRead->getAbsolutePath(), $directoryWeb->getAbsolutePath()) === 0) {
+            return true;
+        }
+
+        throw new \InvalidArgumentException("File path '{$filePath}' is forbidden for security reasons.");
+    }
+
+    /**
      * Get path of file after using fallback rules
      *
      * @param RuleInterface $fallbackRule
@@ -97,12 +120,28 @@ class Simple implements Fallback\ResolverInterface
      */
     protected function resolveFile(RuleInterface $fallbackRule, $file, array $params = [])
     {
+        $params['file'] = $file;
         foreach ($fallbackRule->getPatternDirs($params) as $dir) {
             $path = "{$dir}/{$file}";
-            if ($this->rootDirectory->isExist($this->rootDirectory->getRelativePath($path))) {
+            $dirRead = $this->readFactory->create($dir);
+            if ($dirRead->isExist($file) && $this->checkFilePathAccess($file, $path)) {
                 return $path;
             }
         }
         return false;
+    }
+
+    /**
+     * Retrieve directory list object
+     *
+     * @return DirectoryList
+     */
+    protected function getDirectoryList()
+    {
+        if (null === $this->directoryList) {
+            $this->directoryList = \Magento\Framework\App\ObjectManager::getInstance()->get(DirectoryList::class);
+        }
+
+        return $this->directoryList;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -18,35 +18,34 @@
 $start = microtime(true);
 $_productCollection = $block->getLoadedProductCollection();
 $_helper = $this->helper('Magento\Catalog\Helper\Output');
-$imageBlock =  $block->getLayout()->createBlock('Magento\Catalog\Block\Product\Image');
 ?>
 <?php if (!$_productCollection->count()): ?>
-<p class="message note"><?php echo __('We can\'t find products matching the selection.') ?></p>
+<p class="message note"><?= /* @escapeNotVerified */ __('We can\'t find products matching the selection.') ?></p>
 <?php else: ?>
-<?php echo $block->getToolbarHtml() ?>
-<?php echo $block->getAdditionalHtml() ?>
-<?php if ($block->getMode() == 'grid') {
-    $viewMode = 'grid';
-    $image = 'category_page_grid';
-    $showDescription = false;
-    $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW;
-} else {
-    $viewMode = 'list';
-    $image = 'category_page_list';
-    $showDescription = true;
-    $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::FULL_VIEW;
-}
-
+<?= $block->getToolbarHtml() ?>
+<?= $block->getAdditionalHtml() ?>
+<?php
+    if ($block->getMode() == 'grid') {
+        $viewMode = 'grid';
+        $image = 'category_page_grid';
+        $showDescription = false;
+        $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW;
+    } else {
+        $viewMode = 'list';
+        $image = 'category_page_list';
+        $showDescription = true;
+        $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::FULL_VIEW;
+    }
 ?>
-<div class="products wrapper <?php echo $viewMode; ?>">
+<div class="products wrapper <?= /* @escapeNotVerified */ $viewMode ?>">
     <?php $iterator = 1; ?>
     <ol class="products list items">
         <?php foreach ($_productCollection as $_product): ?>
-        <?php echo($iterator++ == 1) ? '<li class="item product">' : '</li><li class="item product">' ?>
+        <?= /* @escapeNotVerified */ ($iterator++ == 1) ? '<li class="item product">' : '</li><li class="item product">' ?>
             <div class="product">
                 <?php // Product Image ?>
-                <a href="<?php echo $_product->getProductUrl() ?>" class="product photo">
-                    <?php echo $imageBlock->init($_product, $image)->toHtml() ?>
+                <a href="<?= /* @escapeNotVerified */ $_product->getProductUrl() ?>" class="product photo">
+                    <?= $block->getImage($_product, $image)->toHtml() ?>
                 </a>
                 <div class="product details">
                 <?php
@@ -87,16 +86,16 @@ $imageBlock =  $block->getLayout()->createBlock('Magento\Catalog\Block\Product\I
 
                     $details = $block->getInfoOrder() ?: ['name','price','review','description','actions'];
                     foreach ($details as $detail) {
-                        echo $info[$detail];
+                        /* @escapeNotVerified */ echo $info[$detail];
                     }
                     ?>
 
                 </div>
             </div>
-        <?php echo($iterator == count($_productCollection)+1) ? '</li>' : '' ?>
+        <?= ($iterator == count($_productCollection)+1) ? '</li>' : '' ?>
         <?php endforeach; ?>
     </ol>
 </div>
-<?php echo $block->getToolbarHtml() ?>
+<?= $block->getToolbarHtml() ?>
 <?php endif; ?>
-<?php echo $time_taken = microtime(true) - $start; ?>
+<?= /* @escapeNotVerified */ $time_taken = microtime(true) - $start ?>

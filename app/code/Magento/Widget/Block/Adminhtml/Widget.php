@@ -1,18 +1,18 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 // @codingStandardsIgnoreFile
+namespace Magento\Widget\Block\Adminhtml;
 
 /**
  * WYSIWYG widget plugin main block
  *
- * @author     Magento Core Team <core@magentocommerce.com>
+ * @api
+ * @since 100.0.2
  */
-namespace Magento\Widget\Block\Adminhtml;
-
 class Widget extends \Magento\Backend\Block\Widget\Form\Container
 {
     /**
@@ -29,7 +29,7 @@ class Widget extends \Magento\Backend\Block\Widget\Form\Container
 
         $this->removeButton('reset');
         $this->removeButton('back');
-        $this->buttonList->update('save', 'label', __('Insert Frontend App'));
+        $this->buttonList->update('save', 'label', __('Insert Widget'));
         $this->buttonList->update('save', 'class', 'action-primary add-widget');
         $this->buttonList->update('save', 'id', 'insert_button');
         $this->buttonList->update('save', 'onclick', 'wWidget.insertWidget()');

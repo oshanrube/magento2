@@ -2,7 +2,7 @@
 /**
  * Test for validation rules implemented by XSD schemas for email templates configuration
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -10,7 +10,7 @@
 
 namespace Magento\Email\Test\Unit\Model\Template\Config;
 
-class XsdTest extends \PHPUnit_Framework_TestCase
+class XsdTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * Test validation rules implemented by XSD schema for merged configs
@@ -21,7 +21,11 @@ class XsdTest extends \PHPUnit_Framework_TestCase
      */
     public function testMergedXml($fixtureXml, array $expectedErrors)
     {
-        $schemaFile = BP . '/app/code/Magento/Email/etc/email_templates.xsd';
+        if (!function_exists('libxml_set_external_entity_loader')) {
+            $this->markTestSkipped('Skipped on HHVM. Will be fixed in MAGETWO-45033');
+        }
+        $urnResolver = new \Magento\Framework\Config\Dom\UrnResolver();
+        $schemaFile = $urnResolver->getRealPath('urn:magento:module:Magento_Email:etc/email_templates.xsd');
         $this->_testXmlAgainstXsd($fixtureXml, $schemaFile, $expectedErrors);
     }
 
@@ -112,7 +116,10 @@ class XsdTest extends \PHPUnit_Framework_TestCase
      */
     protected function _testXmlAgainstXsd($fixtureXml, $schemaFile, array $expectedErrors)
     {
-        $dom = new \Magento\Framework\Config\Dom($fixtureXml, [], null, null, '%message%');
+        $validationStateMock = $this->createMock(\Magento\Framework\Config\ValidationStateInterface::class);
+        $validationStateMock->method('isValidationRequired')
+            ->willReturn(true);
+        $dom = new \Magento\Framework\Config\Dom($fixtureXml, $validationStateMock, [], null, null, '%message%');
         $actualResult = $dom->validate($schemaFile, $actualErrors);
         $this->assertEquals(empty($expectedErrors), $actualResult);
         $this->assertEquals($expectedErrors, $actualErrors);

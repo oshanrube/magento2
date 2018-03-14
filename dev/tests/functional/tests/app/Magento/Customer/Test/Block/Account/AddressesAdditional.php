@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Customer\Test\Block\Account;
@@ -23,6 +23,13 @@ class AddressesAdditional extends Block
     protected $addressSelector = '//li[address[contains(.,"%s")]]';
 
     /**
+     * Selector for addresses block
+     *
+     * @var string
+     */
+    protected $addressesSelector = '//li[address]';
+
+    /**
      * Selector for delete link
      *
      * @var string
@@ -37,6 +44,13 @@ class AddressesAdditional extends Block
     protected $additionalAddressContent = '.block-content';
 
     /**
+     * Selector for confirm.
+     *
+     * @var string
+     */
+    protected $confirmModal = '.confirm._show[data-role=modal]';
+
+    /**
      * Delete Additional Address
      *
      * @param Address $address
@@ -46,7 +60,30 @@ class AddressesAdditional extends Block
     {
         $this->_rootElement->find(sprintf($this->addressSelector, $address->getStreet()), Locator::SELECTOR_XPATH)
             ->find($this->deleteAddressLink)->click();
-        $this->browser->acceptAlert();
+        $element = $this->browser->find($this->confirmModal);
+        /** @var \Magento\Ui\Test\Block\Adminhtml\Modal $modal */
+        $modal = $this->blockFactory->create(\Magento\Ui\Test\Block\Adminhtml\Modal::class, ['element' => $element]);
+        $modal->acceptAlert();
+    }
+
+    /**
+     * Check if additional address exists.
+     *
+     * @param string $address
+     * @return boolean
+     */
+    public function isAdditionalAddressExists($address)
+    {
+        $additionalAddressExists = false;
+
+        $addresses = $this->_rootElement->getElements($this->addressesSelector, Locator::SELECTOR_XPATH);
+        foreach ($addresses as $addressBlock) {
+            if (strpos($addressBlock->getText(), $address) === 0) {
+                $additionalAddressExists = $addressBlock->isVisible();
+                break;
+            }
+        }
+        return $additionalAddressExists;
     }
 
     /**

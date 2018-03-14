@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\Backup;
@@ -9,6 +9,7 @@ namespace Magento\Framework\Backup;
  * Class to work with database backups
  *
  * @author      Magento Core Team <core@magentocommerce.com>
+ * @api
  */
 class Db extends AbstractBackup
 {
@@ -101,6 +102,17 @@ class Db extends AbstractBackup
         $this->_lastOperationSucceed = true;
 
         return true;
+    }
+
+    /**
+     * Get database size
+     *
+     * @return int
+     */
+    public function getDBSize()
+    {
+        $backupDb = $this->_backupFactory->createBackupDbModel();
+        return $backupDb->getDBBackupSize();
     }
 
     /**

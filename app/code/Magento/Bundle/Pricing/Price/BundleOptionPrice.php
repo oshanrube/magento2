@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Bundle\Pricing\Price;
@@ -80,7 +80,7 @@ class BundleOptionPrice extends AbstractPrice implements BundleOptionPriceInterf
     /**
      * Get Options with attached Selections collection
      *
-     * @return \Magento\Bundle\Model\Resource\Option\Collection
+     * @return \Magento\Bundle\Model\ResourceModel\Option\Collection
      */
     public function getOptions()
     {
@@ -89,7 +89,7 @@ class BundleOptionPrice extends AbstractPrice implements BundleOptionPriceInterf
         $typeInstance = $bundleProduct->getTypeInstance();
         $typeInstance->setStoreFilter($bundleProduct->getStoreId(), $bundleProduct);
 
-        /** @var \Magento\Bundle\Model\Resource\Option\Collection $optionCollection */
+        /** @var \Magento\Bundle\Model\ResourceModel\Option\Collection $optionCollection */
         $optionCollection = $typeInstance->getOptionsCollection($bundleProduct);
 
         $selectionCollection = $typeInstance->getSelectionsCollection(
@@ -109,9 +109,22 @@ class BundleOptionPrice extends AbstractPrice implements BundleOptionPriceInterf
      */
     public function getOptionSelectionAmount($selection)
     {
-        $selectionPrice = $this->selectionFactory
-            ->create($this->product, $selection, $selection->getSelectionQty());
-        return $selectionPrice->getAmount();
+        $cacheKey = implode(
+            '_',
+            [
+                $this->product->getId(),
+                $selection->getOptionId(),
+                $selection->getSelectionId()
+            ]
+        );
+
+        if (!isset($this->optionSelecionAmountCache[$cacheKey])) {
+            $selectionPrice = $this->selectionFactory
+                ->create($this->product, $selection, $selection->getSelectionQty());
+            $this->optionSelecionAmountCache[$cacheKey] =  $selectionPrice->getAmount();
+        }
+
+        return $this->optionSelecionAmountCache[$cacheKey];
     }
 
     /**

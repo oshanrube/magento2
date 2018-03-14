@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -27,14 +27,14 @@ class Sku extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
     /**
      * Magento string lib
      *
-     * @var \Magento\Framework\Stdlib\String
+     * @var \Magento\Framework\Stdlib\StringUtils
      */
     protected $string;
 
     /**
-     * @param \Magento\Framework\Stdlib\String $string
+     * @param \Magento\Framework\Stdlib\StringUtils $string
      */
-    public function __construct(\Magento\Framework\Stdlib\String $string)
+    public function __construct(\Magento\Framework\Stdlib\StringUtils $string)
     {
         $this->string = $string;
     }
@@ -73,9 +73,12 @@ class Sku extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
     {
         $attribute = $this->getAttribute();
         $entity = $attribute->getEntity();
-        $increment = $this->_getLastSimilarAttributeValueIncrement($attribute, $object);
         $attributeValue = $object->getData($attribute->getAttributeCode());
+        $increment = null;
         while (!$entity->checkAttributeUniqueValue($attribute, $object)) {
+            if ($increment === null) {
+                $increment = $this->_getLastSimilarAttributeValueIncrement($attribute, $object);
+            }
             $sku = trim($attributeValue);
             if (strlen($sku . '-' . ++$increment) > self::SKU_MAX_LENGTH) {
                 $sku = substr($sku, 0, -strlen($increment) - 1);
@@ -106,8 +109,8 @@ class Sku extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
      */
     protected function _getLastSimilarAttributeValueIncrement($attribute, $object)
     {
-        $adapter = $this->getAttribute()->getEntity()->getReadConnection();
-        $select = $adapter->select();
+        $connection = $this->getAttribute()->getEntity()->getConnection();
+        $select = $connection->select();
         $value = $object->getData($attribute->getAttributeCode());
         $bind = ['attribute_code' => trim($value) . '-%'];
 
@@ -121,7 +124,7 @@ class Sku extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
         )->limit(
             1
         );
-        $data = $adapter->fetchOne($select, $bind);
+        $data = $connection->fetchOne($select, $bind);
         return abs((int)str_replace($value, '', $data));
     }
 }

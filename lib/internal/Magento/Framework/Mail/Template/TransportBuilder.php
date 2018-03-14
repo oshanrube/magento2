@@ -2,18 +2,20 @@
 /**
  * Mail Template Transport Builder
  *
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magento\Framework\Mail\Template;
 
 use Magento\Framework\App\TemplateTypesInterface;
-use Magento\Framework\Mail\Message;
 use Magento\Framework\Mail\MessageInterface;
 use Magento\Framework\Mail\TransportInterfaceFactory;
 use Magento\Framework\ObjectManagerInterface;
 
+/**
+ * @api
+ */
 class TransportBuilder
 {
     /**
@@ -22,6 +24,13 @@ class TransportBuilder
      * @var string
      */
     protected $templateIdentifier;
+
+    /**
+     * Template Model
+     *
+     * @var string
+     */
+    protected $templateModel;
 
     /**
      * Template Variables
@@ -75,7 +84,7 @@ class TransportBuilder
     /**
      * @var \Magento\Framework\Mail\TransportInterfaceFactory
      */
-    protected $_mailTransportFactory;
+    protected $mailTransportFactory;
 
     /**
      * @param FactoryInterface $templateFactory
@@ -95,7 +104,7 @@ class TransportBuilder
         $this->message = $message;
         $this->objectManager = $objectManager;
         $this->_senderResolver = $senderResolver;
-        $this->_mailTransportFactory = $mailTransportFactory;
+        $this->mailTransportFactory = $mailTransportFactory;
     }
 
     /**
@@ -175,6 +184,18 @@ class TransportBuilder
     }
 
     /**
+     * Set template model
+     *
+     * @param string $templateModel
+     * @return $this
+     */
+    public function setTemplateModel($templateModel)
+    {
+        $this->templateModel = $templateModel;
+        return $this;
+    }
+
+    /**
      * Set template vars
      *
      * @param array $templateVars
@@ -206,7 +227,7 @@ class TransportBuilder
     public function getTransport()
     {
         $this->prepareMessage();
-        $mailTransport = $this->_mailTransportFactory->create(['message' => clone $this->message]);
+        $mailTransport = $this->mailTransportFactory->create(['message' => clone $this->message]);
         $this->reset();
 
         return $mailTransport;
@@ -219,7 +240,7 @@ class TransportBuilder
      */
     protected function reset()
     {
-        $this->message = $this->objectManager->create('Magento\Framework\Mail\Message');
+        $this->message = $this->objectManager->create(\Magento\Framework\Mail\Message::class);
         $this->templateIdentifier = null;
         $this->templateVars = null;
         $this->templateOptions = null;
@@ -233,7 +254,7 @@ class TransportBuilder
      */
     protected function getTemplate()
     {
-        return $this->templateFactory->get($this->templateIdentifier)
+        return $this->templateFactory->get($this->templateIdentifier, $this->templateModel)
             ->setVars($this->templateVars)
             ->setOptions($this->templateOptions);
     }
@@ -254,7 +275,7 @@ class TransportBuilder
         $body = $template->processTemplate();
         $this->message->setMessageType($types[$template->getType()])
             ->setBody($body)
-            ->setSubject($template->getSubject());
+            ->setSubject(html_entity_decode($template->getSubject(), ENT_QUOTES));
 
         return $this;
     }

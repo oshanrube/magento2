@@ -1,11 +1,14 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Framework\App;
 
+use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\ObjectManager\ConfigLoaderInterface;
+use Magento\Framework\Filesystem;
+use Psr\Log\LoggerInterface;
 
 /**
  * Entry point for retrieving static resources like JS, CSS, images by requested public path
@@ -15,7 +18,7 @@ use Magento\Framework\ObjectManager\ConfigLoaderInterface;
 class StaticResource implements \Magento\Framework\AppInterface
 {
     /**
-     * @var State
+     * @var \Magento\Framework\App\State
      */
     private $state;
 
@@ -25,12 +28,12 @@ class StaticResource implements \Magento\Framework\AppInterface
     private $response;
 
     /**
-     * @var Request\Http
+     * @var \Magento\Framework\App\Request\Http
      */
     private $request;
 
     /**
-     * @var View\Asset\Publisher
+     * @var \Magento\Framework\App\View\Asset\Publisher
      */
     private $publisher;
 
@@ -50,14 +53,19 @@ class StaticResource implements \Magento\Framework\AppInterface
     private $objectManager;
 
     /**
-     * @var ConfigLoaderInterface
+     * @var \Magento\Framework\ObjectManager\ConfigLoaderInterface
      */
     private $configLoader;
 
     /**
-     * @var \Magento\Framework\View\Asset\MinifyService
+     * @var \Magento\Framework\Filesystem
      */
-    protected $minifyService;
+    private $filesystem;
+
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    private $logger;
 
     /**
      * @param State $state
@@ -68,7 +76,6 @@ class StaticResource implements \Magento\Framework\AppInterface
      * @param \Magento\Framework\Module\ModuleList $moduleList
      * @param \Magento\Framework\ObjectManagerInterface $objectManager
      * @param ConfigLoaderInterface $configLoader
-     * @param \Magento\Framework\View\Asset\MinifyService $minifyService
      */
     public function __construct(
         State $state,
@@ -78,8 +85,7 @@ class StaticResource implements \Magento\Framework\AppInterface
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\Module\ModuleList $moduleList,
         \Magento\Framework\ObjectManagerInterface $objectManager,
-        ConfigLoaderInterface $configLoader,
-        \Magento\Framework\View\Asset\MinifyService $minifyService
+        ConfigLoaderInterface $configLoader
     ) {
         $this->state = $state;
         $this->response = $response;
@@ -89,7 +95,6 @@ class StaticResource implements \Magento\Framework\AppInterface
         $this->moduleList = $moduleList;
         $this->objectManager = $objectManager;
         $this->configLoader = $configLoader;
-        $this->minifyService = $minifyService;
     }
 
     /**
@@ -113,7 +118,6 @@ class StaticResource implements \Magento\Framework\AppInterface
             $file = $params['file'];
             unset($params['file']);
             $asset = $this->assetRepo->createAsset($file, $params);
-            $asset = $this->minifyService->getAssets([$asset], true)[0];
             $this->response->setFilePath($asset->getSourceFile());
             $this->publisher->publish($asset);
         }
@@ -125,12 +129,15 @@ class StaticResource implements \Magento\Framework\AppInterface
      */
     public function catchException(Bootstrap $bootstrap, \Exception $exception)
     {
-        $this->response->setHttpResponseCode(404);
-        $this->response->setHeader('Content-Type', 'text/plain');
+        $this->getLogger()->critical($exception->getMessage());
         if ($bootstrap->isDeveloperMode()) {
+            $this->response->setHttpResponseCode(404);
+            $this->response->setHeader('Content-Type', 'text/plain');
             $this->response->setBody($exception->getMessage() . "\n" . $exception->getTraceAsString());
+            $this->response->sendResponse();
+        } else {
+            require $this->getFilesystem()->getDirectoryRead(DirectoryList::PUB)->getAbsolutePath('errors/404.php');
         }
-        $this->response->sendResponse();
         return true;
     }
 
@@ -145,9 +152,11 @@ class StaticResource implements \Magento\Framework\AppInterface
     {
         $path = ltrim($path, '/');
         $parts = explode('/', $path, 6);
-        if (count($parts) < 5) {
+        if (count($parts) < 5 || mb_strpos($path, '..') !== false) {
+            //Checking that path contains all required parts and is not above static folder.
             throw new \InvalidArgumentException("Requested path '$path' is wrong.");
         }
+        
         $result = [];
         $result['area'] = $parts[0];
         $result['theme'] = $parts[1] . '/' . $parts[2];
@@ -164,5 +173,34 @@ class StaticResource implements \Magento\Framework\AppInterface
         }
         $result['file'] = $parts[5];
         return $result;
+    }
+
+    /**
+     * Lazyload filesystem driver
+     *
+     * @deprecated 100.1.0
+     * @return Filesystem
+     */
+    private function getFilesystem()
+    {
+        if (!$this->filesystem) {
+            $this->filesystem = $this->objectManager->get(Filesystem::class);
+        }
+        return $this->filesystem;
+    }
+
+    /**
+     * Retrieves LoggerInterface instance
+     *
+     * @return LoggerInterface
+     * @deprecated 100.2.0
+     */
+    private function getLogger()
+    {
+        if (!$this->logger) {
+            $this->logger = $this->objectManager->get(LoggerInterface::class);
+        }
+
+        return $this->logger;
     }
 }

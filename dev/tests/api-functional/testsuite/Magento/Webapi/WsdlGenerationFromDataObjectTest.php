@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -30,7 +30,7 @@ class WsdlGenerationFromDataObjectTest extends \Magento\TestFramework\TestCase\W
     protected function setUp()
     {
         $this->_markTestAsSoapOnly("WSDL generation tests are intended to be executed for SOAP adapter only.");
-        $this->_storeCode = Bootstrap::getObjectManager()->get('Magento\Store\Model\StoreManagerInterface')
+        $this->_storeCode = Bootstrap::getObjectManager()->get(\Magento\Store\Model\StoreManagerInterface::class)
             ->getStore()->getCode();
         parent::setUp();
     }
@@ -65,6 +65,16 @@ class WsdlGenerationFromDataObjectTest extends \Magento\TestFramework\TestCase\W
         $this->_checkFaultsDeclaration($wsdlContent);
     }
 
+    public function testNoAuthorizedServices()
+    {
+        $wsdlUrl = $this->_getBaseWsdlUrl() . 'testModule5AllSoapAndRestV2';
+        $connection = curl_init($wsdlUrl);
+        curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
+        $responseContent = curl_exec($connection);
+        $this->assertEquals(curl_getinfo($connection, CURLINFO_HTTP_CODE), 401);
+        $this->assertContains("Consumer is not authorized to access %resources", $responseContent);
+    }
+
     public function testInvalidWsdlUrlNoServices()
     {
         $responseContent = $this->_getWsdlContent($this->_getBaseWsdlUrl());
@@ -97,8 +107,10 @@ class WsdlGenerationFromDataObjectTest extends \Magento\TestFramework\TestCase\W
      */
     protected function _getWsdlContent($wsdlUrl)
     {
+        $accessCredentials = \Magento\TestFramework\Authentication\OauthHelper::getApiAccessCredentials()['key'];
         $connection = curl_init($wsdlUrl);
         curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($connection, CURLOPT_HTTPHEADER, ['header' => "Authorization: Bearer " . $accessCredentials]);
         $responseContent = curl_exec($connection);
         $responseDom = new \DOMDocument();
         $this->assertTrue(
@@ -314,7 +326,7 @@ RESPONSE_TYPE;
             $referencedType = <<< RESPONSE_TYPE
 <xsd:complexType name="TestModule5V2EntityAllSoapAndRest">
     <xsd:annotation>
-        <xsd:documentation></xsd:documentation>
+        <xsd:documentation>Some Data Object short description. Data Object long multi line description.</xsd:documentation>
         <xsd:appinfo xmlns:inf="{$this->_soapUrl}"/>
     </xsd:annotation>
     <xsd:sequence>
@@ -395,7 +407,7 @@ RESPONSE_TYPE;
         </xsd:element>
         <xsd:element name="enabled" minOccurs="1" maxOccurs="1" type="xsd:boolean">
             <xsd:annotation>
-                <xsd:documentation></xsd:documentation>
+                <xsd:documentation>If entity is enabled</xsd:documentation>
                 <xsd:appinfo xmlns:inf="{$this->_soapUrl}">
                     <inf:default>false</inf:default>
                     <inf:callInfo>
@@ -416,7 +428,7 @@ RESPONSE_TYPE;
         </xsd:element>
         <xsd:element name="orders" minOccurs="1" maxOccurs="1" type="xsd:boolean">
             <xsd:annotation>
-                <xsd:documentation></xsd:documentation>
+                <xsd:documentation>If current entity has a property defined</xsd:documentation>
                 <xsd:appinfo xmlns:inf="{$this->_soapUrl}">
                     <inf:default>false</inf:default>
                     <inf:callInfo>
@@ -437,7 +449,7 @@ RESPONSE_TYPE;
         </xsd:element>
         <xsd:element name="customAttributes" type="tns:ArrayOfFrameworkAttributeInterface" minOccurs="0">
             <xsd:annotation>
-                <xsd:documentation></xsd:documentation>
+                <xsd:documentation>Custom attributes values.</xsd:documentation>
                 <xsd:appinfo xmlns:inf="{$this->_soapUrl}">
                     <inf:natureOfType>array</inf:natureOfType>
                     <inf:callInfo>

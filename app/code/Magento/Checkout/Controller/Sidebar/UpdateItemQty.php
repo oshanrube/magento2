@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Checkout\Controller\Sidebar;
@@ -35,6 +35,7 @@ class UpdateItemQty extends Action
      * @param Sidebar $sidebar
      * @param LoggerInterface $logger
      * @param Data $jsonHelper
+     * @codeCoverageIgnore
      */
     public function __construct(
         Context $context,

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 namespace Magento\Email\Controller\Adminhtml\Email;
@@ -10,8 +10,15 @@ namespace Magento\Email\Controller\Adminhtml\Email;
  *
  * @author      Magento Core Team <core@magentocommerce.com>
  */
-class Template extends \Magento\Backend\App\Action
+abstract class Template extends \Magento\Backend\App\Action
 {
+    /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Magento_Email::template';
+
     /**
      * Core registry
      *
@@ -38,7 +45,7 @@ class Template extends \Magento\Backend\App\Action
     protected function _initTemplate($idFieldName = 'template_id')
     {
         $id = (int)$this->getRequest()->getParam($idFieldName);
-        $model = $this->_objectManager->create('Magento\Email\Model\BackendTemplate');
+        $model = $this->_objectManager->create(\Magento\Email\Model\BackendTemplate::class);
         if ($id) {
             $model->load($id);
         }
@@ -49,15 +56,5 @@ class Template extends \Magento\Backend\App\Action
             $this->_coreRegistry->register('current_email_template', $model);
         }
         return $model;
-    }
-
-    /**
-     * Check if user has enough privileges
-     *
-     * @return bool
-     */
-    protected function _isAllowed()
-    {
-        return $this->_authorization->isAllowed('Magento_Email::template');
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -14,7 +14,9 @@ namespace Magento\Catalog\Block\Adminhtml\Product\Attribute\Edit\Tab;
 use Magento\Eav\Block\Adminhtml\Attribute\Edit\Main\AbstractMain;
 
 /**
+ * @api
  * @SuppressWarnings(PHPMD.DepthOfInheritance)
+ * @since 100.0.2
  */
 class Main extends AbstractMain
 {
@@ -27,7 +29,7 @@ class Main extends AbstractMain
     protected function _prepareForm()
     {
         parent::_prepareForm();
-        /** @var \Magento\Catalog\Model\Resource\Eav\Attribute $attributeObject */
+        /** @var \Magento\Catalog\Model\ResourceModel\Eav\Attribute $attributeObject */
         $attributeObject = $this->getAttributeObject();
         /* @var $form \Magento\Framework\Data\Form */
         $form = $this->getForm();
@@ -58,7 +60,7 @@ class Main extends AbstractMain
             ];
         }
 
-        $response = new \Magento\Framework\Object();
+        $response = new \Magento\Framework\DataObject();
         $response->setTypes([]);
         $this->_eventManager->dispatch('adminhtml_product_attribute_types', ['response' => $response]);
         $_hiddenFields = [];
@@ -70,10 +72,10 @@ class Main extends AbstractMain
         }
         $this->_coreRegistry->register('attribute_type_hidden_fields', $_hiddenFields);
 
-        $this->_eventManager->dispatch('product_attribute_form_build_main_tab', ['form' => $form]);
-
         $frontendInputValues = array_merge($frontendInputElm->getValues(), $additionalTypes);
         $frontendInputElm->setValues($frontendInputValues);
+
+        $this->_eventManager->dispatch('product_attribute_form_build_main_tab', ['form' => $form]);
 
         return $this;
     }
@@ -85,6 +87,6 @@ class Main extends AbstractMain
      */
     protected function _getAdditionalElementTypes()
     {
-        return ['apply' => 'Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Apply'];
+        return ['apply' => \Magento\Catalog\Block\Adminhtml\Product\Helper\Form\Apply::class];
     }
 }

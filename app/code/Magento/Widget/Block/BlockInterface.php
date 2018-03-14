@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -11,6 +11,10 @@
  */
 namespace Magento\Widget\Block;
 
+/**
+ * Interface \Magento\Widget\Block\BlockInterface
+ *
+ */
 interface BlockInterface
 {
     /**
@@ -31,7 +35,7 @@ interface BlockInterface
      *
      * @param string|array $key
      * @param mixed $value
-     * @return \Magento\Framework\Object
+     * @return \Magento\Framework\DataObject
      */
     public function setData($key, $value = null);
 }

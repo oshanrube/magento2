@@ -1,25 +1,28 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-
-// @codingStandardsIgnoreFile
-
 namespace Magento\Multishipping\Model\Checkout\Type;
 
 use Magento\Customer\Api\AddressRepositoryInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\App\ObjectManager;
+use Magento\Directory\Model\AllowedCountries;
 
 /**
  * Multishipping checkout model
+ *
+ * @api
  * @SuppressWarnings(PHPMD.TooManyFields)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @codingStandardsIgnoreFile
+ * @since 100.0.2
  */
-class Multishipping extends \Magento\Framework\Object
+class Multishipping extends \Magento\Framework\DataObject
 {
     /**
      * Quote shipping addresses items cache
@@ -100,7 +103,7 @@ class Multishipping extends \Magento\Framework\Object
     protected $priceCurrency;
 
     /**
-     * @var \Magento\Quote\Model\QuoteRepository
+     * @var \Magento\Quote\Api\CartRepositoryInterface
      */
     protected $quoteRepository;
 
@@ -135,6 +138,28 @@ class Multishipping extends \Magento\Framework\Object
     protected $quoteAddressToOrderAddress;
 
     /**
+     * @var \Magento\Quote\Model\Quote\TotalsCollector
+     */
+    protected $totalsCollector;
+
+    /**
+     * @var \Magento\Quote\Api\Data\CartExtensionFactory
+     */
+    private $cartExtensionFactory;
+
+    /**
+     * @var AllowedCountries
+     */
+    private $allowedCountryReader;
+
+    /**
+     * @var \Magento\Quote\Model\Quote\ShippingAssignment\ShippingAssignmentProcessor
+     */
+    private $shippingAssignmentProcessor;
+
+    /**
+     * Constructor
+     *
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Sales\Model\OrderFactory $orderFactory
@@ -152,10 +177,13 @@ class Multishipping extends \Magento\Framework\Object
      * @param \Magento\Multishipping\Helper\Data $helper
      * @param OrderSender $orderSender
      * @param PriceCurrencyInterface $priceCurrency
-     * @param \Magento\Quote\Model\QuoteRepository $quoteRepository
+     * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
+     * @param \Magento\Quote\Model\Quote\TotalsCollector $totalsCollector
      * @param array $data
+     * @param \Magento\Quote\Api\Data\CartExtensionFactory|null $cartExtensionFactory
+     * @param AllowedCountries|null $allowedCountryReader
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
@@ -176,10 +204,13 @@ class Multishipping extends \Magento\Framework\Object
         \Magento\Multishipping\Helper\Data $helper,
         OrderSender $orderSender,
         PriceCurrencyInterface $priceCurrency,
-        \Magento\Quote\Model\QuoteRepository $quoteRepository,
+        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Api\FilterBuilder $filterBuilder,
-        array $data = []
+        \Magento\Quote\Model\Quote\TotalsCollector $totalsCollector,
+        array $data = [],
+        \Magento\Quote\Api\Data\CartExtensionFactory $cartExtensionFactory = null,
+        AllowedCountries $allowedCountryReader = null
     ) {
         $this->_eventManager = $eventManager;
         $this->_scopeConfig = $scopeConfig;
@@ -201,6 +232,11 @@ class Multishipping extends \Magento\Framework\Object
         $this->quoteItemToOrderItem = $quoteItemToOrderItem;
         $this->quotePaymentToOrderPayment = $quotePaymentToOrderPayment;
         $this->quoteAddressToOrderAddress = $quoteAddressToOrderAddress;
+        $this->totalsCollector = $totalsCollector;
+        $this->cartExtensionFactory = $cartExtensionFactory ?: ObjectManager::getInstance()
+            ->get(\Magento\Quote\Api\Data\CartExtensionFactory::class);
+        $this->allowedCountryReader = $allowedCountryReader ?: ObjectManager::getInstance()
+            ->get(AllowedCountries::class);
         parent::__construct($data);
         $this->_init();
     }
@@ -281,35 +317,8 @@ class Multishipping extends \Magento\Framework\Object
         if ($this->_quoteShippingAddressesItems !== null) {
             return $this->_quoteShippingAddressesItems;
         }
-        $items = [];
-        $addresses = $this->getQuote()->getAllAddresses();
-        foreach ($addresses as $address) {
-            foreach ($address->getAllItems() as $item) {
-                if ($item->getParentItemId()) {
-                    continue;
-                }
-                if ($item->getProduct()->getIsVirtual()) {
-                    $items[] = $item;
-                    continue;
-                }
-                if ($item->getQty() > 1) {
-                    for ($i = 0, $n = $item->getQty(); $i < $n; $i++) {
-                        if ($i == 0) {
-                            $addressItem = $item;
-                        } else {
-                            $addressItem = clone $item;
-                        }
-                        $addressItem->setQty(1)->setCustomerAddressId($address->getCustomerAddressId())->save();
-                        $items[] = $addressItem;
-                    }
-                } else {
-                    $item->setCustomerAddressId($address->getCustomerAddressId());
-                    $items[] = $item;
-                }
-            }
-        }
-        $this->_quoteShippingAddressesItems = $items;
-        return $items;
+        $this->_quoteShippingAddressesItems = $this->getQuote()->getShippingAddressesItems();
+        return $this->_quoteShippingAddressesItems;
     }
 
     /**
@@ -403,6 +412,8 @@ class Multishipping extends \Magento\Framework\Object
                 }
             }
 
+            $this->prepareShippingAssignment($quote);
+
             /**
              * Delete all not virtual quote items which are not added to shipping address
              * MultishippingQty should be defined for each quote item when it processed with _addShippingItem
@@ -490,6 +501,7 @@ class Multishipping extends \Magento\Framework\Object
                 }
 
                 $quoteAddress = $this->getQuote()->getShippingAddressByCustomerAddressId($address->getId());
+                $quoteAddress->setCustomerAddressId($addressId);
                 $quoteAddressItem = $quoteAddress->getItemByQuoteItemId($quoteItemId);
                 if ($quoteAddressItem) {
                     $quoteAddressItem->setQty((int)($quoteAddressItem->getQty() + $qty));
@@ -523,13 +535,9 @@ class Multishipping extends \Magento\Framework\Object
             //
         }
         if (isset($address)) {
-            $this->getQuote()->getShippingAddressByCustomerAddressId(
-                $addressId
-            )->setCollectShippingRates(
-                true
-            )->importCustomerAddressData(
-                $address
-            )->collectTotals();
+            $quoteAddress = $this->getQuote()->getShippingAddressByCustomerAddressId($addressId);
+            $quoteAddress->setCollectShippingRates(true)->importCustomerAddressData($address);
+            $this->totalsCollector->collectAddressTotals($this->getQuote(), $quoteAddress);
             $this->quoteRepository->save($this->getQuote());
         }
 
@@ -554,7 +562,8 @@ class Multishipping extends \Magento\Framework\Object
             //
         }
         if (isset($address)) {
-            $this->getQuote()->getBillingAddress($addressId)->importCustomerAddressData($address)->collectTotals();
+            $quoteAddress = $this->getQuote()->getBillingAddress($addressId)->importCustomerAddressData($address);
+            $this->totalsCollector->collectAddressTotals($this->getQuote(), $quoteAddress);
             $this->getQuote()->collectTotals();
             $this->quoteRepository->save($this->getQuote());
         }
@@ -571,14 +580,20 @@ class Multishipping extends \Magento\Framework\Object
      */
     public function setShippingMethods($methods)
     {
-        $addresses = $this->getQuote()->getAllShippingAddresses();
+        $quote = $this->getQuote();
+        $addresses = $quote->getAllShippingAddresses();
+        /** @var  \Magento\Quote\Model\Quote\Address $address */
         foreach ($addresses as $address) {
-            if (isset($methods[$address->getId()])) {
-                $address->setShippingMethod($methods[$address->getId()]);
+            $addressId = $address->getId();
+            if (isset($methods[$addressId])) {
+                $address->setShippingMethod($methods[$addressId]);
             } elseif (!$address->getShippingMethod()) {
-                throw new \Magento\Framework\Exception\LocalizedException(__('Please select shipping methods for all addresses.'));
+                throw new \Magento\Framework\Exception\LocalizedException(
+                    __('Please select shipping methods for all addresses.')
+                );
             }
         }
+        $this->prepareShippingAssignment($quote);
         $this->save();
         return $this;
     }
@@ -593,10 +608,14 @@ class Multishipping extends \Magento\Framework\Object
     public function setPaymentMethod($payment)
     {
         if (!isset($payment['method'])) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('A payment method is not defined.'));
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('A payment method is not defined.')
+            );
         }
         if (!$this->paymentSpecification->isSatisfiedBy($payment['method'])) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('The requested payment method is not available for multishipping.'));
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('The requested payment method is not available for multishipping.')
+            );
         }
         $quote = $this->getQuote();
         $quote->getPayment()->importData($payment);
@@ -641,7 +660,9 @@ class Multishipping extends \Magento\Framework\Object
         foreach ($address->getAllItems() as $item) {
             $_quoteItem = $item->getQuoteItem();
             if (!$_quoteItem) {
-                throw new \Magento\Checkout\Exception(__('Item not found or already ordered'));
+                throw new \Magento\Checkout\Exception(
+                    __('Item not found or already ordered')
+                );
             }
             $item->setProductType(
                 $_quoteItem->getProductType()
@@ -671,19 +692,37 @@ class Multishipping extends \Magento\Framework\Object
         /** @var $paymentMethod \Magento\Payment\Model\Method\AbstractMethod */
         $paymentMethod = $quote->getPayment()->getMethodInstance();
         if (!$paymentMethod->isAvailable($quote)) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Please specify a payment method.'));
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Please specify a payment method.')
+            );
         }
 
         $addresses = $quote->getAllShippingAddresses();
         foreach ($addresses as $address) {
             $addressValidation = $address->validate();
             if ($addressValidation !== true) {
-                throw new \Magento\Framework\Exception\LocalizedException(__('Please check shipping addresses information.'));
+                throw new \Magento\Framework\Exception\LocalizedException(
+                    __('Please check shipping addresses information.')
+                );
             }
             $method = $address->getShippingMethod();
             $rate = $address->getShippingRateByCode($method);
             if (!$method || !$rate) {
-                throw new \Magento\Framework\Exception\LocalizedException(__('Please specify shipping methods for all addresses.'));
+                throw new \Magento\Framework\Exception\LocalizedException(
+                    __('Please specify shipping methods for all addresses.')
+                );
+            }
+
+            // Checks if a country id present in the allowed countries list.
+            if (
+                !in_array(
+                    $address->getCountryId(),
+                    $this->allowedCountryReader->getAllowedCountries()
+                )
+            ) {
+                throw new \Magento\Framework\Exception\LocalizedException(
+                    __('Some addresses cannot be used due to country-specific configurations.')
+                );
             }
         }
         $addressValidation = $quote->getBillingAddress()->validate();
@@ -958,6 +997,38 @@ class Multishipping extends \Magento\Framework\Object
             /** @var \Magento\Customer\Api\Data\AddressInterface $address */
             return $address->getId();
         }, $this->getCustomer()->getAddresses());
-        return in_array($addressId, $applicableAddressIds);
+        return !is_numeric($addressId) || in_array($addressId, $applicableAddressIds);
+    }
+
+    /**
+     * @param \Magento\Quote\Model\Quote $quote
+     * @return \Magento\Quote\Model\Quote
+     */
+    private function prepareShippingAssignment($quote)
+    {
+        $cartExtension = $quote->getExtensionAttributes();
+        if ($cartExtension === null) {
+            $cartExtension = $this->cartExtensionFactory->create();
+        }
+        /** @var \Magento\Quote\Api\Data\ShippingAssignmentInterface $shippingAssignment */
+        $shippingAssignment = $this->getShippingAssignmentProcessor()->create($quote);
+        $shipping = $shippingAssignment->getShipping();
+
+        $shipping->setMethod(null);
+        $shippingAssignment->setShipping($shipping);
+        $cartExtension->setShippingAssignments([$shippingAssignment]);
+        return $quote->setExtensionAttributes($cartExtension);
+    }
+
+    /**
+     * @return \Magento\Quote\Model\Quote\ShippingAssignment\ShippingAssignmentProcessor
+     */
+    private function getShippingAssignmentProcessor()
+    {
+        if (!$this->shippingAssignmentProcessor) {
+            $this->shippingAssignmentProcessor = ObjectManager::getInstance()
+                ->get(\Magento\Quote\Model\Quote\ShippingAssignment\ShippingAssignmentProcessor::class);
+        }
+        return $this->shippingAssignmentProcessor;
     }
 }

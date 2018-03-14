@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2015 Magento. All rights reserved.
+ * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -13,7 +13,8 @@ use Magento\Downloadable\Model\Link\Purchased\Item;
 /**
  * Block to display downloadable links bought by customer
  *
- * @author      Magento Core Team <core@magentocommerce.com>
+ * @api
+ * @since 100.0.2
  */
 class ListProducts extends \Magento\Framework\View\Element\Template
 {
@@ -23,27 +24,27 @@ class ListProducts extends \Magento\Framework\View\Element\Template
     protected $currentCustomer;
 
     /**
-     * @var \Magento\Downloadable\Model\Resource\Link\Purchased\CollectionFactory
+     * @var \Magento\Downloadable\Model\ResourceModel\Link\Purchased\CollectionFactory
      */
     protected $_linksFactory;
 
     /**
-     * @var \Magento\Downloadable\Model\Resource\Link\Purchased\Item\CollectionFactory
+     * @var \Magento\Downloadable\Model\ResourceModel\Link\Purchased\Item\CollectionFactory
      */
     protected $_itemsFactory;
 
     /**
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Customer\Helper\Session\CurrentCustomer $currentCustomer
-     * @param \Magento\Downloadable\Model\Resource\Link\Purchased\CollectionFactory $linksFactory
-     * @param \Magento\Downloadable\Model\Resource\Link\Purchased\Item\CollectionFactory $itemsFactory
+     * @param \Magento\Downloadable\Model\ResourceModel\Link\Purchased\CollectionFactory $linksFactory
+     * @param \Magento\Downloadable\Model\ResourceModel\Link\Purchased\Item\CollectionFactory $itemsFactory
      * @param array $data
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Customer\Helper\Session\CurrentCustomer $currentCustomer,
-        \Magento\Downloadable\Model\Resource\Link\Purchased\CollectionFactory $linksFactory,
-        \Magento\Downloadable\Model\Resource\Link\Purchased\Item\CollectionFactory $itemsFactory,
+        \Magento\Downloadable\Model\ResourceModel\Link\Purchased\CollectionFactory $linksFactory,
+        \Magento\Downloadable\Model\ResourceModel\Link\Purchased\Item\CollectionFactory $itemsFactory,
         array $data = []
     ) {
         $this->currentCustomer = $currentCustomer;
@@ -94,7 +95,7 @@ class ListProducts extends \Magento\Framework\View\Element\Template
         parent::_prepareLayout();
 
         $pager = $this->getLayout()->createBlock(
-            'Magento\Theme\Block\Html\Pager',
+            \Magento\Theme\Block\Html\Pager::class,
             'downloadable.customer.products.pager'
         )->setCollection(
             $this->getItems()
